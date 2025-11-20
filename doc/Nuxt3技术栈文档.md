@@ -9,6 +9,7 @@
 ### 前端框架
 
 #### Nuxt 3
+
 - **版本**: 最新稳定版
 - **渲染模式**: 混合渲染（SSR + SSG + CSR）
 - **特性**:
@@ -20,6 +21,7 @@
   - Nitro引擎提供高性能服务端渲染
 
 #### Vue 3
+
 - **版本**: 3.3+
 - **核心特性**:
   - Composition API
@@ -30,6 +32,7 @@
 ### 样式框架
 
 #### Tailwind CSS
+
 - **版本**: 3.3+
 - **集成方式**: @nuxtjs/tailwindcss模块
 - **特性**:
@@ -41,6 +44,7 @@
 ### 数据库与后端服务
 
 #### Supabase
+
 - **服务**: 托管的PostgreSQL数据库 + 实时API
 - **特性**:
   - 实时数据同步
@@ -50,13 +54,15 @@
   - 自动生成API
 
 #### Prisma (可选)
+
 - **用途**: 类型安全的数据库访问
 - **集成**: 与Supabase PostgreSQL配合使用
 
 ### 认证与授权
 
 #### Supabase Auth
-- **支持方式**: 
+
+- **支持方式**:
   - 邮箱/密码
   - OAuth (GitHub, Google等)
   - 魔法链接
@@ -67,6 +73,7 @@
 ### 内容编辑
 
 #### 富文本编辑器
+
 - **推荐**: Tiptap
 - **特性**:
   - 基于ProseMirror
@@ -75,6 +82,7 @@
   - 支持Markdown
 
 #### Markdown支持
+
 - **库**: @nuxt/content
 - **特性**:
   - 文件系统内容管理
@@ -85,6 +93,7 @@
 ### 部署平台
 
 #### Vercel
+
 - **优势**:
   - 原生Nuxt 3支持
   - 自动CI/CD
@@ -129,22 +138,22 @@ nuxt-tech-blog/
 export const useAuth = () => {
   const client = useSupabaseClient()
   const user = useState('user', () => null)
-  
+
   const signIn = async (email: string, password: string) => {
     const { data, error } = await client.auth.signInWithPassword({
       email,
       password
     })
-    
+
     if (!error) user.value = data.user
     return { data, error }
   }
-  
+
   const signOut = async () => {
     await client.auth.signOut()
     user.value = null
   }
-  
+
   return {
     user,
     signIn,
@@ -161,38 +170,31 @@ export const useAuth = () => {
 // composables/usePosts.ts
 export const usePosts = () => {
   const client = useSupabaseClient()
-  
+
   const getPosts = async (publishedOnly = true) => {
     let query = client.from('posts').select('*')
-    
+
     if (publishedOnly) {
       query = query.eq('published', true)
     }
-    
+
     const { data, error } = await query.order('created_at', { ascending: false })
-    
+
     return { data, error }
   }
-  
+
   const getPostBySlug = async (slug: string) => {
-    const { data, error } = await client
-      .from('posts')
-      .select('*')
-      .eq('slug', slug)
-      .single()
-    
+    const { data, error } = await client.from('posts').select('*').eq('slug', slug).single()
+
     return { data, error }
   }
-  
+
   const createPost = async (post: PostCreate) => {
-    const { data, error } = await client
-      .from('posts')
-      .insert(post)
-      .select()
-    
+    const { data, error } = await client.from('posts').insert(post).select()
+
     return { data, error }
   }
-  
+
   return {
     getPosts,
     getPostBySlug,
@@ -234,11 +236,14 @@ const editor = useEditor({
   }
 })
 
-watch(() => props.modelValue, (newValue) => {
-  if (editor.value && newValue !== editor.value.getHTML()) {
-    editor.value.commands.setContent(newValue, false)
+watch(
+  () => props.modelValue,
+  newValue => {
+    if (editor.value && newValue !== editor.value.getHTML()) {
+      editor.value.commands.setContent(newValue, false)
+    }
   }
-})
+)
 </script>
 ```
 
@@ -254,14 +259,14 @@ export const useContentImport = () => {
     const { JSDOM } = await import('jsdom')
     const dom = new JSDOM(htmlContent)
     const document = dom.window.document
-    
+
     // 提取标题
     const title = document.querySelector('h1, h2, h3')?.textContent || ''
-    
+
     // 提取正文内容
     const contentElement = document.querySelector('.rich_media_content')
     let content = ''
-    
+
     if (contentElement) {
       // 清理微信特定的样式和标签
       content = contentElement.innerHTML
@@ -269,7 +274,7 @@ export const useContentImport = () => {
         .replace(/<\/section>/g, '</div>')
         .replace(/style="[^"]*"/g, '')
     }
-    
+
     // 提取图片并上传到Supabase存储
     const images = document.querySelectorAll('img')
     for (const img of images) {
@@ -280,37 +285,35 @@ export const useContentImport = () => {
         img.setAttribute('src', newUrl)
       }
     }
-    
+
     return {
       title,
       content: contentElement?.outerHTML || ''
     }
   }
-  
+
   const uploadImageToSupabase = async (imageUrl: string): Promise<string> => {
     // 下载图片
     const response = await fetch(imageUrl)
     const blob = await response.blob()
-    
+
     // 上传到Supabase存储
     const client = useSupabaseClient()
     const fileName = `images/${Date.now()}-${Math.random().toString(36).substring(2)}`
-    
-    const { data } = await client.storage
-      .from('blog-images')
-      .upload(fileName, blob)
-    
+
+    const { data } = await client.storage.from('blog-images').upload(fileName, blob)
+
     if (data) {
-      const { data: { publicUrl } } = client.storage
-        .from('blog-images')
-        .getPublicUrl(data.path)
-      
+      const {
+        data: { publicUrl }
+      } = client.storage.from('blog-images').getPublicUrl(data.path)
+
       return publicUrl
     }
-    
+
     return imageUrl // 如果上传失败，返回原始URL
   }
-  
+
   return {
     importFromWeChat
   }
@@ -483,9 +486,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: '基于Nuxt 3的技术博客系统' }
       ],
-      link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-      ]
+      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
     }
   }
 })
@@ -501,7 +502,7 @@ export default defineNuxtConfig({
 // nuxt.config.ts
 export default defineNuxtConfig({
   modules: [
-    '@nuxt/image',
+    '@nuxt/image'
     // ...其他模块
   ],
   image: {
@@ -533,12 +534,12 @@ export default defineNuxtConfig({
 
 ```typescript
 // server/api/posts/index.get.ts
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   const posts = await getPosts()
-  
+
   // 缓存5分钟
   await useStorage('cache').setItem('posts', posts, { ttl: 300 })
-  
+
   return posts
 })
 ```
@@ -602,18 +603,18 @@ import Fuse from 'fuse.js'
 
 export const useSearch = () => {
   const posts = useState<Post[]>('posts', () => [])
-  
+
   const searchPosts = (query: string) => {
     if (!query.trim()) return posts.value
-    
+
     const fuse = new Fuse(posts.value, {
       keys: ['title', 'excerpt', 'content', 'tags'],
       threshold: 0.3
     })
-    
+
     return fuse.search(query).map(result => result.item)
   }
-  
+
   return {
     searchPosts
   }
@@ -632,7 +633,7 @@ export const useSearch = () => {
       <p>{{ comment.content }}</p>
       <small>{{ comment.author.username }} - {{ formatDate(comment.created_at) }}</small>
     </div>
-    
+
     <form @submit.prevent="addComment">
       <textarea v-model="newComment" placeholder="添加评论..."></textarea>
       <button type="submit">提交</button>
@@ -655,16 +656,17 @@ const fetchComments = async () => {
     .select('*, profiles(username)')
     .eq('post_id', postId)
     .order('created_at')
-  
+
   comments.value = data || []
 }
 
 // 实时监听评论变化
 client
   .channel(`comments:${postId}`)
-  .on('postgres_changes', 
+  .on(
+    'postgres_changes',
     { event: 'INSERT', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` },
-    (payload) => {
+    payload => {
       comments.value.push(payload.new as Comment)
     }
   )
@@ -673,13 +675,13 @@ client
 // 添加评论
 const addComment = async () => {
   if (!user.value || !newComment.value.trim()) return
-  
+
   await client.from('comments').insert({
     post_id: postId,
     author_id: user.value.id,
     content: newComment.value
   })
-  
+
   newComment.value = ''
 }
 

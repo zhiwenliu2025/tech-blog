@@ -12,6 +12,7 @@
 ## 项目概述
 
 本项目使用以下技术栈：
+
 - **前端框架**: Nuxt 3 (基于Vue 3)
 - **类型系统**: TypeScript
 - **样式框架**: Tailwind CSS
@@ -300,17 +301,17 @@ New-Item -Path "composables\useAuth.ts" -ItemType File -Value @"
 export const useAuth = () => {
   const client = useSupabaseClient()
   const user = useState('user', () => null)
-  
+
   const signIn = async (email: string, password: string) => {
     const { data, error } = await client.auth.signInWithPassword({
       email,
       password
     })
-    
+
     if (!error) user.value = data.user
     return { data, error }
   }
-  
+
   const signUp = async (email: string, password: string, metadata?: Record<string, any>) => {
     const { data, error } = await client.auth.signUp({
       email,
@@ -319,17 +320,17 @@ export const useAuth = () => {
         data: metadata
       }
     })
-    
+
     if (!error) user.value = data.user
     return { data, error }
   }
-  
+
   const signOut = async () => {
     await client.auth.signOut()
     user.value = null
     await navigateTo('/auth/signin')
   }
-  
+
   const signInWithProvider = async (provider: 'github' | 'google') => {
     const { data, error } = await client.auth.signInWithOAuth({
       provider,
@@ -337,10 +338,10 @@ export const useAuth = () => {
         redirectTo: `\${window.location.origin}/auth/callback`
       }
     })
-    
+
     return { data, error }
   }
-  
+
   // 监听认证状态变化
   client.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_IN' && session) {
@@ -349,7 +350,7 @@ export const useAuth = () => {
       user.value = null
     }
   })
-  
+
   return {
     user: readonly(user),
     signIn,
@@ -372,47 +373,47 @@ import type { Post } from '~/types'
 
 export const usePosts = () => {
   const client = useSupabaseClient()
-  
+
   const getPosts = async (publishedOnly = true, limit = 10) => {
     let query = client
       .from('posts')
       .select('*, profiles(username, avatar_url)')
       .order('created_at', { ascending: false })
       .limit(limit)
-    
+
     if (publishedOnly) {
       query = query.eq('published', true)
     }
-    
+
     const { data, error } = await query
-    
+
     if (data) {
       return data.map(post => ({
         ...post,
         author: post.profiles
       })) as Post[]
     }
-    
+
     return []
   }
-  
+
   const getPostBySlug = async (slug: string) => {
     const { data, error } = await client
       .from('posts')
       .select('*, profiles(username, avatar_url)')
       .eq('slug', slug)
       .single()
-    
+
     if (data) {
       return {
         ...data,
         author: data.profiles
       } as Post
     }
-    
+
     return null
   }
-  
+
   const createPost = async (post: Partial<Post>) => {
     const { data, error } = await client
       .from('posts')
@@ -423,10 +424,10 @@ export const usePosts = () => {
       })
       .select()
       .single()
-    
+
     return { data, error }
   }
-  
+
   const updatePost = async (id: string, post: Partial<Post>) => {
     const { data, error } = await client
       .from('posts')
@@ -437,23 +438,23 @@ export const usePosts = () => {
       .eq('id', id)
       .select()
       .single()
-    
+
     return { data, error }
   }
-  
+
   const deletePost = async (id: string) => {
     const { error } = await client
       .from('posts')
       .delete()
       .eq('id', id)
-    
+
     return { error }
   }
-  
+
   const incrementViewCount = async (id: string) => {
     await client.rpc('increment_view_count', { post_id: id })
   }
-  
+
   return {
     getPosts,
     getPostBySlug,
@@ -479,7 +480,7 @@ export const formatDate = (date: string | Date) => {
     month: 'long',
     day: 'numeric'
   }
-  
+
   return new Date(date).toLocaleDateString('zh-CN', options)
 }
 
