@@ -1,12 +1,26 @@
 import { createClient } from '@supabase/supabase-js'
+import { config } from 'dotenv'
 
-// Supabase 配置
-const supabaseUrl = 'https://vlipmiqsmusynhdaquoh.supabase.co'
-const supabaseKey =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsaXBtaXFzbXVzeW5oZGFxdW9oIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjI0MzA5MSwiZXhwIjoyMDc3ODE5MDkxfQ.pL0p8mWn5T0m3L1wXW4JY5q0k3J4b9H7X1fF7k8j9d4'
+// 加载环境变量
+config()
 
-// 创建 Supabase 客户端
-const supabase = createClient(supabaseUrl, supabaseKey)
+// 从环境变量获取 Supabase 配置
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
+
+// 检查必要的环境变量是否存在
+if (!supabaseUrl) {
+  console.error('错误: SUPABASE_URL 环境变量未设置')
+  process.exit(1)
+}
+
+if (!supabaseServiceKey) {
+  console.error('错误: SUPABASE_SERVICE_KEY 环境变量未设置')
+  process.exit(1)
+}
+
+// 创建 Supabase 客户端（使用 service key）
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 // 测试数据
 const testPosts = [
@@ -306,7 +320,24 @@ Docker 为 Node.js 应用的部署提供了强大而灵活的解决方案。`,
 async function initializeDatabase() {
   try {
     console.log('开始初始化数据库...')
+    console.log('Supabase URL:', supabaseUrl)
+    console.log('Supabase Key:', supabaseServiceKey.substring(0, 20) + '...')
 
+    console.log('步骤 1: 检查数据库连接...')
+    const { data: connectionTest, error: connectionError } = await supabase
+      .from('blog_posts')
+      .select('id')
+      .limit(1)
+
+    if (connectionError) {
+      console.error('数据库连接失败:', connectionError)
+      console.error('错误详情:', JSON.stringify(connectionError, null, 2))
+      return
+    }
+
+    console.log('数据库连接成功!')
+
+    console.log('步骤 2: 检查现有数据...')
     // 检查是否已有数据
     const { count, error: countError } = await supabase
       .from('blog_posts')
@@ -315,25 +346,60 @@ async function initializeDatabase() {
 
     if (countError) {
       console.error('检查数据失败:', countError)
+      console.error('错误详情:', JSON.stringify(countError, null, 2))
       return
     }
+
+    console.log(`当前数据库中有 ${count} 篇已发布的文章`)
 
     if (count > 0) {
       console.log(`数据库中已有 ${count} 篇文章，跳过初始化`)
+      console.log('如果需要重新初始化，请先清空数据库中的数据')
       return
     }
 
+    console.log('步骤 3: 准备插入测试数据...')
+    console.log(`准备插入 ${testPosts.length} 篇测试文章`)
+
+    // 打印即将插入的文章标题
+    testPosts.forEach((post, index) => {
+      console.log(`文章 ${index + 1}: ${post.title} (${post.slug})`)
+    })
+
+    console.log('步骤 4: 插入测试数据...')
     // 插入测试数据
     const { data, error } = await supabase.from('blog_posts').insert(testPosts).select()
 
     if (error) {
       console.error('插入数据失败:', error)
+      console.error('错误详情:', JSON.stringify(error, null, 2))
       return
     }
 
     console.log(`成功插入 ${data.length} 篇测试文章`)
+
+    // 打印插入的文章详情
+    data.forEach((post, index) => {
+      console.log(`已插入文章 ${index + 1}: ${post.title} (ID: ${post.id})`)
+    })
+
+    console.log('步骤 5: 验证数据插入结果...')
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('blog_posts')
+      .select('id, title, slug, published')
+      .eq('published', true)
+
+    if (verifyError) {
+      console.error('验证数据失败:', verifyError)
+      console.error('错误详情:', JSON.stringify(verifyError, null, 2))
+      return
+    }
+
+    console.log(`验证成功: 数据库中现在有 ${verifyData.length} 篇已发布的文章`)
+    console.log('数据库初始化完成!')
   } catch (error) {
-    console.error('初始化数据库失败:', error)
+    console.error('初始化数据库过程中发生未预期的错误:', error)
+    console.error('错误堆栈:', error.stack)
   }
 }
 
