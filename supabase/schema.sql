@@ -147,3 +147,40 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Function to delete a user
+CREATE OR REPLACE FUNCTION public.delete_user()
+RETURNS void AS $$
+BEGIN
+  DELETE FROM auth.users WHERE id = auth.uid();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create storage bucket for avatars
+INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
+
+-- Policies for avatar storage
+CREATE POLICY "Users can upload their own avatar" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'avatars' AND 
+    auth.role() = 'authenticated' AND 
+    (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+CREATE POLICY "Users can view their own avatar" ON storage.objects
+  FOR SELECT USING (
+    bucket_id = 'avatars' AND 
+    (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+CREATE POLICY "Users can update their own avatar" ON storage.objects
+  FOR UPDATE USING (
+    bucket_id = 'avatars' AND 
+    (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+CREATE POLICY "Users can delete their own avatar" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'avatars' AND 
+    (storage.foldername(name))[1] = auth.uid()::text
+  );
