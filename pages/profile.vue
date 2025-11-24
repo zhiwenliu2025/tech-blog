@@ -30,10 +30,10 @@
                 </div>
                 <div class="pt-14 text-center">
                   <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    {{ profile?.full_name || user?.email }}
+                    {{ profile?.full_name || nuxtUser?.email }}
                   </h2>
                   <p class="text-gray-600 dark:text-gray-400">
-                    {{ profile?.username || '@' + (user?.email?.split('@')[0] || 'user') }}
+                    {{ profile?.username || '@' + (nuxtUser?.email?.split('@')[0] || 'user') }}
                   </p>
                   <div class="mt-4 flex justify-center space-x-2">
                     <span
@@ -206,7 +206,7 @@
                     <div class="mt-1">
                       <input
                         id="email"
-                        :value="user?.email"
+                        :value="nuxtUser?.email"
                         type="email"
                         disabled
                         class="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 sm:text-sm"
@@ -354,13 +354,17 @@ definePageMeta({
 })
 
 // 用户状态
-const { user } = useSupabaseAuth()
+const { user: nuxtUser, signOut } = useSupabaseAuth()
 const supabase = useSupabaseClient()
 
 // 状态
 const loading = ref(false)
 const profile = ref(null)
 const showDeleteDialog = ref(false)
+
+// 调试用户对象
+console.log('useSupabaseAuth nuxtUser:', nuxtUser.value)
+console.log('用户ID (sub):', nuxtUser.value?.sub)
 
 // 表单数据
 const form = reactive({
@@ -379,17 +383,36 @@ const stats = reactive({
 
 // 获取用户资料
 const fetchProfile = async () => {
-  if (!user.value) return
+  if (!nuxtUser.value) {
+    console.error('用户未登录')
+    return
+  }
+
+  console.log('用户对象完整结构:', nuxtUser.value)
+  console.log('用户ID类型:', typeof nuxtUser.value.sub)
+  console.log('用户ID值:', nuxtUser.value.sub)
+
+  if (!nuxtUser.value.sub) {
+    console.error('用户ID不存在')
+    const toast = useToast()
+    toast.error('错误', '用户ID不存在，请重新登录')
+    return
+  }
 
   try {
+    console.log('获取用户资料，用户ID:', nuxtUser.value.sub)
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', user.value.id)
+      .eq('id', nuxtUser.value.sub)
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('获取用户资料错误:', error)
+      throw error
+    }
 
+    console.log('获取到的用户资料:', data)
     profile.value = data
     // 填充表单
     Object.keys(form).forEach(key => {
@@ -397,31 +420,68 @@ const fetchProfile = async () => {
     })
   } catch (error) {
     console.error('获取用户资料失败:', error)
+    // 如果用户资料不存在，创建一个默认的
+    if (error.code === 'PGRST116') {
+      // PGRST116 是 "No rows found" 的错误代码
+      console.log('用户资料不存在，创建默认资料')
+      try {
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: nuxtUser.value.sub,
+            username: nuxtUser.value.email?.split('@')[0] || 'user',
+            full_name: '',
+            website: '',
+            bio: ''
+          })
+          .select()
+          .single()
+
+        if (createError) throw createError
+
+        console.log('创建的用户资料:', newProfile)
+        profile.value = newProfile
+        // 填充表单
+        Object.keys(form).forEach(key => {
+          form[key] = newProfile[key] || ''
+        })
+      } catch (createErr) {
+        console.error('创建用户资料失败:', createErr)
+      }
+    }
   }
 }
 
 // 获取用户统计数据
 const fetchStats = async () => {
-  if (!user.value) return
+  if (!nuxtUser.value) {
+    console.error('用户未登录')
+    return
+  }
+
+  if (!nuxtUser.value.sub) {
+    console.error('用户ID不存在')
+    return
+  }
 
   try {
     // 获取文章数量
     const { count: postsCount } = await supabase
       .from('blog_posts')
       .select('*', { count: 'exact', head: true })
-      .eq('author_id', user.value.id)
+      .eq('author_id', nuxtUser.value.sub)
 
     // 获取评论数量
     const { count: commentsCount } = await supabase
       .from('comments')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.value.id)
+      .eq('user_id', nuxtUser.value.sub)
 
     // 获取点赞数量
     const { count: likesCount } = await supabase
       .from('likes')
       .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.value.id)
+      .eq('user_id', nuxtUser.value.sub)
 
     stats.postsCount = postsCount || 0
     stats.commentsCount = commentsCount || 0
@@ -433,34 +493,58 @@ const fetchStats = async () => {
 
 // 更新用户资料
 const updateProfile = async () => {
-  if (!user.value) return
+  if (!nuxtUser.value) {
+    console.error('用户未登录')
+    const toast = useToast()
+    toast.error('错误', '用户未登录')
+    return
+  }
+
+  if (!nuxtUser.value.sub) {
+    console.error('用户ID不存在')
+    const toast = useToast()
+    toast.error('错误', '用户ID不存在，请重新登录')
+    return
+  }
 
   loading.value = true
   try {
-    const { error } = await supabase.from('profiles').upsert({
-      id: user.value.id,
-      ...form,
-      updated_at: new Date().toISOString()
-    })
+    // 准备更新数据，只包含有值的字段
+    const updateData = {}
 
-    if (error) throw error
+    // 只添加有值的字段
+    if (form.username !== undefined && form.username !== '') updateData.username = form.username
+    if (form.full_name !== undefined && form.full_name !== '') updateData.full_name = form.full_name
+    if (form.website !== undefined && form.website !== '') updateData.website = form.website
+    if (form.bio !== undefined && form.bio !== '') updateData.bio = form.bio
+
+    console.log('更新数据:', updateData)
+    console.log('用户ID:', nuxtUser.value.sub)
+
+    // 使用update而不是upsert，因为我们已经确定用户存在
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', nuxtUser.value.sub)
+      .select()
+
+    if (error) {
+      console.error('Supabase error:', error)
+      throw error
+    }
+
+    console.log('更新成功，返回数据:', data)
 
     // 刷新数据
     await fetchProfile()
 
     // 显示成功消息
-    useToast().add({
-      title: '成功',
-      description: '您的个人资料已更新',
-      timeout: 3000
-    })
+    const toast = useToast()
+    toast.success('成功', '您的个人资料已更新')
   } catch (error) {
     console.error('更新个人资料失败:', error)
-    useToast().add({
-      title: '错误',
-      description: '更新个人资料失败，请重试',
-      timeout: 3000
-    })
+    const toast = useToast()
+    toast.error('错误', `更新个人资料失败: ${error.message || '未知错误'}`)
   } finally {
     loading.value = false
   }
@@ -477,7 +561,19 @@ const resetForm = () => {
 
 // 上传头像
 const uploadAvatar = async () => {
-  if (!user.value) return
+  if (!nuxtUser.value) {
+    console.error('用户未登录')
+    const toast = useToast()
+    toast.error('错误', '用户未登录')
+    return
+  }
+
+  if (!nuxtUser.value.sub) {
+    console.error('用户ID不存在')
+    const toast = useToast()
+    toast.error('错误', '用户ID不存在，请重新登录')
+    return
+  }
 
   // 创建文件输入元素
   const input = document.createElement('input')
@@ -490,11 +586,8 @@ const uploadAvatar = async () => {
 
     // 检查文件大小
     if (file.size > 2 * 1024 * 1024) {
-      useToast().add({
-        title: '错误',
-        description: '图片大小不能超过2MB',
-        timeout: 3000
-      })
+      const toast = useToast()
+      toast.error('错误', '图片大小不能超过2MB')
       return
     }
 
@@ -502,7 +595,7 @@ const uploadAvatar = async () => {
     try {
       // 上传文件到 Supabase Storage
       const fileExt = file.name.split('.').pop()
-      const fileName = `${user.value.id}/avatar.${fileExt}`
+      const fileName = `${nuxtUser.value.sub}/avatar.${fileExt}`
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -514,29 +607,24 @@ const uploadAvatar = async () => {
       const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
 
       // 更新用户资料
-      const { error: updateError } = await supabase.from('profiles').upsert({
-        id: user.value.id,
-        avatar_url: data.publicUrl,
-        updated_at: new Date().toISOString()
-      })
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          avatar_url: data.publicUrl
+        })
+        .eq('id', nuxtUser.value.sub)
 
       if (updateError) throw updateError
 
       // 刷新数据
       await fetchProfile()
 
-      useToast().add({
-        title: '成功',
-        description: '头像已更新',
-        timeout: 3000
-      })
+      const toast = useToast()
+      toast.success('成功', '头像已更新')
     } catch (error) {
       console.error('上传头像失败:', error)
-      useToast().add({
-        title: '错误',
-        description: '上传头像失败，请重试',
-        timeout: 3000
-      })
+      const toast = useToast()
+      toast.error('错误', '上传头像失败，请重试')
     } finally {
       loading.value = false
     }
@@ -547,25 +635,31 @@ const uploadAvatar = async () => {
 
 // 重置密码
 const resetPassword = async () => {
-  if (!user.value?.email) return
+  if (!nuxtUser.value) {
+    console.error('用户未登录')
+    const toast = useToast()
+    toast.error('错误', '用户未登录')
+    return
+  }
+
+  if (!nuxtUser.value.email) {
+    console.error('用户邮箱不存在')
+    const toast = useToast()
+    toast.error('错误', '用户邮箱不存在，请重新登录')
+    return
+  }
 
   try {
-    const { error } = await supabase.auth.resetPasswordForEmail(user.value.email)
+    const { error } = await supabase.auth.resetPasswordForEmail(nuxtUser.value.email)
 
     if (error) throw error
 
-    useToast().add({
-      title: '成功',
-      description: '密码重置链接已发送到您的邮箱',
-      timeout: 3000
-    })
+    const toast = useToast()
+    toast.success('成功', '密码重置链接已发送到您的邮箱')
   } catch (error) {
     console.error('重置密码失败:', error)
-    useToast().add({
-      title: '错误',
-      description: '重置密码失败，请重试',
-      timeout: 3000
-    })
+    const toast = useToast()
+    toast.error('错误', '重置密码失败，请重试')
   }
 }
 
@@ -576,12 +670,27 @@ const confirmDeleteAccount = () => {
 
 // 删除账户
 const deleteAccount = async () => {
-  if (!user.value) return
+  if (!nuxtUser.value) {
+    console.error('用户未登录')
+    const toast = useToast()
+    toast.error('错误', '用户未登录')
+    return
+  }
+
+  if (!nuxtUser.value.sub) {
+    console.error('用户ID不存在')
+    const toast = useToast()
+    toast.error('错误', '用户ID不存在，请重新登录')
+    return
+  }
 
   loading.value = true
   try {
     // 删除用户资料
-    const { error: profileError } = await supabase.from('profiles').delete().eq('id', user.value.id)
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', nuxtUser.value.sub)
 
     if (profileError) throw profileError
 
@@ -591,24 +700,17 @@ const deleteAccount = async () => {
     if (authError) throw authError
 
     // 退出登录
-    const { signOut } = useSupabaseAuth()
     await signOut()
 
     // 重定向到首页
     await navigateTo('/')
 
-    useToast().add({
-      title: '成功',
-      description: '您的账户已删除',
-      timeout: 3000
-    })
+    const toast = useToast()
+    toast.success('成功', '您的账户已删除')
   } catch (error) {
     console.error('删除账户失败:', error)
-    useToast().add({
-      title: '错误',
-      description: '删除账户失败，请重试',
-      timeout: 3000
-    })
+    const toast = useToast()
+    toast.error('错误', '删除账户失败，请重试')
   } finally {
     loading.value = false
     showDeleteDialog.value = false
@@ -622,7 +724,7 @@ onMounted(() => {
 })
 
 // 监听用户变化
-watch(user, newUser => {
+watch(nuxtUser, newUser => {
   if (newUser) {
     fetchProfile()
     fetchStats()

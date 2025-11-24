@@ -93,3 +93,6 @@ export const useToast = () => {
     warning
   }
 }
+
+// Make sure to export the toast state for the component
+export { toasts }
