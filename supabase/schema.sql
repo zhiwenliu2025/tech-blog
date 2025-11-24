@@ -1,3 +1,9 @@
+-- Drop tables if they exist (in reverse order of dependencies)
+DROP TABLE IF EXISTS likes;
+DROP TABLE IF EXISTS comments;
+DROP TABLE IF EXISTS profiles;
+DROP TABLE IF EXISTS blog_posts;
+
 -- Create blog_posts table
 CREATE TABLE IF NOT EXISTS blog_posts (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -23,6 +29,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   avatar_url TEXT,
   website TEXT,
   bio TEXT,
+  is_admin BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -47,11 +54,20 @@ CREATE TABLE IF NOT EXISTS likes (
 );
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS blog_posts_published_idx ON blog_posts(published);
-CREATE INDEX IF NOT EXISTS blog_posts_category_idx ON blog_posts(category);
-CREATE INDEX IF NOT EXISTS blog_posts_published_at_idx ON blog_posts(published_at DESC);
-CREATE INDEX IF NOT EXISTS comments_post_id_idx ON comments(post_id);
-CREATE INDEX IF NOT EXISTS likes_post_id_idx ON likes(post_id);
+DROP INDEX IF EXISTS blog_posts_published_idx;
+CREATE INDEX blog_posts_published_idx ON blog_posts(published);
+
+DROP INDEX IF EXISTS blog_posts_category_idx;
+CREATE INDEX blog_posts_category_idx ON blog_posts(category);
+
+DROP INDEX IF EXISTS blog_posts_published_at_idx;
+CREATE INDEX blog_posts_published_at_idx ON blog_posts(published_at DESC);
+
+DROP INDEX IF EXISTS comments_post_id_idx;
+CREATE INDEX comments_post_id_idx ON comments(post_id);
+
+DROP INDEX IF EXISTS likes_post_id_idx;
+CREATE INDEX likes_post_id_idx ON likes(post_id);
 
 -- Set up Row Level Security (RLS)
 ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
@@ -60,54 +76,70 @@ ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 
 -- Policies for blog_posts
+DROP POLICY IF EXISTS "Anyone can view published blog posts" ON blog_posts;
 CREATE POLICY "Anyone can view published blog posts" ON blog_posts
   FOR SELECT USING (published = true);
 
+DROP POLICY IF EXISTS "Users can view their own draft posts" ON blog_posts;
 CREATE POLICY "Users can view their own draft posts" ON blog_posts
   FOR SELECT USING (auth.uid() = author_id);
 
+DROP POLICY IF EXISTS "Users can insert their own posts" ON blog_posts;
 CREATE POLICY "Users can insert their own posts" ON blog_posts
   FOR INSERT WITH CHECK (auth.uid() = author_id);
 
+DROP POLICY IF EXISTS "Users can update their own posts" ON blog_posts;
 CREATE POLICY "Users can update their own posts" ON blog_posts
   FOR UPDATE USING (auth.uid() = author_id);
 
+DROP POLICY IF EXISTS "Users can delete their own posts" ON blog_posts;
 CREATE POLICY "Users can delete their own posts" ON blog_posts
   FOR DELETE USING (auth.uid() = author_id);
 
 -- Policies for profiles
+DROP POLICY IF EXISTS "Users can view all profiles" ON profiles;
 CREATE POLICY "Users can view all profiles" ON profiles
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
 CREATE POLICY "Users can insert their own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
 CREATE POLICY "Users can update their own profile" ON profiles
   FOR UPDATE USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can delete their own profile" ON profiles;
 CREATE POLICY "Users can delete their own profile" ON profiles
   FOR DELETE USING (auth.uid() = id);
 
 -- Policies for comments
+DROP POLICY IF EXISTS "Anyone can view comments" ON comments;
 CREATE POLICY "Anyone can view comments" ON comments
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Authenticated users can insert comments" ON comments;
 CREATE POLICY "Authenticated users can insert comments" ON comments
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Users can update their own comments" ON comments;
 CREATE POLICY "Users can update their own comments" ON comments
   FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own comments" ON comments;
 CREATE POLICY "Users can delete their own comments" ON comments
   FOR DELETE USING (auth.uid() = user_id);
 
 -- Policies for likes
+DROP POLICY IF EXISTS "Anyone can view likes" ON likes;
 CREATE POLICY "Anyone can view likes" ON likes
   FOR SELECT USING (true);
 
+DROP POLICY IF EXISTS "Authenticated users can insert likes" ON likes;
 CREATE POLICY "Authenticated users can insert likes" ON likes
   FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
+DROP POLICY IF EXISTS "Users can delete their own likes" ON likes;
 CREATE POLICY "Users can delete their own likes" ON likes
   FOR DELETE USING (auth.uid() = user_id);
 
@@ -121,14 +153,17 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Triggers for updated_at
+DROP TRIGGER IF EXISTS handle_blog_posts_updated_at ON blog_posts;
 CREATE TRIGGER handle_blog_posts_updated_at
   BEFORE UPDATE ON blog_posts
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
 
+DROP TRIGGER IF EXISTS handle_profiles_updated_at ON profiles;
 CREATE TRIGGER handle_profiles_updated_at
   BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
 
+DROP TRIGGER IF EXISTS handle_comments_updated_at ON comments;
 CREATE TRIGGER handle_comments_updated_at
   BEFORE UPDATE ON comments
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
@@ -144,6 +179,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger for new user profiles
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
@@ -160,6 +196,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
 
 -- Policies for avatar storage
+DROP POLICY IF EXISTS "Users can upload their own avatar" ON storage.objects;
 CREATE POLICY "Users can upload their own avatar" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'avatars' AND 
@@ -167,18 +204,21 @@ CREATE POLICY "Users can upload their own avatar" ON storage.objects
     (storage.foldername(name))[1] = auth.uid()::text
   );
 
+DROP POLICY IF EXISTS "Users can view their own avatar" ON storage.objects;
 CREATE POLICY "Users can view their own avatar" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'avatars' AND 
     (storage.foldername(name))[1] = auth.uid()::text
   );
 
+DROP POLICY IF EXISTS "Users can update their own avatar" ON storage.objects;
 CREATE POLICY "Users can update their own avatar" ON storage.objects
   FOR UPDATE USING (
     bucket_id = 'avatars' AND 
     (storage.foldername(name))[1] = auth.uid()::text
   );
 
+DROP POLICY IF EXISTS "Users can delete their own avatar" ON storage.objects;
 CREATE POLICY "Users can delete their own avatar" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'avatars' AND 
