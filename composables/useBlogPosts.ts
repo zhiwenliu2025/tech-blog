@@ -36,6 +36,11 @@ export const useBlogPosts = () => {
     }
   }
 
+  // Get all published blog posts (alias for getPosts)
+  const getPublishedPosts = async (limit = 10, offset = 0) => {
+    return getPosts(true, limit, offset)
+  }
+
   // Fetch posts with pagination
   const fetchPosts = async ({ page = 1, pageSize = 10, category = null, tag = null }) => {
     loading.value = true
@@ -337,6 +342,7 @@ export const useBlogPosts = () => {
     categories: readonly(categories),
     tags: readonly(tags),
     getPosts,
+    getPublishedPosts,
     fetchPosts,
     getPostBySlug,
     getPostsByCategory,

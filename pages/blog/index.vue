@@ -156,17 +156,21 @@ definePageMeta({
   description: '浏览所有博客文章'
 })
 
+// 获取路由参数和路由器
+const route = useRoute()
+const router = useRouter()
+
 // 状态
 const loading = ref(true)
 const error = ref(null)
 const posts = ref([])
 const categories = ref([])
 const tags = ref([])
-const selectedCategory = ref('')
-const selectedTag = ref('')
+const selectedCategory = ref(route.query.category || '')
+const selectedTag = ref(route.query.tag || '')
 const sortBy = ref('created_at')
-const searchQuery = ref('')
-const currentPage = ref(1)
+const searchQuery = ref(route.query.q || '')
+const currentPage = ref(parseInt(route.query.page as string) || 1)
 const postsPerPage = 9
 
 // 获取博客文章
@@ -278,11 +282,41 @@ const resetFilters = () => {
   sortBy.value = 'created_at'
   searchQuery.value = ''
   currentPage.value = 1
+  updateQueryParams()
 }
 
-// 监听筛选条件变化，重置页码
+// 更新URL查询参数
+const updateQueryParams = () => {
+  const query: any = {}
+
+  if (selectedCategory.value) {
+    query.category = selectedCategory.value
+  }
+
+  if (selectedTag.value) {
+    query.tag = selectedTag.value
+  }
+
+  if (searchQuery.value) {
+    query.q = searchQuery.value
+  }
+
+  if (currentPage.value > 1) {
+    query.page = currentPage.value.toString()
+  }
+
+  router.replace({ query })
+}
+
+// 监听筛选条件变化，重置页码并更新URL参数
 watch([selectedCategory, selectedTag, sortBy, searchQuery], () => {
   currentPage.value = 1
+  updateQueryParams()
+})
+
+// 监听页码变化，更新URL参数
+watch(currentPage, () => {
+  updateQueryParams()
 })
 
 // 初始化数据
