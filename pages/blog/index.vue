@@ -1,7 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <AppHeader />
-
+  <div>
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <div class="mb-8">
         <h1 class="mb-4 text-3xl font-bold text-gray-900 dark:text-white">博客文章</h1>
@@ -148,8 +146,6 @@
         </nav>
       </div>
     </main>
-
-    <AppFooter />
   </div>
 </template>
 

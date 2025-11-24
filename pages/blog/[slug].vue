@@ -1,7 +1,5 @@
 <template>
-  <div class="min-h-screen bg-white dark:bg-gray-900">
-    <AppHeader />
-
+  <div>
     <!-- 文章内容 -->
     <main class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
       <!-- Loading State -->
@@ -266,8 +264,6 @@
         </div>
       </section>
     </main>
-
-    <AppFooter />
   </div>
 </template>
 

@@ -1,6 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <AppHeader />
+  <div>
     <section class="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
       <div class="container mx-auto px-4 py-16">
         <div class="mx-auto max-w-3xl text-center">
@@ -131,7 +130,6 @@
         </div>
       </div>
     </main>
-    <AppFooter />
   </div>
 </template>
 

@@ -1,7 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-    <AppHeader />
-
+  <div>
     <main class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
       <div class="overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800">
         <div class="relative h-64 md:h-80">
@@ -182,8 +180,6 @@
         </div>
       </div>
     </main>
-
-    <AppFooter />
   </div>
 </template>
 
