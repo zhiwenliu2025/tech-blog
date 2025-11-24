@@ -80,6 +80,25 @@
                 </div>
               </div>
             </div>
+
+            <!-- 管理后台入口 -->
+            <div
+              v-if="profile?.is_admin"
+              class="mt-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800"
+            >
+              <div class="p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">管理功能</h3>
+                <div class="mt-4">
+                  <NuxtLink
+                    to="/admin"
+                    class="flex w-full items-center justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:bg-purple-700 dark:hover:bg-purple-800"
+                  >
+                    <Icon name="i-heroicons-cog-6-tooth" class="mr-2 h-4 w-4" />
+                    进入管理后台
+                  </NuxtLink>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- 右侧表单 -->
