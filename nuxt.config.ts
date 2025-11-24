@@ -14,6 +14,14 @@ export default defineNuxtConfig({
     '@nuxt/icon'
   ],
 
+  // PostCSS
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {}
+    }
+  },
+
   // Tailwind CSS
   tailwindcss: {
     configPath: 'tailwind.config.js',
