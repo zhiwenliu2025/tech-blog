@@ -678,7 +678,7 @@ const addComment = async () => {
 
   await client.from('comments').insert({
     post_id: postId,
-    author_id: user.value.id,
+    author_id: user.value.sub,
     content: newComment.value
   })
 

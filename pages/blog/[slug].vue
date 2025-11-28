@@ -440,7 +440,7 @@ const checkLikeStatus = async () => {
   if (!user.value || !post.value?.id) return
 
   try {
-    const result = await checkIfUserLikedPost(user.value.id, post.value.id)
+    const result = await checkIfUserLikedPost(user.value.sub, post.value.id)
     isLiked.value = result.data ? true : false
   } catch (err) {
     console.error('检查点赞状态失败:', err)
@@ -456,7 +456,7 @@ const submitComment = async () => {
   try {
     const result = await addComment({
       post_id: post.value.id,
-      user_id: user.value.id,
+      user_id: user.value.sub,
       content: newComment.value.trim()
     })
 
@@ -480,7 +480,7 @@ const checkAdminStatus = async () => {
   }
 
   try {
-    const result = await checkIsAdmin(user.value.id)
+    const result = await checkIsAdmin(user.value.sub)
     if (!result.error) {
       isAdmin.value = result.data || false
     }
@@ -494,7 +494,7 @@ const checkAdminStatus = async () => {
 const canDeleteComment = (comment: any) => {
   if (!user.value) return false
   // 如果是评论作者或管理员，可以删除
-  return comment.user_id === user.value.id || isAdmin.value
+  return comment.user_id === user.value.sub || isAdmin.value
 }
 
 // 删除评论
@@ -531,13 +531,13 @@ const toggleLike = async () => {
     let result
 
     if (isLiked.value) {
-      result = await unlikePost(user.value.id, post.value.id)
+      result = await unlikePost(user.value.sub, post.value.id)
       if (!result.error) {
         isLiked.value = false
         likesCount.value = Math.max(0, likesCount.value - 1)
       }
     } else {
-      result = await likePost(user.value.id, post.value.id)
+      result = await likePost(user.value.sub, post.value.id)
       if (!result.error) {
         isLiked.value = true
         likesCount.value += 1
