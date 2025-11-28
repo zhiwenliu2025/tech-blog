@@ -99,7 +99,13 @@
         v-else-if="filteredPosts.length > 0"
         class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
-        <BlogPostCard v-for="post in paginatedPosts" :key="post.id" :post="post" />
+        <BlogPostCard
+          v-for="post in paginatedPosts"
+          :key="post.id"
+          :post="post"
+          :likes-count="post.likes_count || 0"
+          :comments-count="post.comments_count || 0"
+        />
       </div>
 
       <!-- 空状态 -->

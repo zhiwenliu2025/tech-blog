@@ -21,18 +21,23 @@
         <p class="mt-2 text-gray-600 dark:text-gray-400">
           {{ error }}
         </p>
-        <UButton color="primary" variant="outline" class="mt-4" @click="navigateTo('/')">
+        <button
+          class="mt-4 rounded-md border border-blue-600 bg-white px-4 py-2 text-blue-600 transition-colors hover:bg-blue-50 dark:border-blue-400 dark:bg-gray-800 dark:text-blue-400 dark:hover:bg-gray-700"
+          @click="navigateTo('/')"
+        >
           返回首页
-        </UButton>
+        </button>
       </div>
 
       <!-- Blog Post -->
       <article v-else-if="post" class="prose prose-lg max-w-none dark:prose-invert">
         <header class="mb-8">
           <div class="mb-4 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-            <UBadge color="primary" variant="subtle">
+            <span
+              class="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+            >
               {{ post.category }}
-            </UBadge>
+            </span>
             <span>•</span>
             <time :datetime="post.created_at">{{ formatDate(post.created_at) }}</time>
           </div>
@@ -82,16 +87,14 @@
 
           <!-- 标签 -->
           <div v-if="post.tags && post.tags.length > 0" class="mb-6 flex flex-wrap gap-2">
-            <UBadge
+            <span
               v-for="tag in post.tags"
               :key="tag"
-              color="gray"
-              variant="outline"
-              class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+              class="cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               @click="navigateTo(`/tags/${tag}`)"
             >
               #{{ tag }}
-            </UBadge>
+            </span>
           </div>
         </header>
 
@@ -187,23 +190,33 @@
         <!-- 评论输入框 -->
         <div v-if="user" class="mb-8 rounded-lg bg-gray-50 p-6 dark:bg-gray-800">
           <form @submit.prevent="submitComment">
-            <UTextarea v-model="newComment" placeholder="写下你的评论..." rows="4" class="mb-4" />
+            <textarea
+              v-model="newComment"
+              placeholder="写下你的评论..."
+              rows="4"
+              class="mb-4 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+            />
             <div class="flex justify-end">
-              <UButton
+              <button
                 type="submit"
-                color="primary"
-                :loading="commentLoading"
-                :disabled="!newComment.trim()"
+                :disabled="commentLoading || !newComment.trim()"
+                class="rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
               >
-                发表评论
-              </UButton>
+                <span v-if="commentLoading">发表中...</span>
+                <span v-else>发表评论</span>
+              </button>
             </div>
           </form>
         </div>
 
         <div v-else class="mb-8 rounded-lg bg-gray-50 p-6 text-center dark:bg-gray-800">
           <p class="mb-4 text-gray-600 dark:text-gray-400">登录后才能发表评论</p>
-          <UButton color="primary" @click="navigateTo('/login')"> 登录 </UButton>
+          <button
+            class="rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600"
+            @click="navigateTo('/login')"
+          >
+            登录
+          </button>
         </div>
 
         <!-- 评论列表 -->
