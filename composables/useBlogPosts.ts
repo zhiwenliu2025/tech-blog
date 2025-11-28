@@ -507,26 +507,54 @@ export const useBlogPosts = () => {
   // Get comments for a post
   const getPostComments = async (postId: string) => {
     try {
-      const { data, error: dbError } = await supabase
+      // 先查询评论
+      const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
-        .select(
-          `
-          *,
-          profiles:user_id (
-            id,
-            username,
-            avatar_url,
-            full_name
-          )
-        `
-        )
+        .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: false })
 
-      if (dbError) throw dbError
+      if (commentsError) {
+        console.error('获取评论错误:', commentsError)
+        throw commentsError
+      }
 
-      return { data: data || [], error: null }
+      if (!commentsData || commentsData.length === 0) {
+        return { data: [], error: null }
+      }
+
+      // 获取所有评论的用户ID
+      const userIds = [...new Set(commentsData.map(c => c.user_id).filter(Boolean))]
+
+      // 如果没有用户ID，直接返回评论数据
+      if (userIds.length === 0) {
+        return { data: commentsData.map(c => ({ ...c, profiles: null })), error: null }
+      }
+
+      // 查询用户信息
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, avatar_url, full_name')
+        .in('id', userIds)
+
+      if (profilesError) {
+        console.error('获取用户信息错误:', profilesError)
+        // 即使获取用户信息失败，也返回评论数据
+        return { data: commentsData.map(c => ({ ...c, profiles: null })), error: null }
+      }
+
+      // 创建用户信息映射
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || [])
+
+      // 合并评论和用户信息
+      const commentsWithProfiles = commentsData.map(comment => ({
+        ...comment,
+        profiles: profilesMap.get(comment.user_id) || null
+      }))
+
+      return { data: commentsWithProfiles, error: null }
     } catch (err: any) {
+      console.error('获取评论异常:', err)
       return { data: [], error: err.message }
     }
   }
