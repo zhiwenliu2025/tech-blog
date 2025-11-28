@@ -258,16 +258,27 @@
               </div>
             </div>
             <div class="flex-1">
-              <div class="mb-1 flex items-center space-x-2">
-                <p class="text-sm font-medium text-gray-900 dark:text-white">
-                  {{ comment.profiles?.username || '匿名用户' }}
-                </p>
-                <time
-                  :datetime="comment.created_at"
-                  class="text-xs text-gray-500 dark:text-gray-400"
+              <div class="mb-1 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ comment.profiles?.username || '匿名用户' }}
+                  </p>
+                  <time
+                    :datetime="comment.created_at"
+                    class="text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    {{ formatDate(comment.created_at) }}
+                  </time>
+                </div>
+                <button
+                  v-if="canDeleteComment(comment)"
+                  :disabled="deleteLoading === comment.id"
+                  class="text-xs text-red-500 transition-colors hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
+                  @click="handleDeleteComment(comment.id)"
                 >
-                  {{ formatDate(comment.created_at) }}
-                </time>
+                  <span v-if="deleteLoading === comment.id">删除中...</span>
+                  <span v-else>删除</span>
+                </button>
               </div>
               <p class="text-gray-700 dark:text-gray-300">
                 {{ comment.content }}
@@ -293,6 +304,8 @@ const {
   getPostBySlug,
   getPostComments,
   addComment,
+  deleteComment,
+  checkIsAdmin,
   likePost,
   unlikePost,
   checkIfUserLikedPost,
@@ -313,6 +326,8 @@ const likeLoading = ref(false)
 const isLiked = ref(false)
 const likesCount = ref(0)
 const commentsCount = ref(0)
+const deleteLoading = ref(null)
+const isAdmin = ref(false)
 
 // 计算阅读时间
 const readTime = computed(() => {
@@ -360,6 +375,7 @@ const fetchPost = async () => {
       // 检查用户是否已点赞
       if (user.value) {
         await checkLikeStatus()
+        await checkAdminStatus()
       }
     } else {
       error.value = '文章不存在'
@@ -373,7 +389,11 @@ const fetchPost = async () => {
 
 // 获取评论
 const fetchComments = async () => {
-  if (!post.value?.id) return
+  if (!post.value?.id) {
+    comments.value = []
+    commentsLoading.value = false
+    return
+  }
 
   commentsLoading.value = true
 
@@ -381,9 +401,13 @@ const fetchComments = async () => {
     const result = await getPostComments(post.value.id)
     if (!result.error) {
       comments.value = result.data || []
+    } else {
+      console.error('获取评论失败:', result.error)
+      comments.value = []
     }
   } catch (err) {
     console.error('获取评论失败:', err)
+    comments.value = []
   } finally {
     commentsLoading.value = false
   }
@@ -445,6 +469,55 @@ const submitComment = async () => {
     console.error('发表评论失败:', err)
   } finally {
     commentLoading.value = false
+  }
+}
+
+// 检查管理员状态
+const checkAdminStatus = async () => {
+  if (!user.value) {
+    isAdmin.value = false
+    return
+  }
+
+  try {
+    const result = await checkIsAdmin(user.value.id)
+    if (!result.error) {
+      isAdmin.value = result.data || false
+    }
+  } catch (err) {
+    console.error('检查管理员状态失败:', err)
+    isAdmin.value = false
+  }
+}
+
+// 检查是否可以删除评论
+const canDeleteComment = (comment: any) => {
+  if (!user.value) return false
+  // 如果是评论作者或管理员，可以删除
+  return comment.user_id === user.value.id || isAdmin.value
+}
+
+// 删除评论
+const handleDeleteComment = async (commentId: string) => {
+  if (!confirm('确定要删除这条评论吗？')) return
+
+  deleteLoading.value = commentId
+
+  try {
+    const result = await deleteComment(commentId)
+    if (!result.error) {
+      // 从评论列表中移除
+      comments.value = comments.value.filter(c => c.id !== commentId)
+      // 更新评论数
+      commentsCount.value = Math.max(0, commentsCount.value - 1)
+    } else {
+      alert('删除评论失败：' + result.error)
+    }
+  } catch (err) {
+    console.error('删除评论失败:', err)
+    alert('删除评论失败')
+  } finally {
+    deleteLoading.value = null
   }
 }
 
@@ -568,11 +641,13 @@ onMounted(() => {
 })
 
 // 监听用户登录状态变化
-watch(user, newUser => {
+watch(user, async newUser => {
   if (newUser && post.value) {
-    checkLikeStatus()
+    await checkLikeStatus()
+    await checkAdminStatus()
   } else if (!newUser) {
     isLiked.value = false
+    isAdmin.value = false
   }
 })
 </script>

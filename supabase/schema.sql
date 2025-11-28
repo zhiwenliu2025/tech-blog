@@ -130,6 +130,16 @@ DROP POLICY IF EXISTS "Users can delete their own comments" ON comments;
 CREATE POLICY "Users can delete their own comments" ON comments
   FOR DELETE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Admins can delete any comments" ON comments;
+CREATE POLICY "Admins can delete any comments" ON comments
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE profiles.id = auth.uid()
+      AND profiles.is_admin = true
+    )
+  );
+
 -- Policies for likes
 DROP POLICY IF EXISTS "Anyone can view likes" ON likes;
 CREATE POLICY "Anyone can view likes" ON likes

@@ -552,6 +552,36 @@ export const useBlogPosts = () => {
     }
   }
 
+  // Delete a comment
+  const deleteComment = async (commentId: string) => {
+    try {
+      const { error: dbError } = await supabase.from('comments').delete().eq('id', commentId)
+
+      if (dbError) throw dbError
+
+      return { error: null }
+    } catch (err: any) {
+      return { error: err.message }
+    }
+  }
+
+  // Check if user is admin
+  const checkIsAdmin = async (userId: string) => {
+    try {
+      const { data, error: dbError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', userId)
+        .single()
+
+      if (dbError) throw dbError
+
+      return { data: data?.is_admin || false, error: null }
+    } catch (err: any) {
+      return { data: false, error: err.message }
+    }
+  }
+
   return {
     loading: readonly(loading),
     error: readonly(error),
@@ -576,6 +606,8 @@ export const useBlogPosts = () => {
     getPostLikesCount,
     getPostCommentsCount,
     getPostComments,
-    addComment
+    addComment,
+    deleteComment,
+    checkIsAdmin
   }
 }
