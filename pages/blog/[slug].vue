@@ -99,7 +99,18 @@
         </header>
 
         <!-- 文章内容 -->
-        <div class="prose max-w-none dark:prose-invert" v-html="post.content" />
+        <ClientOnly>
+          <BlogContentRenderer :content="post.content" content-type="auto" />
+          <template #fallback>
+            <div class="prose prose-lg max-w-none dark:prose-invert">
+              <div class="animate-pulse space-y-4">
+                <div class="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
+                <div class="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
+                <div class="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700" />
+              </div>
+            </div>
+          </template>
+        </ClientOnly>
 
         <!-- 文章底部 -->
         <footer class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
