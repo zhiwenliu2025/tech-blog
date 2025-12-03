@@ -4,15 +4,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   // Modules
-  modules: [
-    '@nuxtjs/tailwindcss',
-    '@nuxtjs/supabase',
-    '@nuxt/image',
-    '@nuxt/content',
-    '@pinia/nuxt',
-    '@vueuse/nuxt',
-    '@nuxt/icon'
-  ],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase', '@nuxt/icon'],
 
   // PostCSS
   postcss: {
@@ -32,16 +24,6 @@ export default defineNuxtConfig({
   // Supabase
   supabase: {
     redirect: false
-  },
-
-  // Content
-  content: {
-    highlight: {
-      theme: {
-        default: 'github-light',
-        dark: 'github-dark'
-      }
-    }
   },
 
   // Runtime config
