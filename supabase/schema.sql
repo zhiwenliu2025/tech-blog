@@ -75,6 +75,18 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 
+-- Helper function to check if user is admin
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM profiles
+    WHERE profiles.id = auth.uid()
+    AND profiles.is_admin = true
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Policies for blog_posts
 DROP POLICY IF EXISTS "Anyone can view published blog posts" ON blog_posts;
 CREATE POLICY "Anyone can view published blog posts" ON blog_posts
@@ -84,6 +96,10 @@ DROP POLICY IF EXISTS "Users can view their own draft posts" ON blog_posts;
 CREATE POLICY "Users can view their own draft posts" ON blog_posts
   FOR SELECT USING (auth.uid() = author_id);
 
+DROP POLICY IF EXISTS "Admins can view all posts" ON blog_posts;
+CREATE POLICY "Admins can view all posts" ON blog_posts
+  FOR SELECT USING (public.is_admin());
+
 DROP POLICY IF EXISTS "Users can insert their own posts" ON blog_posts;
 CREATE POLICY "Users can insert their own posts" ON blog_posts
   FOR INSERT WITH CHECK (auth.uid() = author_id);
@@ -92,9 +108,17 @@ DROP POLICY IF EXISTS "Users can update their own posts" ON blog_posts;
 CREATE POLICY "Users can update their own posts" ON blog_posts
   FOR UPDATE USING (auth.uid() = author_id);
 
+DROP POLICY IF EXISTS "Admins can update any posts" ON blog_posts;
+CREATE POLICY "Admins can update any posts" ON blog_posts
+  FOR UPDATE USING (public.is_admin());
+
 DROP POLICY IF EXISTS "Users can delete their own posts" ON blog_posts;
 CREATE POLICY "Users can delete their own posts" ON blog_posts
   FOR DELETE USING (auth.uid() = author_id);
+
+DROP POLICY IF EXISTS "Admins can delete any posts" ON blog_posts;
+CREATE POLICY "Admins can delete any posts" ON blog_posts
+  FOR DELETE USING (public.is_admin());
 
 -- Policies for profiles
 DROP POLICY IF EXISTS "Users can view all profiles" ON profiles;
@@ -109,9 +133,17 @@ DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
 CREATE POLICY "Users can update their own profile" ON profiles
   FOR UPDATE USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Admins can update any profile" ON profiles;
+CREATE POLICY "Admins can update any profile" ON profiles
+  FOR UPDATE USING (public.is_admin());
+
 DROP POLICY IF EXISTS "Users can delete their own profile" ON profiles;
 CREATE POLICY "Users can delete their own profile" ON profiles
   FOR DELETE USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "Admins can delete any profile" ON profiles;
+CREATE POLICY "Admins can delete any profile" ON profiles
+  FOR DELETE USING (public.is_admin());
 
 -- Policies for comments
 DROP POLICY IF EXISTS "Anyone can view comments" ON comments;
@@ -126,19 +158,17 @@ DROP POLICY IF EXISTS "Users can update their own comments" ON comments;
 CREATE POLICY "Users can update their own comments" ON comments
   FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Admins can update any comments" ON comments;
+CREATE POLICY "Admins can update any comments" ON comments
+  FOR UPDATE USING (public.is_admin());
+
 DROP POLICY IF EXISTS "Users can delete their own comments" ON comments;
 CREATE POLICY "Users can delete their own comments" ON comments
   FOR DELETE USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Admins can delete any comments" ON comments;
 CREATE POLICY "Admins can delete any comments" ON comments
-  FOR DELETE USING (
-    EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.is_admin = true
-    )
-  );
+  FOR DELETE USING (public.is_admin());
 
 -- Policies for likes
 DROP POLICY IF EXISTS "Anyone can view likes" ON likes;
@@ -152,6 +182,10 @@ CREATE POLICY "Authenticated users can insert likes" ON likes
 DROP POLICY IF EXISTS "Users can delete their own likes" ON likes;
 CREATE POLICY "Users can delete their own likes" ON likes
   FOR DELETE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can delete any likes" ON likes;
+CREATE POLICY "Admins can delete any likes" ON likes
+  FOR DELETE USING (public.is_admin());
 
 -- Function to handle updated_at timestamp
 CREATE OR REPLACE FUNCTION handle_updated_at()
@@ -233,4 +267,18 @@ CREATE POLICY "Users can delete their own avatar" ON storage.objects
   FOR DELETE USING (
     bucket_id = 'avatars' AND 
     (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+DROP POLICY IF EXISTS "Admins can view any avatar" ON storage.objects;
+CREATE POLICY "Admins can view any avatar" ON storage.objects
+  FOR SELECT USING (
+    bucket_id = 'avatars' AND 
+    public.is_admin()
+  );
+
+DROP POLICY IF EXISTS "Admins can delete any avatar" ON storage.objects;
+CREATE POLICY "Admins can delete any avatar" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'avatars' AND 
+    public.is_admin()
   );
