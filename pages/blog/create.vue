@@ -121,13 +121,10 @@
               内容
             </label>
             <div class="mt-1">
-              <textarea
+              <MarkdownEditor
                 id="content"
                 v-model="post.content"
-                rows="15"
-                required
-                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
-                placeholder="文章内容 (支持Markdown)"
+                placeholder="开始输入 Markdown 内容..."
               />
             </div>
           </div>
