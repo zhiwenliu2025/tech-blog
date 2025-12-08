@@ -162,6 +162,48 @@
         >
           <Icon name="i-heroicons-code-bracket-square" class="h-4 w-4" />
         </button>
+        <!-- 代码块语言选择 -->
+        <div v-if="editor.isActive('codeBlock')" class="relative">
+          <select
+            :value="getCurrentCodeBlockLanguage()"
+            class="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            title="选择代码语言"
+            @change="setCodeBlockLanguage($event)"
+          >
+            <option value="">无语言</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="cpp">C++</option>
+            <option value="c">C</option>
+            <option value="csharp">C#</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+            <option value="swift">Swift</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+            <option value="scss">SCSS</option>
+            <option value="json">JSON</option>
+            <option value="xml">XML</option>
+            <option value="yaml">YAML</option>
+            <option value="toml">TOML</option>
+            <option value="bash">Bash</option>
+            <option value="shell">Shell</option>
+            <option value="powershell">PowerShell</option>
+            <option value="sql">SQL</option>
+            <option value="vue">Vue</option>
+            <option value="jsx">JSX</option>
+            <option value="tsx">TSX</option>
+            <option value="markdown">Markdown</option>
+            <option value="dockerfile">Dockerfile</option>
+            <option value="nginx">Nginx</option>
+            <option value="apache">Apache</option>
+          </select>
+        </div>
         <button
           type="button"
           class="rounded px-2 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -218,7 +260,7 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
-import { watch, onBeforeUnmount, onMounted } from 'vue'
+import { watch, onBeforeUnmount, onMounted, nextTick } from 'vue'
 // @ts-ignore
 import MarkdownIt from 'markdown-it'
 // @ts-ignore
@@ -255,10 +297,28 @@ const turndownService = new TurndownService({
   strongDelimiter: '**' // 使用 ** 作为加粗标记
 })
 
+// 配置 turndown 以保留代码块语言
+turndownService.addRule('codeBlock', {
+  filter: (node: Node) => {
+    return node.nodeName === 'PRE' && (node as HTMLElement).querySelector('code') !== null
+  },
+  replacement: (_content: string, node: Node) => {
+    const codeElement = (node as HTMLElement).querySelector('code')
+    const language = codeElement?.getAttribute('class')?.replace('language-', '') || ''
+    const code = codeElement?.textContent || ''
+    return language ? `\n\`\`\`${language}\n${code}\n\`\`\`\n` : `\n\`\`\`\n${code}\n\`\`\`\n`
+  }
+})
+
 // 将 Markdown 转换为 HTML
 const markdownToHtml = (markdown: string): string => {
   if (!markdown) return ''
-  return md.render(markdown)
+  try {
+    return md.render(markdown)
+  } catch (error) {
+    console.error('Markdown to HTML conversion error:', error)
+    return ''
+  }
 }
 
 // 将 HTML 转换为 Markdown
@@ -281,8 +341,10 @@ const editor = useEditor({
     StarterKit.configure({
       codeBlock: {
         HTMLAttributes: {
-          class: 'rounded-md bg-gray-100 dark:bg-gray-800 p-4 font-mono text-sm'
-        }
+          class: 'code-block-editor'
+        },
+        languageClassPrefix: 'language-',
+        defaultLanguage: null
       },
       code: {
         HTMLAttributes: {
@@ -321,6 +383,10 @@ const editor = useEditor({
     const html = editor.getHTML()
     const markdown = htmlToMarkdown(html)
     emit('update:modelValue', markdown)
+    // 更新代码块语言标签
+    nextTick(() => {
+      updateCodeBlockLabels()
+    })
   }
 })
 
@@ -333,7 +399,7 @@ watch(
       // 只有当内容真正改变时才更新（避免循环更新）
       if (newValue !== currentMarkdown) {
         const html = markdownToHtml(newValue || '')
-        editor.value.commands.setContent(html, false)
+        editor.value.commands.setContent(html, { emitUpdate: false })
       }
     }
   }
@@ -369,6 +435,73 @@ const setImage = () => {
   }
 }
 
+// 获取当前代码块的语言
+const getCurrentCodeBlockLanguage = (): string => {
+  if (!editor.value || !editor.value.isActive('codeBlock')) {
+    return ''
+  }
+  const attrs = editor.value.getAttributes('codeBlock')
+  return attrs.language || ''
+}
+
+// 设置代码块语言
+const setCodeBlockLanguage = (event: Event) => {
+  if (!editor.value) return
+  const target = event.target as HTMLSelectElement
+  const language = target.value
+  editor.value.chain().focus().updateAttributes('codeBlock', { language }).run()
+  // 更新代码块语言标签
+  nextTick(() => {
+    updateCodeBlockLabels()
+  })
+}
+
+// 更新代码块语言标签显示
+const updateCodeBlockLabels = () => {
+  if (typeof window === 'undefined') return
+
+  const codeBlocks = document.querySelectorAll('.ProseMirror pre.code-block-editor')
+  codeBlocks.forEach(pre => {
+    const codeElement = pre.querySelector('code')
+    if (!codeElement) return
+
+    const classList = Array.from(codeElement.classList)
+    const languageClass = classList.find(cls => cls.startsWith('language-'))
+    const language = languageClass ? languageClass.replace('language-', '') : ''
+
+    if (language) {
+      ;(pre as HTMLElement).style.setProperty('--code-language', `'${language.toUpperCase()}'`)
+      pre.setAttribute('data-has-language', 'true')
+      // 确保 padding-top 足够显示标签
+      ;(pre as HTMLElement).style.paddingTop = '2.5rem'
+    } else {
+      pre.removeAttribute('data-has-language')
+      ;(pre as HTMLElement).style.paddingTop = '1rem'
+    }
+  })
+}
+
+// 组件挂载后更新代码块标签
+onMounted(() => {
+  if (editor.value) {
+    nextTick(() => {
+      updateCodeBlockLabels()
+    })
+  }
+})
+
+// 监听编辑器内容变化，更新代码块标签
+watch(
+  () => editor.value?.getHTML(),
+  () => {
+    if (editor.value) {
+      nextTick(() => {
+        updateCodeBlockLabels()
+      })
+    }
+  }
+)
+
 // 组件卸载时销毁编辑器
 onBeforeUnmount(() => {
   if (editor.value) {
@@ -397,18 +530,99 @@ onBeforeUnmount(() => {
 }
 
 /* 代码块样式 */
-:deep(.ProseMirror pre) {
-  background-color: rgb(243 244 246);
+:deep(.ProseMirror pre.code-block-editor) {
+  position: relative;
+  background-color: rgb(15 23 42);
+  border: 1px solid rgb(30 41 59);
   border-radius: 0.5rem;
   padding: 1rem;
+  padding-top: 2.5rem;
   overflow-x: auto;
-  margin: 1rem 0;
+  margin: 1.5rem 0;
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.75;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: rgb(226 232 240);
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.1),
+    0 1px 2px -1px rgb(0 0 0 / 0.1);
 }
 
-:deep(.dark .ProseMirror pre) {
-  background-color: rgb(31 41 55);
+:deep(.dark .ProseMirror pre.code-block-editor) {
+  background-color: rgb(15 23 42);
+  border-color: rgb(30 41 59);
+  color: rgb(226 232 240);
+}
+
+/* 代码块语言标签 - 使用 JavaScript 动态设置 */
+:deep(.ProseMirror pre.code-block-editor) {
+  --code-language: '';
+}
+
+:deep(.ProseMirror pre.code-block-editor::before) {
+  content: var(--code-language, '代码');
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 1rem;
+  background-color: rgb(30 41 59);
+  border-bottom: 1px solid rgb(51 65 85);
+  border-radius: 0.5rem 0.5rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: rgb(148 163 184);
+  letter-spacing: 0.05em;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+:deep(.dark .ProseMirror pre.code-block-editor::before) {
+  background-color: rgb(30 41 59);
+  border-bottom-color: rgb(51 65 85);
+  color: rgb(148 163 184);
+}
+
+/* 隐藏没有语言的代码块标签 */
+:deep(.ProseMirror pre.code-block-editor:not([data-has-language])::before) {
+  display: none;
+  padding-top: 0;
+}
+
+/* 代码块内 code 元素 */
+:deep(.ProseMirror pre.code-block-editor code) {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  border-radius: 0;
+  display: block;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* 代码块滚动条样式 */
+:deep(.ProseMirror pre.code-block-editor::-webkit-scrollbar) {
+  height: 8px;
+}
+
+:deep(.ProseMirror pre.code-block-editor::-webkit-scrollbar-track) {
+  background: rgb(30 41 59);
+  border-radius: 4px;
+}
+
+:deep(.ProseMirror pre.code-block-editor::-webkit-scrollbar-thumb) {
+  background: rgb(51 65 85);
+  border-radius: 4px;
+}
+
+:deep(.ProseMirror pre.code-block-editor::-webkit-scrollbar-thumb:hover) {
+  background: rgb(71 85 105);
 }
 
 /* 行内代码样式 */
