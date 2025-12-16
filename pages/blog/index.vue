@@ -166,12 +166,7 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 
-// 状态
-const loading = ref(true)
-const error = ref(null)
-const posts = ref([])
-const categories = ref([])
-const tags = ref([])
+// 筛选和分页状态
 const selectedCategory = ref(route.query.category || '')
 const selectedTag = ref(route.query.tag || '')
 const sortBy = ref('created_at')
@@ -181,6 +176,63 @@ const postsPerPage = 9
 
 // 获取博客文章
 const { getPublishedPosts, getCategories, getTags } = useBlogPosts()
+
+// 使用 useAsyncData 缓存所有已发布文章（缓存键基于查询参数）
+const {
+  data: postsData,
+  pending: postsPending,
+  error: postsError,
+  refresh: refreshPosts
+} = await useAsyncData(
+  'blog-all-posts',
+  () => getPublishedPosts(1000, 0), // 获取所有文章用于客户端筛选
+  {
+    default: () => ({ data: [], error: null }),
+    server: true
+  }
+)
+
+// 使用 useAsyncData 缓存分类列表
+const { data: categoriesData } = await useAsyncData('blog-categories', () => getCategories(), {
+  default: () => ({ data: [], error: null }),
+  server: true
+})
+
+// 使用 useAsyncData 缓存标签列表
+const { data: tagsData } = await useAsyncData('blog-tags', () => getTags(), {
+  default: () => ({ data: [], error: null }),
+  server: true
+})
+
+// 从缓存数据中提取实际数据
+const posts = computed(() => {
+  if (postsData.value?.error) {
+    return []
+  }
+  return postsData.value?.data || []
+})
+
+const categories = computed(() => {
+  if (categoriesData.value?.error) {
+    return []
+  }
+  return categoriesData.value?.data || []
+})
+
+const tags = computed(() => {
+  if (tagsData.value?.error) {
+    return []
+  }
+  return tagsData.value?.data || []
+})
+
+const loading = computed(() => postsPending.value)
+const error = computed(() => {
+  if (postsData.value?.error) {
+    return postsData.value.error
+  }
+  return postsError.value
+})
 
 // 计算属性
 const filteredPosts = computed(() => {
@@ -232,46 +284,9 @@ const paginatedPosts = computed(() => {
   return filteredPosts.value.slice(startIndex, endIndex)
 })
 
-// 方法
+// 方法 - 刷新文章数据
 const loadPosts = async () => {
-  loading.value = true
-  error.value = null
-
-  try {
-    const result = await getPublishedPosts()
-
-    if (result.error) {
-      error.value = result.error
-    } else {
-      posts.value = result.data || []
-    }
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadCategories = async () => {
-  try {
-    const result = await getCategories()
-    if (!result.error) {
-      categories.value = result.data || []
-    }
-  } catch (err) {
-    console.error('加载分类失败:', err)
-  }
-}
-
-const loadTags = async () => {
-  try {
-    const result = await getTags()
-    if (!result.error) {
-      tags.value = result.data || []
-    }
-  } catch (err) {
-    console.error('加载标签失败:', err)
-  }
+  await refreshPosts()
 }
 
 const goToPage = page => {
@@ -325,8 +340,5 @@ watch(currentPage, () => {
   updateQueryParams()
 })
 
-// 初始化数据
-onMounted(() => {
-  Promise.all([loadPosts(), loadCategories(), loadTags()])
-})
+// 数据已经在服务端通过 useAsyncData 加载，无需在 onMounted 中再次加载
 </script>

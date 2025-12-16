@@ -290,8 +290,16 @@ export const useBlogPosts = () => {
 
     try {
       let result
+      let savedSlug = post.slug
 
       if (post.id) {
+        // Update existing post - 需要获取旧的 slug 来清除缓存
+        const { data: oldPost } = await supabase
+          .from('blog_posts')
+          .select('slug')
+          .eq('id', post.id)
+          .single()
+
         // Update existing post
         const { data, error: dbError } = await supabase
           .from('blog_posts')
@@ -311,6 +319,18 @@ export const useBlogPosts = () => {
 
         if (dbError) throw dbError
         result = data
+
+        // 清除相关缓存
+        if (oldPost?.slug) {
+          await clearNuxtData(`post-${oldPost.slug}`)
+          await clearNuxtData(`post-comments-${oldPost.slug}`)
+          await clearNuxtData(`post-interaction-${oldPost.slug}`)
+        }
+        if (savedSlug && savedSlug !== oldPost?.slug) {
+          await clearNuxtData(`post-${savedSlug}`)
+          await clearNuxtData(`post-comments-${savedSlug}`)
+          await clearNuxtData(`post-interaction-${savedSlug}`)
+        }
       } else {
         // Create new post
         const { data, error: dbError } = await supabase
@@ -332,6 +352,17 @@ export const useBlogPosts = () => {
 
         if (dbError) throw dbError
         result = data
+        savedSlug = data?.[0]?.slug
+      }
+
+      // 清除列表相关缓存
+      await clearNuxtData('home-posts')
+      await clearNuxtData('blog-all-posts')
+      await clearNuxtData('blog-categories')
+      await clearNuxtData('blog-tags')
+      // 清除所有分类页缓存（因为可能有新文章）
+      if (post.category) {
+        await clearNuxtData(`posts-${post.category}`)
       }
 
       return { data: result, error: null }
@@ -349,9 +380,32 @@ export const useBlogPosts = () => {
     error.value = null
 
     try {
+      // 先获取文章信息，用于清除缓存
+      const { data: postToDelete } = await supabase
+        .from('blog_posts')
+        .select('slug, category')
+        .eq('id', id)
+        .single()
+
       const { error: dbError } = await supabase.from('blog_posts').delete().eq('id', id)
 
       if (dbError) throw dbError
+
+      // 清除相关缓存
+      if (postToDelete?.slug) {
+        await clearNuxtData(`post-${postToDelete.slug}`)
+        await clearNuxtData(`post-comments-${postToDelete.slug}`)
+        await clearNuxtData(`post-interaction-${postToDelete.slug}`)
+      }
+      // 清除列表相关缓存
+      await clearNuxtData('home-posts')
+      await clearNuxtData('blog-all-posts')
+      await clearNuxtData('blog-categories')
+      await clearNuxtData('blog-tags')
+      // 清除分类页缓存
+      if (postToDelete?.category) {
+        await clearNuxtData(`posts-${postToDelete.category}`)
+      }
 
       return { error: null }
     } catch (err: any) {
@@ -416,6 +470,13 @@ export const useBlogPosts = () => {
   // Like a post
   const likePost = async (userId: string, postId: string) => {
     try {
+      // 获取文章 slug，用于清除缓存
+      const { data: post } = await supabase
+        .from('blog_posts')
+        .select('slug')
+        .eq('id', postId)
+        .single()
+
       const { data, error: dbError } = await supabase
         .from('likes')
         .insert({
@@ -426,6 +487,11 @@ export const useBlogPosts = () => {
         .single()
 
       if (dbError) throw dbError
+
+      // 清除互动数据缓存
+      if (post?.slug) {
+        await clearNuxtData(`post-interaction-${post.slug}`)
+      }
 
       return { data, error: null }
     } catch (err: any) {
@@ -440,6 +506,13 @@ export const useBlogPosts = () => {
   // Unlike a post (only user can delete their own like)
   const unlikePost = async (userId: string, postId: string) => {
     try {
+      // 获取文章 slug，用于清除缓存
+      const { data: post } = await supabase
+        .from('blog_posts')
+        .select('slug')
+        .eq('id', postId)
+        .single()
+
       const { error: dbError } = await supabase
         .from('likes')
         .delete()
@@ -447,6 +520,11 @@ export const useBlogPosts = () => {
         .eq('post_id', postId)
 
       if (dbError) throw dbError
+
+      // 清除互动数据缓存
+      if (post?.slug) {
+        await clearNuxtData(`post-interaction-${post.slug}`)
+      }
 
       return { data: null, error: null }
     } catch (err: any) {
@@ -562,6 +640,13 @@ export const useBlogPosts = () => {
   // Add a comment
   const addComment = async (comment: { post_id: string; user_id: string; content: string }) => {
     try {
+      // 获取文章 slug，用于清除缓存
+      const { data: post } = await supabase
+        .from('blog_posts')
+        .select('slug')
+        .eq('id', comment.post_id)
+        .single()
+
       const { data, error: dbError } = await supabase
         .from('comments')
         .insert({
@@ -574,6 +659,12 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
+      // 清除评论和互动数据缓存
+      if (post?.slug) {
+        await clearNuxtData(`post-comments-${post.slug}`)
+        await clearNuxtData(`post-interaction-${post.slug}`)
+      }
+
       return { data, error: null }
     } catch (err: any) {
       return { data: null, error: err.message }
@@ -583,9 +674,30 @@ export const useBlogPosts = () => {
   // Delete a comment
   const deleteComment = async (commentId: string) => {
     try {
+      // 先获取评论信息，用于清除缓存
+      const { data: comment } = await supabase
+        .from('comments')
+        .select('post_id')
+        .eq('id', commentId)
+        .single()
+
       const { error: dbError } = await supabase.from('comments').delete().eq('id', commentId)
 
       if (dbError) throw dbError
+
+      // 获取文章 slug，用于清除缓存
+      if (comment?.post_id) {
+        const { data: post } = await supabase
+          .from('blog_posts')
+          .select('slug')
+          .eq('id', comment.post_id)
+          .single()
+
+        if (post?.slug) {
+          await clearNuxtData(`post-comments-${post.slug}`)
+          await clearNuxtData(`post-interaction-${post.slug}`)
+        }
+      }
 
       return { error: null }
     } catch (err: any) {

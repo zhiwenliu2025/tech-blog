@@ -356,19 +356,12 @@ const {
   getPostCommentsCount
 } = useBlogPosts()
 
-// 状态
-const post = ref(null)
-const author = ref(null)
-const loading = ref(true)
-const error = ref(null)
-const comments = ref([])
-const commentsLoading = ref(false)
+// 状态（部分状态保留，因为需要响应式更新）
+// 状态（保留需要响应式更新的状态）
 const commentLoading = ref(false)
 const newComment = ref('')
 const likeLoading = ref(false)
 const isLiked = ref(false)
-const likesCount = ref(0)
-const commentsCount = ref(0)
 const deleteLoading = ref(null)
 const isAdmin = ref(false)
 
@@ -395,100 +388,115 @@ const { data: adjacentPosts } = await useAsyncData(`adjacent-posts-${slug}`, asy
 const prevPost = computed(() => adjacentPosts.value?.prev)
 const nextPost = computed(() => adjacentPosts.value?.next)
 
-// 获取文章详情
-const fetchPost = async () => {
-  loading.value = true
-  error.value = null
-
-  try {
+// 使用 useAsyncData 缓存文章详情（基于 slug）
+const {
+  data: postData,
+  pending: postPending,
+  error: postError,
+  refresh: refreshPost
+} = await useAsyncData(
+  `post-${slug}`,
+  async () => {
     const result = await getPostBySlug(slug)
-
     if (result.error) {
-      error.value = result.error
-    } else if (result.data) {
-      post.value = result.data
-      author.value = result.data.profiles
-
-      // 获取评论
-      await fetchComments()
-
-      // 获取点赞数和评论数
-      await fetchInteractionCounts()
-
-      // 检查用户是否已点赞
-      if (user.value) {
-        await checkLikeStatus()
-        await checkAdminStatus()
-      }
-    } else {
-      error.value = '文章不存在'
+      throw new Error(result.error)
     }
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
+    if (!result.data) {
+      throw new Error('文章不存在')
+    }
+    return result.data
+  },
+  {
+    default: () => null,
+    server: true
   }
-}
+)
 
-// 获取评论
-const fetchComments = async () => {
-  if (!post.value?.id) {
-    comments.value = []
-    commentsLoading.value = false
-    return
+// 从缓存数据中提取文章信息
+const post = computed(() => postData.value)
+const author = computed(() => postData.value?.profiles || null)
+const loading = computed(() => postPending.value)
+const error = computed(() => {
+  if (postError.value) {
+    return postError.value.message || '加载失败'
   }
+  return null
+})
 
-  commentsLoading.value = true
-
-  try {
-    console.log('开始获取评论，文章ID:', post.value.id)
-    const result = await getPostComments(post.value.id)
-    console.log('获取评论结果:', result)
-
-    if (!result.error) {
-      comments.value = result.data || []
-      console.log('评论数据:', comments.value)
-      console.log('评论数量:', comments.value.length)
-    } else {
+// 使用 useAsyncData 缓存评论（评论需要实时性，但可以短时间缓存）
+const {
+  data: commentsData,
+  pending: commentsPending,
+  refresh: refreshComments
+} = await useAsyncData(
+  `post-comments-${slug}`,
+  async () => {
+    // 等待文章数据加载完成
+    if (!postData.value?.id) {
+      return []
+    }
+    const result = await getPostComments(postData.value.id)
+    if (result.error) {
       console.error('获取评论失败:', result.error)
-      comments.value = []
+      return []
     }
-  } catch (err) {
-    console.error('获取评论失败:', err)
-    comments.value = []
-  } finally {
-    commentsLoading.value = false
+    return result.data || []
+  },
+  {
+    default: () => [],
+    server: true,
+    // 评论需要实时性，但可以短时间缓存
+    watch: [() => postData.value?.id] // 当文章ID变化时自动刷新
   }
+)
+
+const comments = computed(() => commentsData.value || [])
+const commentsLoading = computed(() => commentsPending.value)
+
+// 获取评论（保留用于手动刷新）
+const fetchComments = async () => {
+  await refreshComments()
 }
 
-// 获取互动数据
-const fetchInteractionCounts = async () => {
-  if (!post.value?.id) return
-
-  try {
+// 使用 useAsyncData 缓存互动数据（点赞数和评论数）
+const { data: interactionData, refresh: refreshInteraction } = await useAsyncData(
+  `post-interaction-${slug}`,
+  async () => {
+    // 等待文章数据加载完成
+    if (!postData.value?.id) {
+      return { likesCount: 0, commentsCount: 0 }
+    }
     const [likesResult, commentsResult] = await Promise.all([
-      getPostLikesCount(post.value.id),
-      getPostCommentsCount(post.value.id)
+      getPostLikesCount(postData.value.id),
+      getPostCommentsCount(postData.value.id)
     ])
 
-    if (!likesResult.error) {
-      likesCount.value = likesResult.count || 0
+    return {
+      likesCount: likesResult.error ? 0 : likesResult.count || 0,
+      commentsCount: commentsResult.error ? 0 : commentsResult.count || 0
     }
-
-    if (!commentsResult.error) {
-      commentsCount.value = commentsResult.count || 0
-    }
-  } catch (err) {
-    console.error('获取互动数据失败:', err)
+  },
+  {
+    default: () => ({ likesCount: 0, commentsCount: 0 }),
+    server: true,
+    watch: [() => postData.value?.id] // 当文章ID变化时自动刷新
   }
+)
+
+const likesCount = computed(() => interactionData.value?.likesCount || 0)
+const commentsCount = computed(() => interactionData.value?.commentsCount || 0)
+
+// 获取互动数据（保留用于手动刷新）
+const fetchInteractionCounts = async () => {
+  await refreshInteraction()
 }
 
 // 检查点赞状态
 const checkLikeStatus = async () => {
-  if (!user.value || !post.value?.id) return
+  if (!user.value || !postData.value?.id) return
 
   try {
-    const result = await checkIfUserLikedPost(user.value.sub, post.value.id)
+    const result = await checkIfUserLikedPost(user.value.sub, postData.value.id)
     isLiked.value = result.data ? true : false
   } catch (err) {
     console.error('检查点赞状态失败:', err)
@@ -497,21 +505,21 @@ const checkLikeStatus = async () => {
 
 // 提交评论
 const submitComment = async () => {
-  if (!user.value || !post.value?.id || !newComment.value.trim()) return
+  if (!user.value || !postData.value?.id || !newComment.value.trim()) return
 
   commentLoading.value = true
 
   try {
     const result = await addComment({
-      post_id: post.value.id,
+      post_id: postData.value.id,
       user_id: user.value.sub,
       content: newComment.value.trim()
     })
 
     if (!result.error) {
       newComment.value = ''
-      await fetchComments()
-      await fetchInteractionCounts()
+      // 刷新评论和互动数据
+      await Promise.all([refreshComments(), refreshInteraction()])
     }
   } catch (err) {
     console.error('发表评论失败:', err)
@@ -554,10 +562,8 @@ const handleDeleteComment = async (commentId: string) => {
   try {
     const result = await deleteComment(commentId)
     if (!result.error) {
-      // 从评论列表中移除
-      comments.value = comments.value.filter(c => c.id !== commentId)
-      // 更新评论数
-      commentsCount.value = Math.max(0, commentsCount.value - 1)
+      // 刷新评论和互动数据
+      await Promise.all([refreshComments(), refreshInteraction()])
     } else {
       alert('删除评论失败：' + result.error)
     }
@@ -571,7 +577,7 @@ const handleDeleteComment = async (commentId: string) => {
 
 // 切换点赞状态
 const toggleLike = async () => {
-  if (!user.value || !post.value?.id || likeLoading.value) return
+  if (!user.value || !postData.value?.id || likeLoading.value) return
 
   likeLoading.value = true
 
@@ -579,16 +585,18 @@ const toggleLike = async () => {
     let result
 
     if (isLiked.value) {
-      result = await unlikePost(user.value.sub, post.value.id)
+      result = await unlikePost(user.value.sub, postData.value.id)
       if (!result.error) {
         isLiked.value = false
-        likesCount.value = Math.max(0, likesCount.value - 1)
+        // 刷新互动数据
+        await refreshInteraction()
       }
     } else {
-      result = await likePost(user.value.sub, post.value.id)
+      result = await likePost(user.value.sub, postData.value.id)
       if (!result.error) {
         isLiked.value = true
-        likesCount.value += 1
+        // 刷新互动数据
+        await refreshInteraction()
       }
     }
   } catch (err) {
@@ -683,14 +691,21 @@ useHead(() => ({
   ]
 }))
 
-// 初始化数据
-onMounted(() => {
-  fetchPost()
-})
+// 监听文章数据变化，初始化相关数据
+watch(
+  () => postData.value?.id,
+  async postId => {
+    if (postId && user.value) {
+      await checkLikeStatus()
+      await checkAdminStatus()
+    }
+  },
+  { immediate: true }
+)
 
 // 监听用户登录状态变化
 watch(user, async newUser => {
-  if (newUser && post.value) {
+  if (newUser && postData.value) {
     await checkLikeStatus()
     await checkAdminStatus()
   } else if (!newUser) {

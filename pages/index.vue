@@ -134,25 +134,47 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+const { fetchPosts, fetchCategories, fetchTags } = useBlogPosts()
 
-const { posts, loading, error, categories, tags, fetchPosts, fetchCategories, fetchTags } =
-  useBlogPosts()
+// 使用 useAsyncData 缓存文章列表（缓存键包含分页参数）
+const {
+  data: postsData,
+  pending: postsPending,
+  error: postsError
+} = await useAsyncData('home-posts', () => fetchPosts({ page: 1, pageSize: 6 }), {
+  default: () => [],
+  // 服务端和客户端都缓存
+  server: true
+})
 
-const categoriesLoading = ref(true)
-const tagsLoading = ref(true)
-
-const initializeData = async () => {
-  try {
-    categoriesLoading.value = true
-    tagsLoading.value = true
-
-    await Promise.all([fetchPosts({ page: 1, pageSize: 6 }), fetchCategories(), fetchTags()])
-  } finally {
-    categoriesLoading.value = false
-    tagsLoading.value = false
+// 使用 useAsyncData 缓存分类列表（分类变化不频繁，可以长时间缓存）
+const { data: categoriesData, pending: categoriesPending } = await useAsyncData(
+  'blog-categories',
+  () => fetchCategories(),
+  {
+    default: () => [],
+    server: true
   }
-}
+)
+
+// 使用 useAsyncData 缓存标签列表（标签变化不频繁，可以长时间缓存）
+const { data: tagsData, pending: tagsPending } = await useAsyncData(
+  'blog-tags',
+  () => fetchTags(),
+  {
+    default: () => [],
+    server: true
+  }
+)
+
+// 计算属性，提供响应式数据
+const posts = computed(() => postsData.value || [])
+const categories = computed(() => categoriesData.value || [])
+const tags = computed(() => tagsData.value || [])
+const loading = computed(() => postsPending.value)
+const error = computed(() => postsError.value)
+const categoriesLoading = computed(() => categoriesPending.value)
+const tagsLoading = computed(() => tagsPending.value)
 
 useHead({
   title: '技术博客 - 首页',
@@ -162,9 +184,5 @@ useHead({
       content: '基于 Nuxt 3 和 Supabase 构建的技术博客，分享前端开发、后端技术、云计算等相关内容。'
     }
   ]
-})
-
-onMounted(() => {
-  initializeData()
 })
 </script>

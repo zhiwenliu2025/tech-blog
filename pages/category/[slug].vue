@@ -15,10 +15,16 @@
 const route = useRoute()
 const category = computed(() => route.params.slug as string)
 
-// 获取分类下的文章
+// 获取分类下的文章 - 使用 useAsyncData 缓存（当分类变化时自动刷新）
 const { getPostsByCategory } = useBlogPosts()
-const { data: posts, pending } = await useLazyAsyncData(`posts-${category.value}`, () =>
-  getPostsByCategory(category.value)
+const { data: posts, pending } = await useAsyncData(
+  () => `posts-${category.value}`, // 使用函数形式，当 category 变化时自动更新缓存键
+  () => getPostsByCategory(category.value),
+  {
+    default: () => [],
+    server: true,
+    watch: [category] // 监听分类变化，自动刷新
+  }
 )
 
 // 设置页面元数据
