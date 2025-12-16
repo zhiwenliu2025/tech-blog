@@ -1,75 +1,132 @@
 <template>
   <div>
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <!-- 页面标题和统计 -->
       <div class="mb-8">
-        <h1 class="mb-4 text-3xl font-bold text-gray-900 dark:text-white">博客文章</h1>
-
-        <!-- 筛选器 -->
-        <div class="mb-6 flex flex-wrap gap-4">
-          <!-- 分类筛选 -->
-          <div class="relative">
-            <select
-              v-model="selectedCategory"
-              class="appearance-none rounded-md border border-gray-300 bg-white py-2 pl-4 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+        <div
+          class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"
+        >
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">博客文章</h1>
+            <p
+              v-if="!loading && filteredPosts.length > 0"
+              class="mt-2 text-sm text-gray-600 dark:text-gray-400"
             >
-              <option value="">所有分类</option>
-              <option v-for="category in categories" :key="category" :value="category">
-                {{ category }}
-              </option>
-            </select>
-            <div
-              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300"
-            >
-              <Icon name="heroicons:chevron-down" class="h-5 w-5" />
-            </div>
+              共找到
+              <span class="font-semibold text-blue-600 dark:text-blue-400">{{
+                filteredPosts.length
+              }}</span>
+              篇文章
+            </p>
           </div>
-
-          <!-- 标签筛选 -->
-          <div class="relative">
-            <select
-              v-model="selectedTag"
-              class="appearance-none rounded-md border border-gray-300 bg-white py-2 pl-4 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-            >
-              <option value="">所有标签</option>
-              <option v-for="tag in tags" :key="tag" :value="tag">
-                {{ tag }}
-              </option>
-            </select>
-            <div
-              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300"
-            >
-              <Icon name="heroicons:chevron-down" class="h-5 w-5" />
-            </div>
-          </div>
-
-          <!-- 排序 -->
-          <div class="relative">
-            <select
-              v-model="sortBy"
-              class="appearance-none rounded-md border border-gray-300 bg-white py-2 pl-4 pr-10 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-            >
-              <option value="created_at">最新发布</option>
-              <option value="updated_at">最近更新</option>
-              <option value="title">按标题</option>
-            </select>
-            <div
-              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300"
-            >
-              <Icon name="heroicons:chevron-down" class="h-5 w-5" />
-            </div>
-          </div>
+          <button
+            v-if="hasActiveFilters"
+            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            @click="resetFilters"
+          >
+            <Icon name="heroicons:x-mark" class="h-4 w-4" />
+            清除筛选
+          </button>
         </div>
 
         <!-- 搜索框 -->
-        <div class="relative mb-6">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="搜索文章..."
-            class="w-full rounded-md border border-gray-300 bg-white px-4 py-2 pl-10 pr-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-          />
-          <div class="absolute inset-y-0 left-0 flex items-center pl-3">
-            <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-gray-400" />
+        <div class="mb-6">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-4">
+              <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              v-model="searchQuery"
+              type="text"
+              placeholder="搜索文章标题、摘要或标签..."
+              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 pl-11 pr-4 text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
+            />
+            <button
+              v-if="searchQuery"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              @click="searchQuery = ''"
+            >
+              <Icon name="heroicons:x-mark" class="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        <!-- 筛选器卡片 -->
+        <div
+          class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+        >
+          <div class="mb-3 flex items-center gap-2">
+            <Icon name="heroicons:funnel" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">筛选条件</span>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <!-- 分类筛选 -->
+            <div class="relative min-w-[150px] flex-1">
+              <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                分类
+              </label>
+              <div class="relative">
+                <select
+                  v-model="selectedCategory"
+                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400"
+                >
+                  <option value="">所有分类</option>
+                  <option v-for="category in categories" :key="category" :value="category">
+                    {{ category }}
+                  </option>
+                </select>
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                >
+                  <Icon name="heroicons:chevron-down" class="h-4 w-4" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 标签筛选 -->
+            <div class="relative min-w-[150px] flex-1">
+              <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                标签
+              </label>
+              <div class="relative">
+                <select
+                  v-model="selectedTag"
+                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400"
+                >
+                  <option value="">所有标签</option>
+                  <option v-for="tag in tags" :key="tag" :value="tag">
+                    {{ tag }}
+                  </option>
+                </select>
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                >
+                  <Icon name="heroicons:chevron-down" class="h-4 w-4" />
+                </div>
+              </div>
+            </div>
+
+            <!-- 排序 -->
+            <div class="relative min-w-[150px] flex-1">
+              <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                排序
+              </label>
+              <div class="relative">
+                <select
+                  v-model="sortBy"
+                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400"
+                >
+                  <option value="created_at">最新发布</option>
+                  <option value="updated_at">最近更新</option>
+                  <option value="title">按标题</option>
+                </select>
+                <div
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                >
+                  <Icon name="heroicons:chevron-down" class="h-4 w-4" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -118,36 +175,108 @@
       />
 
       <!-- 分页 -->
-      <div v-if="filteredPosts.length > postsPerPage" class="mt-8 flex justify-center">
-        <nav class="flex items-center space-x-2">
+      <div
+        v-if="filteredPosts.length > postsPerPage"
+        class="mt-12 flex flex-col items-center justify-between gap-4 sm:flex-row"
+      >
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          显示第
+          <span class="font-semibold text-gray-900 dark:text-white">{{
+            (currentPage - 1) * postsPerPage + 1
+          }}</span>
+          -
+          <span class="font-semibold text-gray-900 dark:text-white">{{
+            Math.min(currentPage * postsPerPage, filteredPosts.length)
+          }}</span>
+          条， 共
+          <span class="font-semibold text-gray-900 dark:text-white">{{
+            filteredPosts.length
+          }}</span>
+          条
+        </div>
+        <nav class="flex items-center gap-1">
           <button
             :disabled="currentPage === 1"
-            class="rounded-md border border-gray-300 bg-white px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             @click="goToPage(currentPage - 1)"
           >
-            <Icon name="heroicons:chevron-left" class="h-5 w-5" />
+            <Icon name="heroicons:chevron-left" class="h-4 w-4" />
+            <span class="hidden sm:inline">上一页</span>
           </button>
 
-          <button
-            v-for="page in totalPages"
-            :key="page"
-            :class="[
-              'rounded-md px-3 py-1',
-              currentPage === page
-                ? 'bg-blue-600 text-white'
-                : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-            ]"
-            @click="goToPage(page)"
-          >
-            {{ page }}
-          </button>
+          <!-- 页码按钮 -->
+          <template v-if="totalPages <= 7">
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              :class="[
+                'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                currentPage === page
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+              ]"
+              @click="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          </template>
+          <template v-else>
+            <!-- 第一页 -->
+            <button
+              :class="[
+                'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                currentPage === 1
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+              ]"
+              @click="goToPage(1)"
+            >
+              1
+            </button>
+
+            <!-- 省略号 -->
+            <span v-if="currentPage > 3" class="px-2 text-gray-500">...</span>
+
+            <!-- 当前页附近的页码 -->
+            <template v-for="page in visiblePages" :key="page">
+              <button
+                v-if="page !== 1 && page !== totalPages"
+                :class="[
+                  'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  currentPage === page
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                ]"
+                @click="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            </template>
+
+            <!-- 省略号 -->
+            <span v-if="currentPage < totalPages - 2" class="px-2 text-gray-500">...</span>
+
+            <!-- 最后一页 -->
+            <button
+              :class="[
+                'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                currentPage === totalPages
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+              ]"
+              @click="goToPage(totalPages)"
+            >
+              {{ totalPages }}
+            </button>
+          </template>
 
           <button
             :disabled="currentPage === totalPages"
-            class="rounded-md border border-gray-300 bg-white px-3 py-1 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             @click="goToPage(currentPage + 1)"
           >
-            <Icon name="heroicons:chevron-right" class="h-5 w-5" />
+            <span class="hidden sm:inline">下一页</span>
+            <Icon name="heroicons:chevron-right" class="h-4 w-4" />
           </button>
         </nav>
       </div>
@@ -282,6 +411,37 @@ const paginatedPosts = computed(() => {
   const startIndex = (currentPage.value - 1) * postsPerPage
   const endIndex = startIndex + postsPerPage
   return filteredPosts.value.slice(startIndex, endIndex)
+})
+
+// 检查是否有活动的筛选条件
+const hasActiveFilters = computed(() => {
+  return !!(
+    selectedCategory.value ||
+    selectedTag.value ||
+    searchQuery.value ||
+    sortBy.value !== 'created_at'
+  )
+})
+
+// 计算可见的页码（用于分页显示）
+const visiblePages = computed(() => {
+  const pages: number[] = []
+  const current = currentPage.value
+  const total = totalPages.value
+
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+
+  // 显示当前页前后各1页
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  return pages
 })
 
 // 方法 - 刷新文章数据

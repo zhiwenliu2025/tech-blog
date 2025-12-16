@@ -57,6 +57,7 @@
               :post="post"
               :likes-count="post.likes_count || 0"
               :comments-count="post.comments_count || 0"
+              :show-cover="false"
             />
           </div>
 
