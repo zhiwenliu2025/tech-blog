@@ -43,18 +43,47 @@
       </div>
     </div>
 
-    <!-- 图片预览 -->
+    <!-- 图片预览和 Alt 文本编辑 -->
     <div
       v-if="imageUrl && !uploading"
-      class="relative rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-800"
+      class="space-y-3 rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-800"
     >
-      <img :src="imageUrl" alt="预览" class="max-h-64 w-full rounded-lg object-contain" />
+      <div class="relative">
+        <img
+          :src="imageUrl"
+          :alt="altText || '预览'"
+          class="max-h-64 w-full rounded-lg object-contain"
+        />
+        <button
+          type="button"
+          class="absolute right-2 top-2 rounded-full bg-red-500 p-1 text-white transition-colors hover:bg-red-600"
+          @click="removeImage"
+        >
+          <Icon name="i-heroicons-x-mark" class="h-4 w-4" />
+        </button>
+      </div>
+      <!-- Alt 文本输入 -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          图片描述（Alt 文本）
+        </label>
+        <input
+          v-model="altText"
+          type="text"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+          placeholder="输入图片描述（用于 SEO 和可访问性）"
+        />
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          描述图片内容，有助于 SEO 和视觉障碍用户
+        </p>
+      </div>
+      <!-- 确认按钮 -->
       <button
         type="button"
-        class="absolute right-2 top-2 rounded-full bg-red-500 p-1 text-white transition-colors hover:bg-red-600"
-        @click="removeImage"
+        class="w-full rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+        @click="confirmUpload"
       >
-        <Icon name="i-heroicons-x-mark" class="h-4 w-4" />
+        确认插入图片
       </button>
     </div>
 
@@ -81,7 +110,7 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  (e: 'uploaded', url: string): void
+  (e: 'uploaded', data: { url: string; alt?: string }): void
   (e: 'error', error: string): void
 }>()
 
@@ -91,10 +120,19 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const imageUrl = ref<string | null>(null)
+const altText = ref<string>('')
 const error = ref<string | null>(null)
 const isDragging = ref(false)
 
-// 压缩图片
+// 检查是否支持 WebP
+const supportsWebP = (): boolean => {
+  const canvas = document.createElement('canvas')
+  canvas.width = 1
+  canvas.height = 1
+  return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
+}
+
+// 压缩图片（支持 WebP 转换）
 const compressImage = (file: File): Promise<File> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -121,7 +159,15 @@ const compressImage = (file: File): Promise<File> => {
           return
         }
 
+        // 使用高质量缩放算法
+        ctx.imageSmoothingEnabled = true
+        ctx.imageSmoothingQuality = 'high'
         ctx.drawImage(img, 0, 0, width, height)
+
+        // 优先使用 WebP 格式（如果支持）
+        const useWebP = supportsWebP()
+        const outputType = useWebP ? 'image/webp' : file.type
+        const outputQuality = useWebP ? 0.85 : 0.8 // WebP 可以使用更高的质量
 
         canvas.toBlob(
           blob => {
@@ -129,14 +175,17 @@ const compressImage = (file: File): Promise<File> => {
               reject(new Error('图片压缩失败'))
               return
             }
-            const compressedFile = new File([blob], file.name, {
-              type: file.type,
+            // 生成新的文件名
+            const originalName = file.name.split('.')[0]
+            const newExt = useWebP ? 'webp' : file.name.split('.').pop() || 'jpg'
+            const compressedFile = new File([blob], `${originalName}.${newExt}`, {
+              type: outputType,
               lastModified: Date.now()
             })
             resolve(compressedFile)
           },
-          file.type,
-          0.8 // 质量 80%
+          outputType,
+          outputQuality
         )
       }
       img.onerror = () => reject(new Error('图片加载失败'))
@@ -195,23 +244,71 @@ const uploadImage = async (file: File) => {
     const folder = props.postId || user.value.id
     const fileName = `${folder}/${timestamp}-${random}.${fileExt}`
 
-    // 模拟上传进度
-    const progressInterval = setInterval(() => {
-      if (uploadProgress.value < 90) {
-        uploadProgress.value += 10
-      }
-    }, 100)
+    // 使用 XMLHttpRequest 实现真实上传进度
+    const config = useRuntimeConfig()
+    const supabaseUrl = config.public.supabaseUrl
+    const supabaseKey = config.public.supabaseKey
 
-    // 上传到 Supabase Storage
-    const { data, error: uploadError } = await supabase.storage
-      .from('blog-images')
-      .upload(fileName, compressedFile, {
-        cacheControl: '3600',
-        upsert: false
+    const uploadPromise = new Promise<{ data: any; error: any }>((resolve, reject) => {
+      // 获取上传 URL 和认证信息
+      supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
+        if (sessionError || !sessionData?.session) {
+          reject(new Error('未登录'))
+          return
+        }
+
+        const xhr = new XMLHttpRequest()
+        const uploadUrl = `${supabaseUrl}/storage/v1/object/blog-images/${fileName}`
+
+        xhr.upload.addEventListener('progress', e => {
+          if (e.lengthComputable) {
+            const percentComplete = Math.round((e.loaded / e.total) * 100)
+            uploadProgress.value = Math.min(percentComplete, 95) // 保留 5% 给完成阶段
+          }
+        })
+
+        xhr.addEventListener('load', () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            uploadProgress.value = 100
+            try {
+              const response = xhr.responseText ? JSON.parse(xhr.responseText) : {}
+              resolve({ data: response, error: null })
+            } catch {
+              resolve({ data: {}, error: null })
+            }
+          } else {
+            try {
+              const error = JSON.parse(xhr.responseText)
+              reject(error)
+            } catch {
+              reject(new Error(`上传失败: ${xhr.statusText || '未知错误'}`))
+            }
+          }
+        })
+
+        xhr.addEventListener('error', () => {
+          reject(new Error('网络错误，上传失败'))
+        })
+
+        xhr.addEventListener('abort', () => {
+          reject(new Error('上传已取消'))
+        })
+
+        xhr.open('POST', uploadUrl)
+        xhr.setRequestHeader('Authorization', `Bearer ${sessionData.session.access_token}`)
+        xhr.setRequestHeader('apikey', supabaseKey)
+        xhr.setRequestHeader('x-upsert', 'false')
+        xhr.setRequestHeader('cache-control', '3600')
+
+        // 创建 FormData
+        const formData = new FormData()
+        formData.append('file', compressedFile)
+
+        xhr.send(formData)
       })
+    })
 
-    clearInterval(progressInterval)
-    uploadProgress.value = 100
+    const { data, error: uploadError } = await uploadPromise
 
     if (uploadError) throw uploadError
 
@@ -219,11 +316,12 @@ const uploadImage = async (file: File) => {
     const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
 
     imageUrl.value = urlData.publicUrl
-    emit('uploaded', urlData.publicUrl)
+    // 不立即触发 uploaded 事件，等待用户确认 Alt 文本
   } catch (err: any) {
     console.error('上传失败:', err)
-    error.value = err.message || '上传失败，请重试'
-    emit('error', error.value)
+    const errorMessage = err.message || '上传失败，请重试'
+    error.value = errorMessage
+    emit('error', errorMessage)
   } finally {
     uploading.value = false
     setTimeout(() => {
@@ -262,13 +360,30 @@ const triggerFileInput = () => {
 // 移除图片
 const removeImage = () => {
   imageUrl.value = null
+  altText.value = ''
   error.value = null
+}
+
+// 处理 Alt 文本变化
+const handleAltTextChange = () => {
+  // Alt 文本变化时实时更新，但不触发上传事件
+}
+
+// 确认上传（插入图片）
+const confirmUpload = () => {
+  if (imageUrl.value) {
+    emit('uploaded', {
+      url: imageUrl.value,
+      alt: altText.value.trim() || undefined
+    })
+  }
 }
 
 // 暴露方法供外部调用
 defineExpose({
   uploadImage,
   removeImage,
-  imageUrl: readonly(imageUrl)
+  imageUrl: readonly(imageUrl),
+  altText: readonly(altText)
 })
 </script>

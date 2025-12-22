@@ -273,7 +273,7 @@
         <div class="p-4">
           <ImageUploader
             ref="imageUploaderRef"
-            :post-id="postId"
+            :post-id="props.postId"
             @uploaded="handleImageUploaded"
             @error="handleImageError"
           />
@@ -304,9 +304,11 @@ const props = withDefaults(
   defineProps<{
     modelValue: string
     placeholder?: string
+    postId?: string | null
   }>(),
   {
-    placeholder: '开始输入 Markdown 内容...'
+    placeholder: '开始输入 Markdown 内容...',
+    postId: null
   }
 )
 
@@ -463,15 +465,19 @@ const setLink = () => {
 
 // 图片上传相关
 const showImageUploadDialog = ref(false)
-const imageUploaderRef = ref<InstanceType<typeof ImageUploader> | null>(null)
+const imageUploaderRef = ref<any>(null)
 const isDragging = ref(false)
 
 // 处理图片上传成功
-const handleImageUploaded = (url: string) => {
+const handleImageUploaded = (data: { url: string; alt?: string }) => {
   if (!editor.value) return
 
-  // 插入图片到编辑器
-  editor.value.chain().focus().setImage({ src: url, alt: '图片' }).run()
+  // 插入图片到编辑器，使用用户输入的 Alt 文本
+  editor.value
+    .chain()
+    .focus()
+    .setImage({ src: data.url, alt: data.alt || '图片' })
+    .run()
 
   // 关闭对话框
   setTimeout(() => {
@@ -479,7 +485,7 @@ const handleImageUploaded = (url: string) => {
     if (imageUploaderRef.value) {
       imageUploaderRef.value.removeImage()
     }
-  }, 500)
+  }, 300)
 }
 
 // 处理图片上传错误
@@ -508,38 +514,35 @@ const handleDrop = async (e: DragEvent) => {
 }
 
 // 监听粘贴事件（粘贴图片）
-let pasteHandler: ((e: ClipboardEvent) => Promise<void>) | null = null
+const handlePaste = async (e: Event) => {
+  const clipboardEvent = e as ClipboardEvent
+  const items = clipboardEvent.clipboardData?.items
+  if (!items || !editor.value) return
 
-onMounted(() => {
-  pasteHandler = async (e: ClipboardEvent) => {
-    const items = e.clipboardData?.items
-    if (!items || !editor.value) return
-
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
-      if (item.type.startsWith('image/')) {
-        e.preventDefault()
-        const file = item.getAsFile()
-        if (file) {
-          // 显示上传对话框并自动上传
-          showImageUploadDialog.value = true
-          await nextTick()
-          if (imageUploaderRef.value) {
-            await imageUploaderRef.value.uploadImage(file)
-          }
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    if (item && item.type.startsWith('image/')) {
+      clipboardEvent.preventDefault()
+      const file = item.getAsFile()
+      if (file) {
+        // 显示上传对话框并自动上传
+        showImageUploadDialog.value = true
+        await nextTick()
+        if (imageUploaderRef.value) {
+          await imageUploaderRef.value.uploadImage(file)
         }
-        break
       }
+      break
     }
   }
+}
 
-  document.addEventListener('paste', pasteHandler as EventListener)
+onMounted(() => {
+  document.addEventListener('paste', handlePaste)
 })
 
 onBeforeUnmount(() => {
-  if (pasteHandler) {
-    document.removeEventListener('paste', pasteHandler as EventListener)
-  }
+  document.removeEventListener('paste', handlePaste)
 })
 
 // 获取当前代码块的语言
