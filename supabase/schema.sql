@@ -307,6 +307,12 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
 
 -- Policies for avatar storage
+-- Anyone can view all avatars (public bucket, needed for displaying user avatars in posts/comments)
+DROP POLICY IF EXISTS "Anyone can view all avatars" ON storage.objects;
+CREATE POLICY "Anyone can view all avatars" ON storage.objects
+  FOR SELECT USING (bucket_id = 'avatars');
+
+-- Authenticated users can upload their own avatar
 DROP POLICY IF EXISTS "Users can upload their own avatar" ON storage.objects;
 CREATE POLICY "Users can upload their own avatar" ON storage.objects
   FOR INSERT WITH CHECK (
@@ -315,13 +321,7 @@ CREATE POLICY "Users can upload their own avatar" ON storage.objects
     (storage.foldername(name))[1] = auth.uid()::text
   );
 
-DROP POLICY IF EXISTS "Users can view their own avatar" ON storage.objects;
-CREATE POLICY "Users can view their own avatar" ON storage.objects
-  FOR SELECT USING (
-    bucket_id = 'avatars' AND 
-    (storage.foldername(name))[1] = auth.uid()::text
-  );
-
+-- Authenticated users can update their own avatar
 DROP POLICY IF EXISTS "Users can update their own avatar" ON storage.objects;
 CREATE POLICY "Users can update their own avatar" ON storage.objects
   FOR UPDATE USING (
@@ -329,6 +329,7 @@ CREATE POLICY "Users can update their own avatar" ON storage.objects
     (storage.foldername(name))[1] = auth.uid()::text
   );
 
+-- Authenticated users can delete their own avatar
 DROP POLICY IF EXISTS "Users can delete their own avatar" ON storage.objects;
 CREATE POLICY "Users can delete their own avatar" ON storage.objects
   FOR DELETE USING (
@@ -336,13 +337,23 @@ CREATE POLICY "Users can delete their own avatar" ON storage.objects
     (storage.foldername(name))[1] = auth.uid()::text
   );
 
-DROP POLICY IF EXISTS "Admins can view any avatar" ON storage.objects;
-CREATE POLICY "Admins can view any avatar" ON storage.objects
-  FOR SELECT USING (
+-- Admins can upload any avatar
+DROP POLICY IF EXISTS "Admins can upload any avatar" ON storage.objects;
+CREATE POLICY "Admins can upload any avatar" ON storage.objects
+  FOR INSERT WITH CHECK (
     bucket_id = 'avatars' AND 
     public.is_admin()
   );
 
+-- Admins can update any avatar
+DROP POLICY IF EXISTS "Admins can update any avatar" ON storage.objects;
+CREATE POLICY "Admins can update any avatar" ON storage.objects
+  FOR UPDATE USING (
+    bucket_id = 'avatars' AND 
+    public.is_admin()
+  );
+
+-- Admins can delete any avatar
 DROP POLICY IF EXISTS "Admins can delete any avatar" ON storage.objects;
 CREATE POLICY "Admins can delete any avatar" ON storage.objects
   FOR DELETE USING (

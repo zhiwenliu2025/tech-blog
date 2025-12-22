@@ -15,7 +15,7 @@
               <div class="relative px-6 pb-6">
                 <div class="absolute -top-12">
                   <div
-                    class="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-gray-200 dark:border-gray-800 dark:bg-gray-700"
+                    class="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-gray-200 shadow-lg dark:border-gray-800 dark:bg-gray-700"
                   >
                     <img
                       v-if="profile?.avatar_url"
@@ -114,32 +114,15 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
                       >头像</label
                     >
-                    <div class="mt-2 flex items-center space-x-4">
-                      <div
-                        class="h-16 w-16 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
-                      >
-                        <img
-                          v-if="profile?.avatar_url"
-                          :src="profile.avatar_url"
-                          alt="头像"
-                          class="h-full w-full object-cover"
-                        />
-                        <div v-else class="flex h-full w-full items-center justify-center">
-                          <Icon name="i-heroicons-user" class="h-8 w-8 text-gray-400" />
-                        </div>
-                      </div>
-                      <div>
-                        <button
-                          type="button"
-                          class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                          @click="uploadAvatar"
-                        >
-                          更换头像
-                        </button>
-                        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          JPG, GIF 或 PNG. 最大 2MB
-                        </p>
-                      </div>
+                    <div class="mt-2">
+                      <AvatarUploader
+                        :avatar-url="profile?.avatar_url"
+                        @uploaded="handleAvatarUploaded"
+                        @error="handleAvatarError"
+                      />
+                      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        支持 JPG、PNG、GIF、WebP，最大 2MB。支持拖拽上传。
+                      </p>
                     </div>
                   </div>
 
@@ -364,7 +347,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 // 页面元数据
 definePageMeta({
   title: '个人资料',
@@ -578,78 +561,23 @@ const resetForm = () => {
   }
 }
 
-// 上传头像
-const uploadAvatar = async () => {
-  if (!nuxtUser.value) {
-    console.error('用户未登录')
-    const toast = useToast()
-    toast.error('错误', '用户未登录')
-    return
+// 处理头像上传成功
+const handleAvatarUploaded = async (url: string) => {
+  const toast = useToast()
+  try {
+    // 刷新数据
+    await fetchProfile()
+    toast.success('成功', '头像已更新')
+  } catch (error) {
+    console.error('刷新资料失败:', error)
+    toast.error('错误', '头像已上传，但刷新资料失败')
   }
+}
 
-  if (!nuxtUser.value.sub) {
-    console.error('用户ID不存在')
-    const toast = useToast()
-    toast.error('错误', '用户ID不存在，请重新登录')
-    return
-  }
-
-  // 创建文件输入元素
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = 'image/*'
-
-  input.onchange = async e => {
-    const file = e.target.files[0]
-    if (!file) return
-
-    // 检查文件大小
-    if (file.size > 2 * 1024 * 1024) {
-      const toast = useToast()
-      toast.error('错误', '图片大小不能超过2MB')
-      return
-    }
-
-    loading.value = true
-    try {
-      // 上传文件到 Supabase Storage
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${nuxtUser.value.sub}/avatar.${fileExt}`
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, file, { upsert: true })
-
-      if (uploadError) throw uploadError
-
-      // 获取公共URL
-      const { data } = supabase.storage.from('avatars').getPublicUrl(fileName)
-
-      // 更新用户资料
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          avatar_url: data.publicUrl
-        })
-        .eq('id', nuxtUser.value.sub)
-
-      if (updateError) throw updateError
-
-      // 刷新数据
-      await fetchProfile()
-
-      const toast = useToast()
-      toast.success('成功', '头像已更新')
-    } catch (error) {
-      console.error('上传头像失败:', error)
-      const toast = useToast()
-      toast.error('错误', '上传头像失败，请重试')
-    } finally {
-      loading.value = false
-    }
-  }
-
-  input.click()
+// 处理头像上传错误
+const handleAvatarError = (error: string) => {
+  const toast = useToast()
+  toast.error('错误', error)
 }
 
 // 重置密码
