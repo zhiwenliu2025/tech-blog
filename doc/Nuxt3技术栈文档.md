@@ -2,7 +2,7 @@
 
 ## 概述
 
-本文档介绍了一个基于Nuxt 3、TypeScript、Tailwind CSS和Supabase构建的现代化技术博客系统。该系统支持在线编辑博客内容、从其他资源导入博客内容，并针对Vercel部署进行了优化。
+本文档介绍了一个基于Nuxt 3、TypeScript、Tailwind CSS和Supabase构建的现代化技术博客系统。该系统支持文章发布与管理、用户认证、评论点赞、全文搜索等功能，并针对生产环境部署进行了优化。
 
 ## 技术栈详情
 
@@ -10,7 +10,7 @@
 
 #### Nuxt 3
 
-- **版本**: 最新稳定版
+- **版本**: 4.2.1
 - **渲染模式**: 混合渲染（SSR + SSG + CSR）
 - **特性**:
   - 基于Vue 3的Composition API
@@ -22,7 +22,7 @@
 
 #### Vue 3
 
-- **版本**: 3.3+
+- **版本**: 3.5.24
 - **核心特性**:
   - Composition API
   - 更好的TypeScript集成
@@ -40,6 +40,7 @@
   - 响应式设计
   - 暗色模式支持
   - 自定义主题配置
+  - Typography插件支持文章内容样式
 
 ### 数据库与后端服务
 
@@ -52,11 +53,8 @@
   - 文件存储
   - 边缘函数
   - 自动生成API
-
-#### Prisma (可选)
-
-- **用途**: 类型安全的数据库访问
-- **集成**: 与Supabase PostgreSQL配合使用
+  - 行级安全策略(RLS)
+  - PostgreSQL全文搜索支持
 
 ### 认证与授权
 
@@ -69,30 +67,42 @@
 - **特性**:
   - JWT令牌
   - 行级安全策略(RLS)
+  - 用户配置文件管理
+  - 管理员权限控制
 
 ### 内容编辑
 
 #### 富文本编辑器
 
-- **推荐**: Tiptap
+- **使用**: Tiptap
 - **特性**:
   - 基于ProseMirror
   - Vue 3兼容
   - 可扩展
   - 支持Markdown
+  - 图片和链接扩展
 
 #### Markdown支持
 
-- **库**: @nuxt/content
+- **库**: markdown-it
 - **特性**:
-  - 文件系统内容管理
   - Markdown解析
-  - 语法高亮
-  - 查询API
+  - 语法高亮（highlight.js）
+  - HTML渲染
+
+### 图标系统
+
+#### Nuxt Icon
+
+- **版本**: 2.1.0
+- **特性**:
+  - 支持多种图标库（Heroicons、Simple Icons等）
+  - 按需加载
+  - 类型安全
 
 ### 部署平台
 
-#### Vercel
+#### Vercel / Netlify
 
 - **优势**:
   - 原生Nuxt 3支持
@@ -104,601 +114,316 @@
 ## 项目结构
 
 ```
-nuxt-tech-blog/
-├── components/           # Vue组件
-│   ├── ui/              # UI基础组件
-│   ├── editor/          # 编辑器组件
-│   └── layout/          # 布局组件
-├── composables/         # 组合式函数
-├── layouts/             # Nuxt布局
-├── pages/               # 页面路由
-├── plugins/             # Nuxt插件
-├── server/              # 服务器API
-│   └── api/             # API路由
-├── stores/              # Pinia状态管理
-├── types/               # TypeScript类型定义
-├── utils/               # 工具函数
-├── assets/              # 静态资源
-├── public/              # 公共资源
-├── middleware/          # 路由中间件
-├── nuxt.config.ts       # Nuxt配置
-├── tailwind.config.js   # Tailwind配置
-├── package.json         # 项目依赖
-└── README.md            # 项目说明
+tech-blog/
+├── assets/                 # 静态资源
+│   └── css/
+│       └── main.css        # Tailwind CSS 主样式文件
+├── components/             # Vue组件
+│   ├── AppHeader.vue       # 网站头部导航
+│   ├── AppFooter.vue       # 网站底部
+│   ├── BlogPostCard.vue    # 文章卡片组件
+│   ├── BlogContentRenderer.vue # 文章内容渲染器
+│   ├── MarkdownEditor.vue  # Markdown编辑器
+│   └── Toast.vue           # 提示消息组件
+├── composables/            # 组合式函数
+│   ├── useBlogPosts.ts     # 博客文章相关操作
+│   ├── useSupabase.ts      # Supabase认证相关
+│   └── useToast.ts         # 提示消息管理
+├── layouts/                # Nuxt布局
+│   └── default.vue         # 默认布局
+├── pages/                  # 页面路由
+│   ├── index.vue           # 首页
+│   ├── blog/               # 博客相关页面
+│   │   ├── index.vue        # 博客列表页
+│   │   ├── [slug].vue       # 文章详情页
+│   │   ├── create.vue        # 创建文章
+│   │   └── edit/[id].vue    # 编辑文章
+│   ├── category/[slug].vue # 分类页面
+│   ├── auth/login.vue       # 登录页面
+│   ├── admin.vue            # 管理后台
+│   ├── profile.vue          # 用户资料
+│   ├── about.vue            # 关于页面
+│   └── contact.vue          # 联系页面
+├── middleware/             # 路由中间件
+│   ├── auth.ts              # 认证中间件
+│   └── admin.ts             # 管理员中间件
+├── plugins/                 # Nuxt插件
+│   └── init-profile.client.ts # 用户资料初始化
+├── scripts/                 # 脚本文件
+│   ├── init-db.js          # 数据库初始化脚本
+│   └── clear-db.js         # 数据库清理脚本
+├── server/                  # 服务器API
+│   └── api/                 # API路由
+├── supabase/                # Supabase相关
+│   └── schema.sql          # 数据库Schema
+├── types/                   # TypeScript类型定义
+│   ├── blog.ts             # 博客相关类型
+│   └── database.types.ts   # 数据库类型
+├── nuxt.config.ts          # Nuxt配置
+├── tailwind.config.js       # Tailwind配置
+├── package.json            # 项目依赖
+└── README.md               # 项目说明
 ```
 
 ## 核心功能实现
 
 ### 1. 用户认证
 
-使用Supabase Auth实现用户认证：
+使用Supabase Auth实现用户认证系统：
 
-```typescript
-// composables/useAuth.ts
-export const useAuth = () => {
-  const client = useSupabaseClient()
-  const user = useState('user', () => null)
-
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await client.auth.signInWithPassword({
-      email,
-      password
-    })
-
-    if (!error) user.value = data.user
-    return { data, error }
-  }
-
-  const signOut = async () => {
-    await client.auth.signOut()
-    user.value = null
-  }
-
-  return {
-    user,
-    signIn,
-    signOut
-  }
-}
-```
+- 用户注册和登录
+- 邮箱/密码认证
+- OAuth第三方登录支持
+- 用户会话管理
+- 自动创建用户配置文件
+- 管理员权限控制
 
 ### 2. 博客文章管理
 
-使用Supabase数据库存储博客文章：
+使用Supabase数据库存储和管理博客文章：
 
-```typescript
-// composables/usePosts.ts
-export const usePosts = () => {
-  const client = useSupabaseClient()
+- 文章的创建、编辑、删除
+- 文章发布状态管理
+- 文章分类和标签系统
+- 文章封面图片支持
+- 文章摘要和内容管理
+- 文章发布时间控制
+- 分页加载支持
 
-  const getPosts = async (publishedOnly = true) => {
-    let query = client.from('posts').select('*')
+### 3. 全文搜索功能
 
-    if (publishedOnly) {
-      query = query.eq('published', true)
-    }
+使用PostgreSQL全文搜索实现高性能搜索：
 
-    const { data, error } = await query.order('created_at', { ascending: false })
+- 基于PostgreSQL的tsvector和tsquery
+- 搜索向量自动生成和维护
+- GIN索引优化搜索性能
+- 支持标题、摘要、内容、标签的全文搜索
+- 相关性排序（标题权重最高）
+- 搜索结果按相关性排序
+- 支持分类和标签过滤
 
-    return { data, error }
-  }
+### 4. 评论系统
 
-  const getPostBySlug = async (slug: string) => {
-    const { data, error } = await client.from('posts').select('*').eq('slug', slug).single()
+实现文章评论功能：
 
-    return { data, error }
-  }
+- 用户评论文章
+- 评论列表展示
+- 评论用户信息关联
+- 评论时间显示
+- 评论权限控制（登录用户可评论）
 
-  const createPost = async (post: PostCreate) => {
-    const { data, error } = await client.from('posts').insert(post).select()
+### 5. 点赞功能
 
-    return { data, error }
-  }
+实现文章点赞功能：
 
-  return {
-    getPosts,
-    getPostBySlug,
-    createPost
-  }
-}
-```
+- 用户点赞/取消点赞
+- 点赞数量统计
+- 用户点赞状态检查
+- 防止重复点赞
 
-### 3. 在线编辑器
+### 6. 在线编辑器
 
 使用Tiptap实现富文本编辑器：
 
-```vue
-<!-- components/editor/TiptapEditor.vue -->
-<template>
-  <div class="tiptap-editor">
-    <editor-content :editor="editor" />
-  </div>
-</template>
+- Markdown格式支持
+- 实时预览
+- 图片上传
+- 链接插入
+- 代码块支持
+- 格式化工具栏
 
-<script setup lang="ts">
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import { watch } from 'vue'
+### 7. 内容渲染
 
-const props = defineProps<{
-  modelValue: string
-}>()
+使用markdown-it和highlight.js渲染文章内容：
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>()
-
-const editor = useEditor({
-  content: props.modelValue,
-  extensions: [StarterKit],
-  onUpdate: ({ editor }) => {
-    emit('update:modelValue', editor.getHTML())
-  }
-})
-
-watch(
-  () => props.modelValue,
-  newValue => {
-    if (editor.value && newValue !== editor.value.getHTML()) {
-      editor.value.commands.setContent(newValue, false)
-    }
-  }
-)
-</script>
-```
-
-### 4. 内容导入功能
-
-实现从微信公众号等平台导入内容：
-
-```typescript
-// composables/useContentImport.ts
-export const useContentImport = () => {
-  const importFromWeChat = async (htmlContent: string) => {
-    // 使用jsdom解析HTML内容
-    const { JSDOM } = await import('jsdom')
-    const dom = new JSDOM(htmlContent)
-    const document = dom.window.document
-
-    // 提取标题
-    const title = document.querySelector('h1, h2, h3')?.textContent || ''
-
-    // 提取正文内容
-    const contentElement = document.querySelector('.rich_media_content')
-    let content = ''
-
-    if (contentElement) {
-      // 清理微信特定的样式和标签
-      content = contentElement.innerHTML
-        .replace(/<section[^>]*>/g, '<div>')
-        .replace(/<\/section>/g, '</div>')
-        .replace(/style="[^"]*"/g, '')
-    }
-
-    // 提取图片并上传到Supabase存储
-    const images = document.querySelectorAll('img')
-    for (const img of images) {
-      const src = img.getAttribute('data-src') || img.getAttribute('src')
-      if (src && src.startsWith('http')) {
-        // 下载并上传图片到Supabase
-        const newUrl = await uploadImageToSupabase(src)
-        img.setAttribute('src', newUrl)
-      }
-    }
-
-    return {
-      title,
-      content: contentElement?.outerHTML || ''
-    }
-  }
-
-  const uploadImageToSupabase = async (imageUrl: string): Promise<string> => {
-    // 下载图片
-    const response = await fetch(imageUrl)
-    const blob = await response.blob()
-
-    // 上传到Supabase存储
-    const client = useSupabaseClient()
-    const fileName = `images/${Date.now()}-${Math.random().toString(36).substring(2)}`
-
-    const { data } = await client.storage.from('blog-images').upload(fileName, blob)
-
-    if (data) {
-      const {
-        data: { publicUrl }
-      } = client.storage.from('blog-images').getPublicUrl(data.path)
-
-      return publicUrl
-    }
-
-    return imageUrl // 如果上传失败，返回原始URL
-  }
-
-  return {
-    importFromWeChat
-  }
-}
-```
+- Markdown转HTML
+- 代码语法高亮
+- 响应式图片
+- 自定义样式
 
 ## 数据库设计
 
 ### Supabase数据库表结构
 
-```sql
--- 用户表
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users NOT NULL PRIMARY KEY,
-  username TEXT UNIQUE,
-  full_name TEXT,
-  avatar_url TEXT,
-  website TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+#### 用户资料表 (profiles)
 
--- 博客文章表
-CREATE TABLE posts (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  author_id UUID REFERENCES profiles(id) NOT NULL,
-  title TEXT NOT NULL,
-  slug TEXT UNIQUE NOT NULL,
-  excerpt TEXT,
-  content TEXT,
-  cover_image_url TEXT,
-  published BOOLEAN DEFAULT FALSE,
-  tags TEXT[],
-  view_count INTEGER DEFAULT 0,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  published_at TIMESTAMP WITH TIME ZONE
-);
+- 用户基本信息
+- 用户名、头像、个人简介
+- 管理员标识
+- 创建和更新时间
 
--- 评论表
-CREATE TABLE comments (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  post_id UUID REFERENCES posts(id) ON DELETE CASCADE NOT NULL,
-  author_id UUID REFERENCES profiles(id) NOT NULL,
-  content TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+#### 博客文章表 (blog_posts)
 
--- 点赞表
-CREATE TABLE likes (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  post_id UUID REFERENCES posts(id) ON DELETE CASCADE NOT NULL,
-  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(post_id, user_id)
-);
+- 文章基本信息（标题、slug、摘要、内容）
+- 封面图片
+- 分类和标签
+- 发布状态
+- 作者关联
+- 创建、更新、发布时间
+- 全文搜索向量（自动生成）
 
--- 行级安全策略
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
+#### 评论表 (comments)
 
--- 用户只能查看和修改自己的配置文件
-CREATE POLICY "Users can view own profile." ON profiles FOR SELECT USING (auth.uid() = id);
-CREATE POLICY "Users can update own profile." ON profiles FOR UPDATE USING (auth.uid() = id);
+- 评论内容
+- 文章关联
+- 用户关联
+- 创建和更新时间
 
--- 所有人可以查看已发布的文章
-CREATE POLICY "Anyone can view published posts." ON posts FOR SELECT USING (published = true);
+#### 点赞表 (likes)
 
--- 只有作者可以查看自己的未发布文章
-CREATE POLICY "Authors can view own posts." ON posts FOR SELECT USING (auth.uid() = author_id);
+- 文章关联
+- 用户关联
+- 唯一约束（防止重复点赞）
+- 创建时间
 
--- 只有作者可以创建和修改自己的文章
-CREATE POLICY "Authors can create posts." ON posts FOR INSERT WITH CHECK (auth.uid() = author_id);
-CREATE POLICY "Authors can update own posts." ON posts FOR UPDATE USING (auth.uid() = author_id);
-CREATE POLICY "Authors can delete own posts." ON posts FOR DELETE USING (auth.uid() = author_id);
+### 全文搜索实现
 
--- 所有人可以查看评论
-CREATE POLICY "Anyone can view comments." ON comments FOR SELECT USING (true);
+- 使用PostgreSQL的全文搜索功能
+- 创建搜索向量函数，整合标题、摘要、内容和标签
+- 使用GIN索引优化搜索性能
+- 搜索向量在数据插入和更新时自动维护
+- 提供搜索函数支持相关性排序
 
--- 只有登录用户可以创建评论
-CREATE POLICY "Authenticated users can create comments." ON comments FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+### 行级安全策略 (RLS)
 
--- 只有作者可以修改自己的评论
-CREATE POLICY "Authors can update own comments." ON comments FOR UPDATE USING (auth.uid() = author_id);
-CREATE POLICY "Authors can delete own comments." ON comments FOR DELETE USING (auth.uid() = author_id);
-
--- 所有人可以查看点赞
-CREATE POLICY "Anyone can view likes." ON likes FOR SELECT USING (true);
-
--- 只有登录用户可以创建和删除自己的点赞
-CREATE POLICY "Authenticated users can create likes." ON likes FOR INSERT WITH CHECK (auth.role() = 'authenticated');
-CREATE POLICY "Users can delete own likes." ON likes FOR DELETE USING (auth.uid() = user_id);
-```
+- 所有表启用RLS
+- 已发布文章所有人可查看
+- 用户只能查看和编辑自己的草稿
+- 管理员拥有全部权限
+- 评论和点赞需要登录用户权限
 
 ## 部署配置
 
-### Vercel配置
+### 环境变量配置
 
-```json
-// vercel.json
-{
-  "buildCommand": "nuxt build",
-  "devCommand": "nuxt dev",
-  "installCommand": "npm install",
-  "framework": "nuxtjs",
-  "functions": {
-    "server/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
-  "env": {
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key"
-  }
-}
-```
+需要配置以下环境变量：
+
+- SUPABASE_URL: Supabase项目URL
+- SUPABASE_KEY: Supabase匿名密钥
+- SUPABASE_SERVICE_KEY: Supabase服务密钥
 
 ### Nuxt配置
 
-```typescript
-// nuxt.config.ts
-export default defineNuxtConfig({
-  // 模块
-  modules: [
-    '@nuxtjs/tailwindcss',
-    '@nuxtjs/supabase',
-    '@nuxt/content',
-    '@pinia/nuxt',
-    '@vueuse/nuxt'
-  ],
+- 集成Tailwind CSS模块
+- 集成Supabase模块
+- 集成Nuxt Icon模块
+- 配置运行时环境变量
+- 配置应用元数据
 
-  // 运行时配置
-  runtimeConfig: {
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-    public: {
-      siteName: '技术博客',
-      siteDescription: '基于Nuxt 3的技术博客系统'
-    }
-  },
+### 数据库初始化
 
-  // CSS配置
-  css: ['~/assets/css/main.css'],
-
-  // 构建配置
-  nitro: {
-    prerender: {
-      routes: ['/sitemap.xml', '/robots.txt']
-    }
-  },
-
-  // 内容配置
-  content: {
-    highlight: {
-      theme: 'github-dark',
-      preload: ['javascript', 'typescript', 'vue', 'bash']
-    }
-  },
-
-  // 应用配置
-  app: {
-    head: {
-      title: '技术博客',
-      meta: [
-        { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: '基于Nuxt 3的技术博客系统' }
-      ],
-      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
-    }
-  }
-})
-```
+- 运行supabase/schema.sql创建数据库结构
+- 运行scripts/init-db.js初始化测试数据
+- 验证全文搜索功能
 
 ## 性能优化
 
-### 1. 图片优化
+### 1. 数据库优化
 
-使用Nuxt Image模块优化图片加载：
+- 为常用查询字段创建索引
+- 使用GIN索引优化全文搜索
+- 合理使用行级安全策略
 
-```typescript
-// nuxt.config.ts
-export default defineNuxtConfig({
-  modules: [
-    '@nuxt/image'
-    // ...其他模块
-  ],
-  image: {
-    supabase: {
-      baseURL: process.env.SUPABASE_URL + '/storage/v1/render/image/public'
-    }
-  }
-})
-```
+### 2. 前端优化
 
-### 2. 代码分割
+- 使用Nuxt 3的自动代码分割
+- 懒加载组件
+- 图片优化
+- 缓存策略
 
-利用Nuxt 3的自动代码分割和动态导入：
+### 3. 搜索优化
 
-```vue
-<!-- 动态导入编辑器组件 -->
-<template>
-  <div>
-    <ClientOnly>
-      <LazyTiptapEditor v-model="content" />
-    </ClientOnly>
-  </div>
-</template>
-```
-
-### 3. 缓存策略
-
-使用Nitro缓存API响应：
-
-```typescript
-// server/api/posts/index.get.ts
-export default defineEventHandler(async event => {
-  const posts = await getPosts()
-
-  // 缓存5分钟
-  await useStorage('cache').setItem('posts', posts, { ttl: 300 })
-
-  return posts
-})
-```
+- 使用PostgreSQL全文搜索而非客户端搜索
+- GIN索引提供高性能搜索
+- 搜索向量自动维护，无需手动更新
 
 ## 开发工作流
 
 ### 1. 本地开发
 
-```bash
-# 克隆项目
-git clone <repository-url>
-cd nuxt-tech-blog
+- 安装依赖：pnpm install
+- 配置环境变量：复制.env.example为.env
+- 初始化数据库：运行supabase/schema.sql
+- 启动开发服务器：pnpm dev
 
-# 安装依赖
-npm install
+### 2. 数据库管理
 
-# 配置环境变量
-cp .env.example .env.local
+- 使用Supabase控制台管理数据库
+- 使用scripts/init-db.js初始化测试数据
+- 使用scripts/clear-db.js清理数据
 
-# 启动开发服务器
-npm run dev
-```
+### 3. 代码质量
 
-### 2. 部署到Vercel
+- ESLint代码检查
+- Prettier代码格式化
+- Husky Git钩子
+- TypeScript类型检查
 
-```bash
-# 安装Vercel CLI
-npm i -g vercel
+## 功能特性
 
-# 部署到Vercel
-vercel --prod
-```
+### 已实现功能
 
-### 3. 数据库迁移
+1. **文章管理**
+   - 创建、编辑、删除文章
+   - 文章发布控制
+   - 分类和标签管理
+   - 文章列表和详情展示
 
-使用Supabase CLI管理数据库迁移：
+2. **用户系统**
+   - 用户注册和登录
+   - 用户资料管理
+   - 管理员权限
+   - 认证中间件
 
-```bash
-# 安装Supabase CLI
-npm install -g supabase
+3. **互动功能**
+   - 文章评论
+   - 文章点赞
+   - 评论和点赞数量统计
 
-# 登录Supabase
-supabase login
+4. **搜索功能**
+   - 全文搜索
+   - 相关性排序
+   - 分类和标签过滤
 
-# 链接项目
-supabase link --project-ref your-project-ref
+5. **内容编辑**
+   - 富文本编辑器
+   - Markdown支持
+   - 图片上传
+   - 实时预览
 
-# 应用迁移
-supabase db push
-```
+6. **UI/UX**
+   - 响应式设计
+   - 暗色模式支持
+   - 加载状态提示
+   - 错误处理
+   - Toast消息提示
 
-## 扩展功能
+### 扩展功能建议
 
-### 1. 搜索功能
-
-使用Fuse.js实现客户端全文搜索：
-
-```typescript
-// composables/useSearch.ts
-import Fuse from 'fuse.js'
-
-export const useSearch = () => {
-  const posts = useState<Post[]>('posts', () => [])
-
-  const searchPosts = (query: string) => {
-    if (!query.trim()) return posts.value
-
-    const fuse = new Fuse(posts.value, {
-      keys: ['title', 'excerpt', 'content', 'tags'],
-      threshold: 0.3
-    })
-
-    return fuse.search(query).map(result => result.item)
-  }
-
-  return {
-    searchPosts
-  }
-}
-```
-
-### 2. 评论系统
-
-使用Supabase实时功能实现实时评论：
-
-```vue
-<!-- components/Comments.vue -->
-<template>
-  <div class="comments">
-    <div v-for="comment in comments" :key="comment.id" class="comment">
-      <p>{{ comment.content }}</p>
-      <small>{{ comment.author.username }} - {{ formatDate(comment.created_at) }}</small>
-    </div>
-
-    <form @submit.prevent="addComment">
-      <textarea v-model="newComment" placeholder="添加评论..."></textarea>
-      <button type="submit">提交</button>
-    </form>
-  </div>
-</template>
-
-<script setup lang="ts">
-const client = useSupabaseClient()
-const postId = useRoute().params.id as string
-const user = useSupabaseUser()
-
-const comments = ref<Comment[]>([])
-const newComment = ref('')
-
-// 获取评论
-const fetchComments = async () => {
-  const { data } = await client
-    .from('comments')
-    .select('*, profiles(username)')
-    .eq('post_id', postId)
-    .order('created_at')
-
-  comments.value = data || []
-}
-
-// 实时监听评论变化
-client
-  .channel(`comments:${postId}`)
-  .on(
-    'postgres_changes',
-    { event: 'INSERT', schema: 'public', table: 'comments', filter: `post_id=eq.${postId}` },
-    payload => {
-      comments.value.push(payload.new as Comment)
-    }
-  )
-  .subscribe()
-
-// 添加评论
-const addComment = async () => {
-  if (!user.value || !newComment.value.trim()) return
-
-  await client.from('comments').insert({
-    post_id: postId,
-    author_id: user.value.sub,
-    content: newComment.value
-  })
-
-  newComment.value = ''
-}
-
-onMounted(fetchComments)
-</script>
-```
+1. 文章草稿自动保存
+2. 文章版本历史
+3. 文章阅读量统计
+4. 文章分享功能
+5. RSS订阅
+6. 文章归档
+7. 标签云
+8. 相关文章推荐
+9. 搜索历史
+10. 高级搜索筛选
 
 ## 总结
 
 这个基于Nuxt 3、TypeScript、Tailwind CSS和Supabase的技术博客系统提供了：
 
-1. **现代化开发体验** - 使用最新的Vue 3生态系统
+1. **现代化开发体验** - 使用最新的Vue 3生态系统和TypeScript
 2. **类型安全** - 全面的TypeScript支持
 3. **快速开发** - Nuxt 3的约定优于配置
 4. **无服务器后端** - Supabase提供完整的后端服务
-5. **优秀的性能** - Nitro引擎和Vercel边缘网络
-6. **易于部署** - Vercel一键部署
-7. **可扩展性** - 模块化架构，易于添加新功能
+5. **高性能搜索** - PostgreSQL全文搜索，自动索引维护
+6. **优秀的性能** - Nitro引擎和边缘网络
+7. **易于部署** - 支持Vercel、Netlify等平台一键部署
+8. **可扩展性** - 模块化架构，易于添加新功能
+9. **安全性** - 行级安全策略保护数据
+10. **用户体验** - 响应式设计，流畅的交互体验
 
-这个技术栈特别适合快速构建和部署现代化的技术博客系统，同时保持代码的可维护性和扩展性。
+这个技术栈特别适合快速构建和部署现代化的技术博客系统，同时保持代码的可维护性和扩展性。全文搜索功能的实现使得用户可以快速找到感兴趣的内容，提升了博客系统的实用价值。
