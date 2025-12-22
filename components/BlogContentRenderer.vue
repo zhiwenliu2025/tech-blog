@@ -118,8 +118,10 @@ const editor = useEditor({
     }),
     Image.configure({
       HTMLAttributes: {
-        class: 'rounded-lg max-w-full h-auto'
-      }
+        class: 'rounded-lg max-w-full h-auto my-4 mx-auto block',
+        loading: 'lazy'
+      },
+      inline: false
     })
   ],
   content: typeof window !== 'undefined' ? getHtmlContent(props.content, props.contentType) : '',

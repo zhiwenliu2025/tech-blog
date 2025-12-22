@@ -349,3 +349,36 @@ CREATE POLICY "Admins can delete any avatar" ON storage.objects
     bucket_id = 'avatars' AND 
     public.is_admin()
   );
+
+-- Create storage bucket for blog images
+INSERT INTO storage.buckets (id, name, public) VALUES ('blog-images', 'blog-images', true) ON CONFLICT (id) DO NOTHING;
+
+-- Policies for blog images storage
+-- Anyone can view blog images (public bucket)
+DROP POLICY IF EXISTS "Anyone can view blog images" ON storage.objects;
+CREATE POLICY "Anyone can view blog images" ON storage.objects
+  FOR SELECT USING (bucket_id = 'blog-images');
+
+-- Authenticated users can upload blog images
+DROP POLICY IF EXISTS "Authenticated users can upload blog images" ON storage.objects;
+CREATE POLICY "Authenticated users can upload blog images" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'blog-images' AND 
+    auth.role() = 'authenticated'
+  );
+
+-- Users can delete their own blog images (based on folder structure: {user_id}/...)
+DROP POLICY IF EXISTS "Users can delete their own blog images" ON storage.objects;
+CREATE POLICY "Users can delete their own blog images" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'blog-images' AND 
+    (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Admins can delete any blog images
+DROP POLICY IF EXISTS "Admins can delete any blog images" ON storage.objects;
+CREATE POLICY "Admins can delete any blog images" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'blog-images' AND 
+    public.is_admin()
+  );

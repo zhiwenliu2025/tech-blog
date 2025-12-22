@@ -121,6 +121,7 @@
               <MarkdownEditor
                 id="content"
                 v-model="post.content"
+                :post-id="post.id"
                 placeholder="开始输入 Markdown 内容..."
               />
             </div>

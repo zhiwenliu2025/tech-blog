@@ -232,8 +232,8 @@
         <button
           type="button"
           class="rounded px-2 py-1 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-          title="图片"
-          @click="setImage"
+          title="插入图片"
+          @click="showImageUploadDialog = true"
         >
           <Icon name="i-heroicons-photo" class="h-4 w-4" />
         </button>
@@ -243,8 +243,42 @@
     <!-- 编辑器内容 -->
     <div
       class="min-h-[400px] rounded-lg border border-gray-300 bg-white p-4 dark:border-gray-600 dark:bg-gray-800"
+      :class="{ 'ring-2 ring-primary-500': isDragging }"
+      @drop.prevent="handleDrop"
+      @dragover.prevent="isDragging = true"
+      @dragleave.prevent="isDragging = false"
     >
       <EditorContent :editor="editor" class="prose prose-sm max-w-none dark:prose-invert" />
+    </div>
+
+    <!-- 图片上传对话框 -->
+    <div
+      v-if="showImageUploadDialog"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+      @click.self="showImageUploadDialog = false"
+    >
+      <div class="w-full max-w-md rounded-lg bg-white shadow-xl dark:bg-gray-800" @click.stop>
+        <div
+          class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700"
+        >
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">上传图片</h3>
+          <button
+            type="button"
+            class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+            @click="showImageUploadDialog = false"
+          >
+            <Icon name="i-heroicons-x-mark" class="h-5 w-5" />
+          </button>
+        </div>
+        <div class="p-4">
+          <ImageUploader
+            ref="imageUploaderRef"
+            :post-id="postId"
+            @uploaded="handleImageUploaded"
+            @error="handleImageError"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Markdown 提示 -->
@@ -359,8 +393,11 @@ const editor = useEditor({
     }),
     Image.configure({
       HTMLAttributes: {
-        class: 'rounded-lg max-w-full h-auto'
-      }
+        class: 'rounded-lg max-w-full h-auto my-4',
+        loading: 'lazy'
+      },
+      inline: false,
+      allowBase64: false
     }),
     Link.configure({
       openOnClick: false,
@@ -424,16 +461,86 @@ const setLink = () => {
   editor.value.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
 }
 
-// 设置图片
-const setImage = () => {
+// 图片上传相关
+const showImageUploadDialog = ref(false)
+const imageUploaderRef = ref<InstanceType<typeof ImageUploader> | null>(null)
+const isDragging = ref(false)
+
+// 处理图片上传成功
+const handleImageUploaded = (url: string) => {
   if (!editor.value) return
 
-  const url = window.prompt('输入图片 URL:')
+  // 插入图片到编辑器
+  editor.value.chain().focus().setImage({ src: url, alt: '图片' }).run()
 
-  if (url) {
-    editor.value.chain().focus().setImage({ src: url }).run()
+  // 关闭对话框
+  setTimeout(() => {
+    showImageUploadDialog.value = false
+    if (imageUploaderRef.value) {
+      imageUploaderRef.value.removeImage()
+    }
+  }, 500)
+}
+
+// 处理图片上传错误
+const handleImageError = (error: string) => {
+  console.error('图片上传错误:', error)
+  // 错误已在 ImageUploader 组件中显示
+}
+
+// 处理拖拽上传
+const handleDrop = async (e: DragEvent) => {
+  isDragging.value = false
+  const file = e.dataTransfer?.files[0]
+
+  if (!file || !file.type.startsWith('image/')) {
+    return
+  }
+
+  if (!editor.value) return
+
+  // 显示上传对话框并自动上传
+  showImageUploadDialog.value = true
+  await nextTick()
+  if (imageUploaderRef.value) {
+    await imageUploaderRef.value.uploadImage(file)
   }
 }
+
+// 监听粘贴事件（粘贴图片）
+let pasteHandler: ((e: ClipboardEvent) => Promise<void>) | null = null
+
+onMounted(() => {
+  pasteHandler = async (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items
+    if (!items || !editor.value) return
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (item.type.startsWith('image/')) {
+        e.preventDefault()
+        const file = item.getAsFile()
+        if (file) {
+          // 显示上传对话框并自动上传
+          showImageUploadDialog.value = true
+          await nextTick()
+          if (imageUploaderRef.value) {
+            await imageUploaderRef.value.uploadImage(file)
+          }
+        }
+        break
+      }
+    }
+  }
+
+  document.addEventListener('paste', pasteHandler as EventListener)
+})
+
+onBeforeUnmount(() => {
+  if (pasteHandler) {
+    document.removeEventListener('paste', pasteHandler as EventListener)
+  }
+})
 
 // 获取当前代码块的语言
 const getCurrentCodeBlockLanguage = (): string => {
