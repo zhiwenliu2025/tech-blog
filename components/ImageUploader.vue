@@ -339,7 +339,8 @@ const uploadImage = async (file: File) => {
         xhr.setRequestHeader('Authorization', `Bearer ${sessionData.session.access_token}`)
         xhr.setRequestHeader('apikey', supabaseKey)
         xhr.setRequestHeader('x-upsert', 'false')
-        xhr.setRequestHeader('cache-control', '3600')
+        // 注意：cache-control 是响应头，不能通过请求头设置
+        // Supabase Storage 会自动设置适当的缓存响应头
 
         // 创建 FormData
         const formData = new FormData()
