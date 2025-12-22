@@ -294,7 +294,7 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
-import { watch, onBeforeUnmount, onMounted, nextTick } from 'vue'
+import { watch, onBeforeUnmount, onMounted, nextTick, ref } from 'vue'
 // @ts-ignore
 import MarkdownIt from 'markdown-it'
 // @ts-ignore
@@ -415,6 +415,27 @@ const editor = useEditor({
     attributes: {
       class: 'prose prose-sm max-w-none dark:prose-invert focus:outline-none min-h-[400px]',
       placeholder: props.placeholder
+    },
+    handleKeyDown: (view, event) => {
+      // 监听 Delete/Backspace 键删除图片
+      if ((event.key === 'Delete' || event.key === 'Backspace') && editor.value) {
+        const { state } = view
+        const { selection } = state
+        const pos = selection.$anchor.pos
+
+        // 检查当前位置的节点
+        const node = state.doc.nodeAt(pos - 1)
+        if (node && node.type.name === 'image') {
+          const imageUrl = node.attrs.src
+          // 异步删除 Storage 中的图片（不阻塞删除操作）
+          if (imageUploaderRef.value && imageUrl && imageUrl.includes('/blog-images/')) {
+            imageUploaderRef.value.deleteImageFromStorage(imageUrl).catch((err: any) => {
+              console.warn('删除图片文件失败:', err)
+            })
+          }
+        }
+      }
+      return false // 继续默认行为
     }
   },
   onUpdate: ({ editor }) => {
@@ -426,6 +447,8 @@ const editor = useEditor({
     nextTick(() => {
       updateCodeBlockLabels()
     })
+    // 检测图片删除
+    detectImageDeletion(html)
   }
 })
 
@@ -543,6 +566,45 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.removeEventListener('paste', handlePaste)
+})
+
+// 存储上一次的图片 URL 列表
+let previousImageUrls: string[] = []
+
+// 从 HTML 中提取所有图片 URL
+const extractImageUrls = (html: string): string[] => {
+  if (typeof window === 'undefined') return []
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, 'text/html')
+  const images = doc.querySelectorAll('img')
+  return Array.from(images)
+    .map(img => img.getAttribute('src') || '')
+    .filter(url => url && url.includes('/blog-images/'))
+}
+
+// 检测图片删除
+const detectImageDeletion = (currentHtml: string) => {
+  const currentImageUrls = extractImageUrls(currentHtml)
+  const deletedImages = previousImageUrls.filter(url => !currentImageUrls.includes(url))
+
+  // 删除 Storage 中的图片文件
+  if (deletedImages.length > 0 && imageUploaderRef.value) {
+    deletedImages.forEach(imageUrl => {
+      imageUploaderRef.value.deleteImageFromStorage(imageUrl).catch((err: any) => {
+        console.warn('删除图片文件失败:', err)
+      })
+    })
+  }
+
+  // 更新上一次的图片列表
+  previousImageUrls = currentImageUrls
+}
+
+// 初始化时提取图片 URL
+onMounted(() => {
+  if (editor.value) {
+    previousImageUrls = extractImageUrls(editor.value.getHTML())
+  }
 })
 
 // 获取当前代码块的语言

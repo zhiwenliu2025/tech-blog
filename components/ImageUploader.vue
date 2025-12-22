@@ -14,11 +14,14 @@
       <p class="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
         点击或拖拽图片到此处上传
       </p>
-      <p class="text-xs text-gray-500 dark:text-gray-400">支持 JPG、PNG、GIF、WebP，最大 5MB</p>
+      <p class="text-xs text-gray-500 dark:text-gray-400">
+        支持 JPG、PNG、GIF、WebP，最大 5MB{{ props.multiple ? '，可多选' : '' }}
+      </p>
       <input
         ref="fileInput"
         type="file"
         accept="image/*"
+        :multiple="props.multiple"
         class="hidden"
         @change="handleFileSelect"
       />
@@ -87,12 +90,22 @@
       </button>
     </div>
 
-    <!-- 错误提示 -->
+    <!-- 错误提示和重试 -->
     <div
       v-if="error"
       class="mt-2 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400"
     >
-      {{ error }}
+      <div class="flex items-center justify-between">
+        <span>{{ error }}</span>
+        <button
+          v-if="lastUploadFile"
+          type="button"
+          class="ml-2 rounded px-2 py-1 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 dark:text-red-300 dark:hover:bg-red-900/40"
+          @click="retryUpload"
+        >
+          重试
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -123,6 +136,8 @@ const imageUrl = ref<string | null>(null)
 const altText = ref<string>('')
 const error = ref<string | null>(null)
 const isDragging = ref(false)
+const lastUploadFile = ref<File | null>(null)
+const uploadedFileName = ref<string | null>(null)
 
 // 检查是否支持 WebP
 const supportsWebP = (): boolean => {
@@ -130,6 +145,28 @@ const supportsWebP = (): boolean => {
   canvas.width = 1
   canvas.height = 1
   return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
+}
+
+// 验证图片尺寸
+const validateImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      const img = new Image()
+      img.onload = () => {
+        const maxDimension = 5000
+        if (img.width > maxDimension || img.height > maxDimension) {
+          reject(new Error(`图片尺寸过大（${img.width}x${img.height}px），最大支持 5000x5000px`))
+          return
+        }
+        resolve({ width: img.width, height: img.height })
+      }
+      img.onerror = () => reject(new Error('图片加载失败'))
+      img.src = e.target?.result as string
+    }
+    reader.onerror = () => reject(new Error('文件读取失败'))
+    reader.readAsDataURL(file)
+  })
 }
 
 // 压缩图片（支持 WebP 转换）
@@ -232,8 +269,12 @@ const uploadImage = async (file: File) => {
   uploading.value = true
   uploadProgress.value = 0
   error.value = null
+  lastUploadFile.value = file
 
   try {
+    // 验证图片尺寸
+    await validateImageDimensions(file)
+
     // 压缩图片
     const compressedFile = await compressImage(file)
 
@@ -316,6 +357,8 @@ const uploadImage = async (file: File) => {
     const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
 
     imageUrl.value = urlData.publicUrl
+    uploadedFileName.value = fileName
+    lastUploadFile.value = null // 清除，表示上传成功
     // 不立即触发 uploaded 事件，等待用户确认 Alt 文本
   } catch (err: any) {
     console.error('上传失败:', err)
@@ -333,22 +376,61 @@ const uploadImage = async (file: File) => {
 // 处理文件选择
 const handleFileSelect = (e: Event) => {
   const target = e.target as HTMLInputElement
-  const file = target.files?.[0]
-  if (file) {
-    uploadImage(file)
+  const files = target.files
+  if (!files || files.length === 0) return
+
+  const fileArray = Array.from(files)
+  if (props.multiple && fileArray.length > 1) {
+    // 批量上传
+    handleMultipleFiles(fileArray)
+  } else if (fileArray[0]) {
+    // 单文件上传
+    uploadImage(fileArray[0])
   }
+
   // 重置 input，允许重复选择同一文件
   if (fileInput.value) {
     fileInput.value.value = ''
   }
 }
 
+// 处理多文件上传
+const handleMultipleFiles = async (files: File[]) => {
+  // 对于多文件，逐个上传并插入
+  for (const file of files) {
+    if (!file) continue
+    try {
+      await uploadImage(file)
+      // 如果上传成功，自动插入（不等待 Alt 文本）
+      if (imageUrl.value) {
+        emit('uploaded', {
+          url: imageUrl.value,
+          alt: undefined
+        })
+        // 重置状态，准备下一个文件
+        imageUrl.value = null
+        altText.value = ''
+      }
+    } catch (err) {
+      console.error('批量上传中的文件失败:', err)
+      // 继续上传下一个文件
+    }
+  }
+}
+
 // 处理拖拽
 const handleDrop = (e: DragEvent) => {
   isDragging.value = false
-  const file = e.dataTransfer?.files[0]
-  if (file) {
-    uploadImage(file)
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+
+  const fileArray = Array.from(files)
+  if (props.multiple && fileArray.length > 1) {
+    // 批量上传
+    handleMultipleFiles(fileArray)
+  } else if (fileArray[0]) {
+    // 单文件上传
+    uploadImage(fileArray[0])
   }
 }
 
@@ -379,10 +461,60 @@ const confirmUpload = () => {
   }
 }
 
+// 重试上传
+const retryUpload = async () => {
+  if (lastUploadFile.value) {
+    // 如果之前上传成功但用户取消了，先删除已上传的文件
+    if (uploadedFileName.value) {
+      try {
+        await supabase.storage.from('blog-images').remove([uploadedFileName.value])
+      } catch (err) {
+        console.warn('删除已上传文件失败:', err)
+      }
+      uploadedFileName.value = null
+    }
+    await uploadImage(lastUploadFile.value)
+  }
+}
+
+// 删除 Storage 中的图片
+const deleteImageFromStorage = async (imageUrl: string | undefined): Promise<boolean> => {
+  if (!imageUrl) return false
+
+  try {
+    // 从 URL 中提取文件路径
+    // URL 格式: https://xxx.supabase.co/storage/v1/object/public/blog-images/path/to/file.webp
+    const urlParts = imageUrl.split('/blog-images/')
+    if (urlParts.length !== 2) {
+      console.warn('无法从 URL 提取文件路径:', imageUrl)
+      return false
+    }
+
+    const filePath = urlParts[1]
+    if (!filePath) {
+      console.warn('文件路径为空')
+      return false
+    }
+
+    const { error } = await supabase.storage.from('blog-images').remove([filePath])
+
+    if (error) {
+      console.error('删除图片失败:', error)
+      return false
+    }
+
+    return true
+  } catch (err) {
+    console.error('删除图片异常:', err)
+    return false
+  }
+}
+
 // 暴露方法供外部调用
 defineExpose({
   uploadImage,
   removeImage,
+  deleteImageFromStorage,
   imageUrl: readonly(imageUrl),
   altText: readonly(altText)
 })
