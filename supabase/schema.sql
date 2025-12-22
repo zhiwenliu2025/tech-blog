@@ -69,6 +69,73 @@ CREATE INDEX comments_post_id_idx ON comments(post_id);
 DROP INDEX IF EXISTS likes_post_id_idx;
 CREATE INDEX likes_post_id_idx ON likes(post_id);
 
+-- Full-text search support
+-- Create a function to generate search vector from title, excerpt, content, and tags
+CREATE OR REPLACE FUNCTION blog_posts_search_vector(blog_posts)
+RETURNS tsvector AS $$
+BEGIN
+  RETURN 
+    setweight(to_tsvector('simple', COALESCE($1.title, '')), 'A') ||
+    setweight(to_tsvector('simple', COALESCE($1.excerpt, '')), 'B') ||
+    setweight(to_tsvector('simple', COALESCE($1.content, '')), 'C') ||
+    setweight(to_tsvector('simple', COALESCE(array_to_string($1.tags, ' '), '')), 'B');
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Create GIN index for full-text search (using expression index)
+DROP INDEX IF EXISTS blog_posts_search_idx;
+CREATE INDEX blog_posts_search_idx ON blog_posts 
+USING GIN (blog_posts_search_vector(blog_posts.*));
+
+-- Create a search function for blog posts
+CREATE OR REPLACE FUNCTION search_blog_posts(
+  search_query TEXT,
+  result_limit INTEGER DEFAULT 20,
+  result_offset INTEGER DEFAULT 0
+)
+RETURNS TABLE (
+  id UUID,
+  title TEXT,
+  slug TEXT,
+  excerpt TEXT,
+  content TEXT,
+  cover_image TEXT,
+  category TEXT,
+  tags TEXT[],
+  published BOOLEAN,
+  author_id UUID,
+  created_at TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  published_at TIMESTAMP WITH TIME ZONE,
+  rank REAL
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    bp.id,
+    bp.title,
+    bp.slug,
+    bp.excerpt,
+    bp.content,
+    bp.cover_image,
+    bp.category,
+    bp.tags,
+    bp.published,
+    bp.author_id,
+    bp.created_at,
+    bp.updated_at,
+    bp.published_at,
+    ts_rank_cd(blog_posts_search_vector(bp.*), plainto_tsquery('simple', search_query)) AS rank
+  FROM blog_posts bp
+  WHERE 
+    blog_posts_search_vector(bp.*) @@ plainto_tsquery('simple', search_query)
+    AND bp.published = true
+  ORDER BY rank DESC, bp.published_at DESC
+  LIMIT result_limit
+  OFFSET result_offset;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Set up Row Level Security (RLS)
 ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;

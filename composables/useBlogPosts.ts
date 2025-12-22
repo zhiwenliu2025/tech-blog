@@ -722,6 +722,163 @@ export const useBlogPosts = () => {
     }
   }
 
+  // Search blog posts using full-text search
+  const searchPosts = async (
+    query: string,
+    options: {
+      limit?: number
+      offset?: number
+      category?: string | null
+      tag?: string | null
+    } = {}
+  ) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { limit = 20, offset = 0, category = null, tag = null } = options
+
+      if (!query || query.trim().length === 0) {
+        // If query is empty, return empty results
+        return { data: [], error: null, count: 0 }
+      }
+
+      // Use the search function if available, otherwise fallback to manual search
+      // First, try using the database function
+      const { data: searchResults, error: searchError } = await supabase.rpc('search_blog_posts', {
+        search_query: query.trim(),
+        result_limit: limit,
+        result_offset: offset
+      })
+
+      if (searchError) {
+        // Fallback to manual search if function doesn't exist or fails
+        console.warn('Search function not available, using fallback search:', searchError)
+
+        // Manual full-text search using Supabase query
+        let searchQuery = supabase
+          .from('blog_posts')
+          .select('*', { count: 'exact' })
+          .eq('published', true)
+          .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%,content.ilike.%${query}%`)
+          .order('published_at', { ascending: false })
+          .range(offset, offset + limit - 1)
+
+        if (category) {
+          searchQuery = searchQuery.eq('category', category)
+        }
+
+        if (tag) {
+          searchQuery = searchQuery.contains('tags', [tag])
+        }
+
+        const { data, error: dbError, count } = await searchQuery
+
+        if (dbError) throw dbError
+
+        // Get likes and comments counts
+        if (data && data.length > 0) {
+          const postIds = data.map(post => post.id)
+
+          const { data: likesData } = await supabase
+            .from('likes')
+            .select('post_id')
+            .in('post_id', postIds)
+
+          const { data: commentsData } = await supabase
+            .from('comments')
+            .select('post_id')
+            .in('post_id', postIds)
+
+          const likesCountMap = new Map<string, number>()
+          const commentsCountMap = new Map<string, number>()
+
+          if (likesData) {
+            likesData.forEach(like => {
+              likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
+            })
+          }
+
+          if (commentsData) {
+            commentsData.forEach(comment => {
+              commentsCountMap.set(
+                comment.post_id,
+                (commentsCountMap.get(comment.post_id) || 0) + 1
+              )
+            })
+          }
+
+          data.forEach(post => {
+            post.likes_count = likesCountMap.get(post.id) || 0
+            post.comments_count = commentsCountMap.get(post.id) || 0
+          })
+        }
+
+        return { data: data || [], error: null, count: count || 0 }
+      }
+
+      // Process results from search function
+      if (searchResults && searchResults.length > 0) {
+        // Apply category and tag filters if specified
+        let filteredResults = searchResults
+
+        if (category) {
+          filteredResults = filteredResults.filter(post => post.category === category)
+        }
+
+        if (tag) {
+          filteredResults = filteredResults.filter(post => post.tags && post.tags.includes(tag))
+        }
+
+        const postIds = filteredResults.map(post => post.id)
+
+        // Get likes and comments counts
+        const { data: likesData } = await supabase
+          .from('likes')
+          .select('post_id')
+          .in('post_id', postIds)
+
+        const { data: commentsData } = await supabase
+          .from('comments')
+          .select('post_id')
+          .in('post_id', postIds)
+
+        const likesCountMap = new Map<string, number>()
+        const commentsCountMap = new Map<string, number>()
+
+        if (likesData) {
+          likesData.forEach(like => {
+            likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
+          })
+        }
+
+        if (commentsData) {
+          commentsData.forEach(comment => {
+            commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
+          })
+        }
+
+        filteredResults.forEach(post => {
+          post.likes_count = likesCountMap.get(post.id) || 0
+          post.comments_count = commentsCountMap.get(post.id) || 0
+        })
+
+        return {
+          data: filteredResults,
+          error: null,
+          count: filteredResults.length
+        }
+      }
+
+      return { data: [], error: null, count: 0 }
+    } catch (err: any) {
+      error.value = err.message
+      return { data: [], error: err.message, count: 0 }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading: readonly(loading),
     error: readonly(error),
@@ -748,6 +905,7 @@ export const useBlogPosts = () => {
     getPostComments,
     addComment,
     deleteComment,
-    checkIsAdmin
+    checkIsAdmin,
+    searchPosts
   }
 }

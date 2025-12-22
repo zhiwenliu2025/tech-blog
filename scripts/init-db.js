@@ -396,6 +396,34 @@ async function initializeDatabase() {
     }
 
     console.log(`验证成功: 数据库中现在有 ${verifyData.length} 篇已发布的文章`)
+
+    console.log('步骤 6: 测试全文搜索功能...')
+    // 测试全文搜索功能
+    try {
+      const { data: searchResults, error: searchError } = await supabase.rpc('search_blog_posts', {
+        search_query: 'Vue',
+        result_limit: 5,
+        result_offset: 0
+      })
+
+      if (searchError) {
+        console.warn('全文搜索功能测试失败:', searchError.message)
+        console.warn('这可能是因为搜索函数尚未创建，请确保已运行完整的 schema.sql')
+      } else {
+        console.log(`全文搜索测试成功: 找到 ${searchResults?.length || 0} 篇相关文章`)
+        if (searchResults && searchResults.length > 0) {
+          searchResults.forEach((post, index) => {
+            console.log(
+              `  结果 ${index + 1}: ${post.title} (相关性: ${post.rank?.toFixed(4) || 'N/A'})`
+            )
+          })
+        }
+      }
+    } catch (searchTestError) {
+      console.warn('全文搜索功能测试出错:', searchTestError.message)
+      console.warn('请确保已运行完整的 schema.sql 以创建搜索函数和索引')
+    }
+
     console.log('数据库初始化完成!')
   } catch (error) {
     console.error('初始化数据库过程中发生未预期的错误:', error)
