@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
 
   // Modules
   modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase', '@nuxt/icon'],
@@ -51,5 +51,16 @@ export default defineNuxtConfig({
       ],
       link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
     }
+  },
+
+  // Nitro 配置 - 确保正确打包依赖
+  nitro: {
+    esbuild: {
+      options: {
+        target: 'node18'
+      }
+    },
+    // 确保 Supabase 依赖被正确打包
+    moduleSideEffects: ['@supabase/supabase-js']
   }
 })
