@@ -24,10 +24,9 @@ export default defineNuxtConfig({
   // Supabase
   supabase: {
     redirect: false,
-    // 显式配置 Supabase URL 和 Key，确保在 Vercel 上正确读取环境变量
-    // 注意：不要使用空字符串作为默认值，让模块自己处理 undefined
-    url: process.env.SUPABASE_URL,
-    key: process.env.SUPABASE_KEY,
+    // 使用 NUXT_PUBLIC_ 前缀的环境变量，确保在客户端和服务端都能访问
+    url: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+    key: process.env.NUXT_PUBLIC_SUPABASE_KEY || process.env.SUPABASE_KEY,
     serviceKey: process.env.SUPABASE_SERVICE_KEY
   },
 
@@ -39,9 +38,15 @@ export default defineNuxtConfig({
     supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
 
     // Public keys (exposed to client-side)
+    // 使用 NUXT_PUBLIC_ 前缀确保客户端可访问
     public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseKey: process.env.SUPABASE_KEY
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_KEY || process.env.SUPABASE_KEY,
+      appName: process.env.NUXT_PUBLIC_APP_NAME || '技术博客',
+      appDescription: process.env.NUXT_PUBLIC_APP_DESCRIPTION || '基于 Nuxt 3 的技术博客',
+      appUrl: process.env.NUXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      commentsEnabled: process.env.NUXT_PUBLIC_COMMENTS_ENABLED === 'true',
+      analyticsEnabled: process.env.NUXT_PUBLIC_ANALYTICS_ENABLED === 'true'
     }
   },
 

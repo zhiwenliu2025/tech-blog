@@ -6,14 +6,16 @@
 
 ### 必需的环境变量
 
-1. **SUPABASE_URL**
+1. **SUPABASE_URL** 和 **NUXT_PUBLIC_SUPABASE_URL**
    - 获取方式：登录 [Supabase Dashboard](https://supabase.com/dashboard)
    - 进入你的项目 → Settings → API
    - 复制 "Project URL"
+   - ⚠️ **重要**：在 Vercel 中需要同时配置这两个变量，值相同
 
-2. **SUPABASE_KEY**
+2. **SUPABASE_KEY** 和 **NUXT_PUBLIC_SUPABASE_KEY**
    - 获取方式：在同一个页面（Settings → API）
    - 复制 "anon" 或 "public" key（不是 service_role key）
+   - ⚠️ **重要**：在 Vercel 中需要同时配置这两个变量，值相同
 
 3. **SUPABASE_SERVICE_KEY**（可选，用于服务端操作）
    - 获取方式：在同一个页面（Settings → API）
@@ -30,9 +32,18 @@
 
 ```
 SUPABASE_URL=https://your-project-id.supabase.co
+NUXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your-anon-key-here
+NUXT_PUBLIC_SUPABASE_KEY=your-anon-key-here
 SUPABASE_SERVICE_KEY=your-service-role-key-here
 ```
+
+**⚠️ 关键说明**：
+
+- `NUXT_PUBLIC_` 前缀的环境变量会被 Nuxt 3 自动暴露到客户端
+- Supabase 模块在构建时需要这些变量
+- 必须同时配置 `SUPABASE_URL` 和 `NUXT_PUBLIC_SUPABASE_URL`（值相同）
+- 必须同时配置 `SUPABASE_KEY` 和 `NUXT_PUBLIC_SUPABASE_KEY`（值相同）
 
 5. **为每个变量选择环境作用域**（非常重要！）：
    - 至少选择 **Production** 和 **Preview**
