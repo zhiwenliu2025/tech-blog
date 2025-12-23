@@ -21,10 +21,12 @@
 
 ### 在 Vercel 中配置环境变量
 
+**⚠️ 重要：环境变量必须在构建时可用！**
+
 1. 登录 [Vercel Dashboard](https://vercel.com/dashboard)
 2. 选择你的项目
 3. 进入 **Settings** → **Environment Variables**
-4. 添加以下变量：
+4. 添加以下变量（**变量名必须完全匹配，区分大小写**）：
 
 ```
 SUPABASE_URL=https://your-project-id.supabase.co
@@ -32,9 +34,16 @@ SUPABASE_KEY=your-anon-key-here
 SUPABASE_SERVICE_KEY=your-service-role-key-here
 ```
 
-5. 选择环境（Production、Preview、Development）
-6. 点击 **Save**
-7. 重新部署项目
+5. **为每个变量选择环境作用域**（非常重要！）：
+   - 至少选择 **Production** 和 **Preview**
+   - 如果需要在开发环境测试，也选择 **Development**
+   - 点击每个变量右侧的复选框来选择环境
+
+6. 点击 **Save** 保存所有变量
+
+7. **必须重新部署项目**（环境变量配置后不会自动应用到已存在的部署）：
+   - 方法 1：在 Deployments 页面，找到最新部署，点击 **⋯** → **Redeploy**
+   - 方法 2：推送一个新的 commit 到 Git 仓库，触发自动部署
 
 ### 验证环境变量
 
@@ -85,17 +94,53 @@ SUPABASE_SERVICE_KEY=your-service-role-key-here
 3. 搜索 "SUPABASE" 关键词，查看是否有相关错误
 4. 如果看到环境变量未定义的错误，说明环境变量没有正确传递
 
-#### 步骤 6: 验证环境变量在运行时可用
+#### 步骤 6: 验证环境变量在构建时可用
 
-如果问题仍然存在，可以在代码中临时添加调试日志（仅用于调试）：
+**关键问题**：`@nuxtjs/supabase` 模块在构建时就需要环境变量。如果构建时环境变量不可用，就会出现警告。
+
+验证方法：
+
+1. **在 Vercel 构建日志中检查**：
+   - 部署时，查看 Build Logs
+   - 搜索 "SUPABASE_URL" 或 "SUPABASE_KEY"
+   - 如果看到警告，说明环境变量在构建时不可用
+
+2. **临时调试（仅用于排查问题）**：
+
+在 `nuxt.config.ts` 中临时添加（**调试后必须删除**）：
 
 ```typescript
-// 在 nuxt.config.ts 中临时添加（调试后删除）
-console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '已设置' : '未设置')
-console.log('SUPABASE_KEY:', process.env.SUPABASE_KEY ? '已设置' : '未设置')
+// ⚠️ 仅用于调试，完成后必须删除
+if (process.env.NODE_ENV === 'production') {
+  console.log('构建时环境变量检查:')
+  console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? '✅ 已设置' : '❌ 未设置')
+  console.log('SUPABASE_KEY:', process.env.SUPABASE_KEY ? '✅ 已设置' : '❌ 未设置')
+}
 ```
 
-**注意**：调试完成后请删除这些日志，避免泄露敏感信息。
+3. **确保环境变量作用域正确**：
+   - 如果部署到 Production，环境变量必须选择 **Production** 作用域
+   - 如果部署到 Preview（PR 部署），环境变量必须选择 **Preview** 作用域
+   - **这是最常见的问题！** 很多人配置了环境变量但忘记选择正确的作用域
+
+#### 步骤 7: 如果仍然有问题
+
+如果按照以上步骤操作后仍然出现警告，请检查：
+
+1. **环境变量名称拼写**：
+   - ✅ 正确：`SUPABASE_URL`（全大写，下划线）
+   - ❌ 错误：`SUPABASE_URL_`（末尾多下划线）
+   - ❌ 错误：`supabase_url`（小写）
+   - ❌ 错误：`SUPABASE-URL`（使用横线）
+
+2. **环境变量值格式**：
+   - URL 必须以 `https://` 开头
+   - URL 末尾不能有斜杠 `/`
+   - Key 值不能有多余的空格或换行符
+
+3. **重新部署**：
+   - 环境变量配置后，**必须重新部署**才能生效
+   - 简单的保存不会应用到已存在的部署
 
 ### 常见问题
 

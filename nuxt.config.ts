@@ -25,9 +25,10 @@ export default defineNuxtConfig({
   supabase: {
     redirect: false,
     // 显式配置 Supabase URL 和 Key，确保在 Vercel 上正确读取环境变量
-    url: process.env.SUPABASE_URL || '',
-    key: process.env.SUPABASE_KEY || '',
-    serviceKey: process.env.SUPABASE_SERVICE_KEY || ''
+    // 注意：不要使用空字符串作为默认值，让模块自己处理 undefined
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_KEY,
+    serviceKey: process.env.SUPABASE_SERVICE_KEY
   },
 
   // Runtime config
