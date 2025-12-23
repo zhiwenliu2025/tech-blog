@@ -164,6 +164,13 @@ A: 需要重新部署项目，环境变量在构建时才会生效。
 **Q: 如何查看 Vercel 构建日志？**
 A: 在 Vercel Dashboard → Deployments → 选择部署 → 查看 Build Logs。
 
+**Q: 出现 `ERR_MODULE_NOT_FOUND` 错误，无法找到 `@supabase/supabase-js` 模块？**
+A: 这是 pnpm 在 Vercel 上的模块解析问题。项目已包含 `.npmrc` 配置文件，使用 hoisted 模式来解决此问题。如果仍然遇到问题：
+
+1. 确保 `.npmrc` 文件已提交到 Git 仓库
+2. 在 Vercel 中重新部署项目
+3. 如果问题持续，可以尝试在 Vercel 项目设置中将包管理器临时切换为 npm 进行测试
+
 ## 获取 Supabase 凭证的详细步骤
 
 1. 访问 [Supabase Dashboard](https://supabase.com/dashboard)
