@@ -23,7 +23,11 @@ export default defineNuxtConfig({
 
   // Supabase
   supabase: {
-    redirect: false
+    redirect: false,
+    // 显式配置 Supabase URL 和 Key，确保在 Vercel 上正确读取环境变量
+    url: process.env.SUPABASE_URL || '',
+    key: process.env.SUPABASE_KEY || '',
+    serviceKey: process.env.SUPABASE_SERVICE_KEY || ''
   },
 
   // Runtime config
@@ -47,7 +51,7 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { hid: 'description', name: 'description', content: '基于 Nuxt 3 的技术博客' }
+        { name: 'description', content: '基于 Nuxt 3 的技术博客' }
       ],
       link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
     }
