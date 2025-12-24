@@ -40,6 +40,7 @@
           <button
             class="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
             aria-label="搜索"
+            @click="showSearchModal = true"
           >
             <Icon name="i-heroicons-magnifying-glass" class="h-5 w-5" />
           </button>
@@ -152,6 +153,9 @@
         </nav>
       </div>
     </div>
+
+    <!-- 搜索模态框 -->
+    <SearchModal :is-open="showSearchModal" @close="showSearchModal = false" />
   </header>
 </template>
 
@@ -163,6 +167,7 @@ const appName = useRuntimeConfig().public.appName
 const isDark = ref(false)
 const showMobileMenu = ref(false)
 const showUserMenu = ref(false)
+const showSearchModal = ref(false)
 
 // 用户状态
 const { user } = useSupabaseAuth()
@@ -218,6 +223,18 @@ onMounted(() => {
     if (!target.closest('.relative')) {
       showUserMenu.value = false
     }
+  })
+
+  // 键盘快捷键：Cmd/Ctrl + K 打开搜索
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      showSearchModal.value = true
+    }
+  }
+  document.addEventListener('keydown', handleKeyDown)
+  onUnmounted(() => {
+    document.removeEventListener('keydown', handleKeyDown)
   })
 })
 </script>
