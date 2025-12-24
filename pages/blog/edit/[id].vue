@@ -180,6 +180,7 @@ const router = useRouter()
 
 // 状态
 const { user } = useSupabaseAuth()
+const supabase = useSupabaseClient()
 const saving = ref(false)
 const tagsString = ref('')
 
@@ -200,7 +201,16 @@ const post = reactive({
 // 获取文章数据
 const fetchPost = async () => {
   try {
+    if (!user.value) {
+      const toast = useToast()
+      toast.error('错误', '请先登录')
+      router.push('/auth/login')
+      return
+    }
+
     const supabase = useSupabaseClient()
+    const userId = user.value.id || user.value.sub
+
     const { data, error } = await supabase
       .from('blog_posts')
       .select('*')
@@ -208,6 +218,14 @@ const fetchPost = async () => {
       .single()
 
     if (error) throw error
+
+    // 检查用户是否是文章作者
+    if (data.author_id !== userId) {
+      const toast = useToast()
+      toast.error('错误', '您没有权限编辑此文章')
+      router.push('/my-blogs')
+      return
+    }
 
     // 填充表单数据
     Object.assign(post, data)
@@ -220,7 +238,7 @@ const fetchPost = async () => {
     console.error('获取文章数据失败:', error)
     const toast = useToast()
     toast.error('错误', '获取文章数据失败')
-    router.push('/admin')
+    router.push('/my-blogs')
   }
 }
 
@@ -235,6 +253,15 @@ const updatePost = async () => {
   saving.value = true
   try {
     const supabase = useSupabaseClient()
+    const userId = user.value.id || user.value.sub
+
+    // 再次检查权限（防止在编辑过程中权限被修改）
+    if (post.author_id !== userId) {
+      const toast = useToast()
+      toast.error('错误', '您没有权限编辑此文章')
+      router.push('/my-blogs')
+      return
+    }
 
     // 转换标签字符串为数组
     const tags = tagsString.value
@@ -257,6 +284,7 @@ const updatePost = async () => {
         updated_at: new Date().toISOString()
       })
       .eq('id', post.id)
+      .eq('author_id', userId) // 确保只能更新自己的文章
 
     if (error) throw error
 
@@ -264,8 +292,8 @@ const updatePost = async () => {
     const toast = useToast()
     toast.success('成功', '文章已更新')
 
-    // 跳转到文章详情页或管理后台
-    router.push(post.published ? `/blog/${post.slug}` : '/admin')
+    // 跳转到文章详情页或我的博客页面
+    router.push(post.published ? `/blog/${post.slug}` : '/my-blogs')
   } catch (error) {
     console.error('更新文章失败:', error)
     const toast = useToast()
@@ -277,7 +305,7 @@ const updatePost = async () => {
 
 // 取消编辑
 const cancel = () => {
-  router.push('/admin')
+  router.push('/my-blogs')
 }
 
 // 页面加载时获取文章数据

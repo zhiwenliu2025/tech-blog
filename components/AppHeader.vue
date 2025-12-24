@@ -79,6 +79,14 @@
                 个人资料
               </NuxtLink>
               <NuxtLink
+                to="/my-blogs"
+                class="block px-4 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                @click="showUserMenu = false"
+              >
+                我的博客
+              </NuxtLink>
+              <NuxtLink
+                v-if="isAdmin"
                 to="/admin"
                 class="block px-4 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
                 @click="showUserMenu = false"
@@ -87,7 +95,7 @@
               </NuxtLink>
               <button
                 class="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
-                @click="signOut"
+                @click="handleSignOut"
               >
                 退出登录
               </button>
@@ -158,6 +166,7 @@ const showUserMenu = ref(false)
 
 // 用户状态
 const { user } = useSupabaseAuth()
+const { isAdmin } = useAdmin()
 
 // 初始化暗色模式
 onMounted(() => {
@@ -195,9 +204,9 @@ const toggleUserMenu = () => {
 }
 
 // 退出登录
-const { signOut } = useSupabaseAuth()
+const { signOut: signOutAuth } = useSupabaseAuth()
 const handleSignOut = async () => {
-  await signOut()
+  await signOutAuth()
   showUserMenu.value = false
   await navigateTo('/auth/login')
 }

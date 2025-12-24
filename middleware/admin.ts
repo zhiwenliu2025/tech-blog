@@ -9,10 +9,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   // 检查用户是否是管理员
   try {
     const supabase = useSupabaseClient()
+    const userId = user.value.id || user.value.sub
+    if (!userId) {
+      return navigateTo('/')
+    }
+
     const { data, error } = await supabase
       .from('profiles')
       .select('is_admin')
-      .eq('id', user.value.sub)
+      .eq('id', userId)
       .single()
 
     if (error || !data?.is_admin) {

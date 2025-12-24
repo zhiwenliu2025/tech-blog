@@ -229,6 +229,12 @@ const createPost = async () => {
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0)
 
+    // 获取用户ID（兼容 id 和 sub 属性）
+    const userId = user.value.id || user.value.sub
+    if (!userId) {
+      throw new Error('无法获取用户ID')
+    }
+
     // 创建文章
     const { data, error } = await supabase
       .from('blog_posts')
@@ -239,7 +245,7 @@ const createPost = async () => {
         excerpt: post.excerpt,
         cover_image: post.cover_image,
         published: post.published,
-        author_id: user.value.sub,
+        author_id: userId,
         category: post.category,
         tags,
         created_at: new Date().toISOString(),
@@ -253,8 +259,8 @@ const createPost = async () => {
     const toast = useToast()
     toast.success('成功', '文章已创建')
 
-    // 跳转到文章详情页或管理后台
-    router.push(post.published ? `/blog/${post.slug}` : '/admin')
+    // 跳转到文章详情页或我的博客页面
+    router.push(post.published ? `/blog/${post.slug}` : '/my-blogs')
   } catch (error) {
     console.error('创建文章失败:', error)
     const toast = useToast()
@@ -266,6 +272,6 @@ const createPost = async () => {
 
 // 取消创建
 const cancel = () => {
-  router.push('/admin')
+  router.push('/my-blogs')
 }
 </script>
