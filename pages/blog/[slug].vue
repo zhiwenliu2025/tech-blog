@@ -6,7 +6,6 @@
       <div v-if="loading" class="animate-pulse">
         <div class="mb-4 h-8 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
         <div class="mb-6 h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
-        <div class="mb-6 h-64 rounded-lg bg-gray-200 dark:bg-gray-700" />
         <div class="space-y-3">
           <div class="h-4 rounded bg-gray-200 dark:bg-gray-700" />
           <div class="h-4 rounded bg-gray-200 dark:bg-gray-700" />
@@ -74,15 +73,6 @@
                 {{ author.bio }}
               </p>
             </div>
-          </div>
-
-          <!-- 封面图 -->
-          <div v-if="post.cover_image" class="mb-8">
-            <img
-              :src="post.cover_image"
-              :alt="post.title"
-              class="h-64 w-full rounded-lg object-cover sm:h-96"
-            />
           </div>
 
           <!-- 标签 -->

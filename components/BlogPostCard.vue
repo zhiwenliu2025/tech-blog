@@ -9,18 +9,12 @@
       class="relative block h-52 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800"
     >
       <img
-        v-if="post.cover_image"
-        :src="post.cover_image"
+        :src="coverImage"
         :alt="post.title"
         class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         loading="lazy"
+        @error="handleImageError"
       />
-      <div
-        v-else
-        class="flex h-full w-full items-center justify-center text-gray-400 dark:text-gray-500"
-      >
-        <Icon name="heroicons:photo" class="h-12 w-12" />
-      </div>
       <!-- 分类标签覆盖层 -->
       <div
         v-if="post.category"
@@ -129,11 +123,50 @@ interface Props {
 }
 
 // 使用默认值
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   likesCount: 0,
   commentsCount: 0,
   showCover: true
 })
+
+// 默认图片URL（使用占位图片服务，基于文章标题生成唯一图片）
+const getDefaultImage = (title: string) => {
+  // 使用 picsum.photos 基于标题生成一个稳定的占位图片
+  const seed = title
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    .toString()
+  return `https://picsum.photos/seed/${seed}/800/400`
+}
+
+// 图片加载错误处理
+const imageError = ref(false)
+
+// 计算封面图片URL
+const coverImage = computed(() => {
+  // 如果图片加载失败或没有提供图片，使用默认图片
+  if (imageError.value || !props.post.cover_image) {
+    return getDefaultImage(props.post.title)
+  }
+  // 使用用户提供的图片
+  return props.post.cover_image
+})
+
+// 处理图片加载错误
+const handleImageError = () => {
+  // 如果用户提供的图片加载失败，切换到默认图片
+  if (props.post.cover_image && !imageError.value) {
+    imageError.value = true
+  }
+}
+
+// 当文章变化时重置错误状态
+watch(
+  () => props.post.cover_image,
+  () => {
+    imageError.value = false
+  }
+)
 
 // 格式化日期
 const formatDate = (dateString: string) => {
