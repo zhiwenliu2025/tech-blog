@@ -44,21 +44,126 @@
             <EmptyState
               icon="i-heroicons-exclamation-triangle"
               title="加载失败"
-              :description="error"
+              :description="error?.message || '加载文章失败'"
               action-text="重试"
-              @action="loadPosts"
+              @action="refreshPosts"
             />
           </div>
 
           <div v-else-if="posts && posts.length > 0" class="space-y-6">
             <BlogPostCard
-              v-for="post in posts.slice(0, 6)"
+              v-for="post in paginatedPosts"
               :key="post.id"
               :post="post"
               :likes-count="post.likes_count || 0"
               :comments-count="post.comments_count || 0"
               :show-cover="false"
             />
+
+            <!-- 分页组件 -->
+            <div
+              v-if="totalPages > 1"
+              class="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row"
+            >
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                显示第
+                <span class="font-semibold text-gray-900 dark:text-white">{{
+                  (currentPage - 1) * postsPerPage + 1
+                }}</span>
+                -
+                <span class="font-semibold text-gray-900 dark:text-white">{{
+                  Math.min(currentPage * postsPerPage, posts.length)
+                }}</span>
+                条，共
+                <span class="font-semibold text-gray-900 dark:text-white">{{ posts.length }}</span>
+                条
+              </div>
+              <nav class="flex items-center gap-1">
+                <button
+                  :disabled="currentPage === 1"
+                  class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  @click="goToPage(currentPage - 1)"
+                >
+                  <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
+                  <span class="hidden sm:inline">上一页</span>
+                </button>
+
+                <!-- 页码按钮 -->
+                <template v-if="totalPages <= 7">
+                  <button
+                    v-for="page in totalPages"
+                    :key="page"
+                    :class="[
+                      'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      currentPage === page
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                    ]"
+                    @click="goToPage(page)"
+                  >
+                    {{ page }}
+                  </button>
+                </template>
+                <template v-else>
+                  <!-- 第一页 -->
+                  <button
+                    :class="[
+                      'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      currentPage === 1
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                    ]"
+                    @click="goToPage(1)"
+                  >
+                    1
+                  </button>
+
+                  <!-- 省略号 -->
+                  <span v-if="currentPage > 3" class="px-2 text-gray-500">...</span>
+
+                  <!-- 当前页附近的页码 -->
+                  <template v-for="page in visiblePages" :key="page">
+                    <button
+                      v-if="page !== 1 && page !== totalPages"
+                      :class="[
+                        'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                        currentPage === page
+                          ? 'bg-blue-600 text-white shadow-md'
+                          : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                      ]"
+                      @click="goToPage(page)"
+                    >
+                      {{ page }}
+                    </button>
+                  </template>
+
+                  <!-- 省略号 -->
+                  <span v-if="currentPage < totalPages - 2" class="px-2 text-gray-500">...</span>
+
+                  <!-- 最后一页 -->
+                  <button
+                    :class="[
+                      'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      currentPage === totalPages
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                    ]"
+                    @click="goToPage(totalPages)"
+                  >
+                    {{ totalPages }}
+                  </button>
+                </template>
+
+                <button
+                  :disabled="currentPage === totalPages"
+                  class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  @click="goToPage(currentPage + 1)"
+                >
+                  <span class="hidden sm:inline">下一页</span>
+                  <Icon name="i-heroicons-chevron-right" class="h-4 w-4" />
+                </button>
+              </nav>
+            </div>
           </div>
 
           <div v-else class="rounded-lg bg-white p-12 text-center shadow-md dark:bg-gray-800">
@@ -135,14 +240,22 @@
 </template>
 
 <script setup lang="ts">
+const route = useRoute()
+const router = useRouter()
+
+// 分页状态
+const currentPage = ref(parseInt((route.query.page as string) || '1'))
+const postsPerPage = 5
+
 const { fetchPosts, fetchCategories, fetchTags } = useBlogPosts()
 
-// 使用 useAsyncData 缓存文章列表（缓存键包含分页参数）
+// 使用 useAsyncData 缓存文章列表（获取所有文章用于分页）
 const {
   data: postsData,
   pending: postsPending,
-  error: postsError
-} = await useAsyncData('home-posts', () => fetchPosts({ page: 1, pageSize: 6 }), {
+  error: postsError,
+  refresh: refreshPosts
+} = await useAsyncData('home-posts', () => fetchPosts({ page: 1, pageSize: 100 }), {
   default: () => [],
   // 服务端和客户端都缓存
   server: true
@@ -169,13 +282,88 @@ const { data: tagsData, pending: tagsPending } = await useAsyncData(
 )
 
 // 计算属性，提供响应式数据
-const posts = computed(() => postsData.value || [])
+const posts = computed(() => {
+  const data = postsData.value
+  return Array.isArray(data) ? data : []
+}) as ComputedRef<Array<any>>
 const categories = computed(() => categoriesData.value || [])
 const tags = computed(() => tagsData.value || [])
 const loading = computed(() => postsPending.value)
 const error = computed(() => postsError.value)
 const categoriesLoading = computed(() => categoriesPending.value)
 const tagsLoading = computed(() => tagsPending.value)
+
+// 分页计算属性
+const totalPages = computed(() => {
+  return Math.ceil(posts.value.length / postsPerPage)
+})
+
+const paginatedPosts = computed(() => {
+  const startIndex = (currentPage.value - 1) * postsPerPage
+  const endIndex = startIndex + postsPerPage
+  return posts.value.slice(startIndex, endIndex)
+})
+
+// 计算可见的页码（用于分页显示）
+const visiblePages = computed(() => {
+  const pages: number[] = []
+  const current = currentPage.value
+  const total = totalPages.value
+
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+
+  // 显示当前页前后各1页
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+
+  return pages
+})
+
+// 分页方法
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    // 更新URL参数
+    updateQueryParams()
+    // 滚动到顶部
+    if (process.client) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+}
+
+// 更新URL查询参数
+const updateQueryParams = () => {
+  const query: any = {}
+
+  if (currentPage.value > 1) {
+    query.page = currentPage.value.toString()
+  }
+
+  router.replace({ query })
+}
+
+// 监听路由变化，同步页码
+watch(
+  () => route.query.page,
+  newPage => {
+    if (newPage) {
+      const page = parseInt(newPage as string)
+      if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+      }
+    } else {
+      currentPage.value = 1
+    }
+  },
+  { immediate: true }
+)
 
 useHead({
   title: '技术博客 - 首页',
