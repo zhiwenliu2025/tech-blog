@@ -38,7 +38,7 @@
         <div class="flex items-center space-x-4">
           <!-- 搜索按钮 -->
           <button
-            class="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="touch-optimized rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600"
             aria-label="搜索"
             @click="showSearchModal = true"
           >
@@ -47,7 +47,7 @@
 
           <!-- 暗色模式切换 -->
           <button
-            class="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="touch-optimized rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600"
             aria-label="切换暗色模式"
             @click="toggleDarkMode"
           >
@@ -107,14 +107,14 @@
           <NuxtLink
             v-else
             to="/auth/login"
-            class="rounded-lg bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700"
+            class="touch-optimized rounded-lg bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 active:bg-primary-800"
           >
             登录
           </NuxtLink>
 
           <!-- 移动端菜单按钮 -->
           <button
-            class="rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 md:hidden"
+            class="touch-optimized rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600 md:hidden"
             aria-label="打开菜单"
             @click="toggleMobileMenu"
           >

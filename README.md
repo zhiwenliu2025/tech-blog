@@ -15,6 +15,8 @@
 - 📱 响应式设计
 - 🔒 行级安全策略（RLS）
 - ⚡ 高性能搜索索引（自动维护）
+- 📲 PWA 支持（可安装、离线访问）
+- 🎯 移动端优化（触摸优化、安全区域适配）
 
 ## 技术栈
 
@@ -243,6 +245,9 @@ tech-blog/
 更多详细文档请参考：
 
 - [技术栈文档](./doc/Nuxt3技术栈文档.md) - 详细的技术栈和架构说明
+- [Vercel 部署指南](./doc/VERCEL_DEPLOYMENT.md) - Vercel 部署配置和环境变量设置
+- [PWA 和移动端优化](./doc/PWA_MOBILE_OPTIMIZATION.md) - PWA 功能和移动端优化实现
+- [PWA 图标说明](./doc/PWA图标说明.md) - PWA 图标生成和使用说明
 
 ## 贡献
 
