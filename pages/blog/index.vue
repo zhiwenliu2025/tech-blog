@@ -78,7 +78,7 @@
                 <div
                   class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
                 >
-                  <Icon name="heroicons:chevron-down" class="h-4 w-4" />
+                  <Icon name="i-heroicons-chevron-down" class="h-4 w-4" />
                 </div>
               </div>
             </div>
@@ -101,7 +101,7 @@
                 <div
                   class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
                 >
-                  <Icon name="heroicons:chevron-down" class="h-4 w-4" />
+                  <Icon name="i-heroicons-chevron-down" class="h-4 w-4" />
                 </div>
               </div>
             </div>
@@ -123,7 +123,7 @@
                 <div
                   class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
                 >
-                  <Icon name="heroicons:chevron-down" class="h-4 w-4" />
+                  <Icon name="i-heroicons-chevron-down" class="h-4 w-4" />
                 </div>
               </div>
             </div>
@@ -200,7 +200,7 @@
             class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
             @click="goToPage(currentPage - 1)"
           >
-            <Icon name="heroicons:chevron-left" class="h-4 w-4" />
+            <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
             <span class="hidden sm:inline">上一页</span>
           </button>
 
@@ -276,7 +276,7 @@
             @click="goToPage(currentPage + 1)"
           >
             <span class="hidden sm:inline">下一页</span>
-            <Icon name="heroicons:chevron-right" class="h-4 w-4" />
+            <Icon name="i-heroicons-chevron-right" class="h-4 w-4" />
           </button>
         </nav>
       </div>

@@ -109,7 +109,7 @@
                   >
                     <Icon
                       v-if="isSubmitting"
-                      name="heroicons:arrow-path"
+                      name="i-heroicons-arrow-path"
                       class="mr-2 h-5 w-5 animate-spin"
                     />
                     {{ isSubmitting ? '发送中...' : '发送消息' }}
@@ -124,7 +124,7 @@
               >
                 <div class="flex">
                   <div class="flex-shrink-0">
-                    <Icon name="heroicons:check-circle" class="h-5 w-5 text-green-400" />
+                    <Icon name="i-heroicons-check-circle" class="h-5 w-5 text-green-400" />
                   </div>
                   <div class="ml-3">
                     <h3 class="text-sm font-medium text-green-800 dark:text-green-200">
@@ -144,7 +144,7 @@
               >
                 <div class="flex">
                   <div class="flex-shrink-0">
-                    <Icon name="heroicons:x-circle" class="h-5 w-5 text-red-400" />
+                    <Icon name="i-heroicons-x-circle" class="h-5 w-5 text-red-400" />
                   </div>
                   <div class="ml-3">
                     <h3 class="text-sm font-medium text-red-800 dark:text-red-200">发送失败</h3>
@@ -163,37 +163,27 @@
               <div class="space-y-6">
                 <div class="flex items-start space-x-4">
                   <div class="flex-shrink-0">
-                    <Icon name="heroicons:envelope" class="h-6 w-6 text-gray-500" />
+                    <Icon name="i-heroicons-map-pin" class="h-6 w-6 text-gray-500" />
                   </div>
                   <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">邮箱</h3>
-                    <p class="text-gray-600 dark:text-gray-400">contact@example.com</p>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">工作地点</h3>
+                    <p class="text-gray-600 dark:text-gray-400">中国，上海</p>
                   </div>
                 </div>
 
                 <div class="flex items-start space-x-4">
                   <div class="flex-shrink-0">
-                    <Icon name="heroicons:phone" class="h-6 w-6 text-gray-500" />
+                    <Icon name="i-heroicons-chat-bubble-left-right" class="h-6 w-6 text-gray-500" />
                   </div>
                   <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">电话</h3>
-                    <p class="text-gray-600 dark:text-gray-400">+86 123 4567 8900</p>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">微信号</h3>
+                    <p class="text-gray-600 dark:text-gray-400">请通过表单联系获取</p>
                   </div>
                 </div>
 
                 <div class="flex items-start space-x-4">
                   <div class="flex-shrink-0">
-                    <Icon name="heroicons:map-pin" class="h-6 w-6 text-gray-500" />
-                  </div>
-                  <div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">地址</h3>
-                    <p class="text-gray-600 dark:text-gray-400">中国，北京</p>
-                  </div>
-                </div>
-
-                <div class="flex items-start space-x-4">
-                  <div class="flex-shrink-0">
-                    <Icon name="heroicons:clock" class="h-6 w-6 text-gray-500" />
+                    <Icon name="i-heroicons-clock" class="h-6 w-6 text-gray-500" />
                   </div>
                   <div>
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white">工作时间</h3>
@@ -207,16 +197,16 @@
                 <h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-white">社交媒体</h3>
                 <div class="flex space-x-4">
                   <a href="#" class="text-gray-600 hover:text-blue-500 dark:text-gray-400">
-                    <Icon name="heroicons:link" class="h-8 w-8" />
+                    <Icon name="i-heroicons-link" class="h-8 w-8" />
                   </a>
                   <a href="#" class="text-gray-600 hover:text-blue-500 dark:text-gray-400">
-                    <Icon name="heroicons:link" class="h-8 w-8" />
+                    <Icon name="i-heroicons-link" class="h-8 w-8" />
                   </a>
                   <a href="#" class="text-gray-600 hover:text-blue-500 dark:text-gray-400">
-                    <Icon name="heroicons:link" class="h-8 w-8" />
+                    <Icon name="i-heroicons-link" class="h-8 w-8" />
                   </a>
                   <a href="#" class="text-gray-600 hover:text-blue-500 dark:text-gray-400">
-                    <Icon name="heroicons:link" class="h-8 w-8" />
+                    <Icon name="i-heroicons-link" class="h-8 w-8" />
                   </a>
                 </div>
               </div>
@@ -226,7 +216,7 @@
               >
                 <div class="flex">
                   <div class="flex-shrink-0">
-                    <Icon name="heroicons:information-circle" class="h-6 w-6 text-blue-500" />
+                    <Icon name="i-heroicons-information-circle" class="h-6 w-6 text-blue-500" />
                   </div>
                   <div class="ml-3">
                     <h3 class="text-lg font-medium text-blue-900 dark:text-blue-100">回复时间</h3>
@@ -316,13 +306,37 @@ const submitForm = async () => {
 
   isSubmitting.value = true
   errorMessage.value = ''
+  successMessage.value = ''
 
   try {
-    // 这里应该调用API发送消息
-    // 暂时模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const supabase = useSupabaseClient()
 
-    // 模拟成功
+    // 保存联系消息到数据库
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .insert({
+        name: form.value.name.trim(),
+        email: form.value.email.trim(),
+        subject: form.value.subject.trim(),
+        message: form.value.message.trim()
+      } as any)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('插入联系消息失败:', error)
+      // 检查是否是权限错误
+      if (
+        error.code === '42501' ||
+        error.message?.includes('permission') ||
+        error.message?.includes('policy')
+      ) {
+        throw new Error('没有权限发送消息，请检查数据库策略设置')
+      }
+      throw error
+    }
+
+    // 成功消息
     successMessage.value = '您的消息已成功发送！我会尽快回复您。'
 
     // 重置表单
@@ -333,12 +347,18 @@ const submitForm = async () => {
       message: ''
     }
 
-    // 3秒后清除成功消息
+    // 5秒后清除成功消息
     setTimeout(() => {
       successMessage.value = ''
     }, 5000)
-  } catch (error) {
-    errorMessage.value = '发送消息时出现错误，请稍后再试。'
+  } catch (error: any) {
+    console.error('发送消息失败:', error)
+    errorMessage.value = error.message || '发送消息时出现错误，请稍后再试。'
+
+    // 5秒后清除错误消息
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 5000)
   } finally {
     isSubmitting.value = false
   }

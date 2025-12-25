@@ -1,8 +1,32 @@
+-- Drop functions and indexes that depend on tables first
+-- Note: Drop functions before dropping tables to avoid dependency issues
+DROP FUNCTION IF EXISTS search_blog_posts(TEXT, INTEGER, INTEGER) CASCADE;
+DROP FUNCTION IF EXISTS blog_posts_search_vector(blog_posts) CASCADE;
+DROP FUNCTION IF EXISTS public.is_admin() CASCADE;
+DROP FUNCTION IF EXISTS handle_updated_at() CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
+DROP FUNCTION IF EXISTS public.delete_user() CASCADE;
+
+-- Drop triggers before dropping tables
+DROP TRIGGER IF EXISTS handle_blog_posts_updated_at ON blog_posts;
+DROP TRIGGER IF EXISTS handle_profiles_updated_at ON profiles;
+DROP TRIGGER IF EXISTS handle_comments_updated_at ON comments;
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- Drop indexes
+DROP INDEX IF EXISTS blog_posts_search_idx;
+DROP INDEX IF EXISTS blog_posts_published_idx;
+DROP INDEX IF EXISTS blog_posts_category_idx;
+DROP INDEX IF EXISTS blog_posts_published_at_idx;
+DROP INDEX IF EXISTS comments_post_id_idx;
+DROP INDEX IF EXISTS likes_post_id_idx;
+
 -- Drop tables if they exist (in reverse order of dependencies)
-DROP TABLE IF EXISTS likes;
-DROP TABLE IF EXISTS comments;
-DROP TABLE IF EXISTS profiles;
-DROP TABLE IF EXISTS blog_posts;
+DROP TABLE IF EXISTS contact_messages CASCADE;
+DROP TABLE IF EXISTS likes CASCADE;
+DROP TABLE IF EXISTS comments CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+DROP TABLE IF EXISTS blog_posts CASCADE;
 
 -- Create blog_posts table
 CREATE TABLE IF NOT EXISTS blog_posts (
@@ -51,6 +75,17 @@ CREATE TABLE IF NOT EXISTS likes (
   user_id UUID REFERENCES auth.users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(post_id, user_id)
+);
+
+-- Create contact_messages table
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create indexes for better performance
@@ -141,6 +176,7 @@ ALTER TABLE blog_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 
 -- Helper function to check if user is admin
 CREATE OR REPLACE FUNCTION public.is_admin()
@@ -253,6 +289,33 @@ CREATE POLICY "Users can delete their own likes" ON likes
 DROP POLICY IF EXISTS "Admins can delete any likes" ON likes;
 CREATE POLICY "Admins can delete any likes" ON likes
   FOR DELETE USING (public.is_admin());
+
+-- Policies for contact_messages
+-- Allow anyone (including anonymous users) to insert contact messages
+-- Note: This policy allows both authenticated and anonymous users to insert
+DROP POLICY IF EXISTS "Anyone can insert contact messages" ON contact_messages;
+CREATE POLICY "Anyone can insert contact messages" ON contact_messages
+  FOR INSERT 
+  TO anon, authenticated
+  WITH CHECK (true);
+
+-- Only admins can view contact messages
+DROP POLICY IF EXISTS "Admins can view all contact messages" ON contact_messages;
+CREATE POLICY "Admins can view all contact messages" ON contact_messages
+  FOR SELECT 
+  USING (public.is_admin());
+
+-- Only admins can update contact messages
+DROP POLICY IF EXISTS "Admins can update contact messages" ON contact_messages;
+CREATE POLICY "Admins can update contact messages" ON contact_messages
+  FOR UPDATE 
+  USING (public.is_admin());
+
+-- Only admins can delete contact messages
+DROP POLICY IF EXISTS "Admins can delete contact messages" ON contact_messages;
+CREATE POLICY "Admins can delete contact messages" ON contact_messages
+  FOR DELETE 
+  USING (public.is_admin());
 
 -- Function to handle updated_at timestamp
 CREATE OR REPLACE FUNCTION handle_updated_at()
