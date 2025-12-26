@@ -133,26 +133,13 @@
           </div>
 
           <!-- 分享按钮 -->
-          <div class="mb-6 flex items-center space-x-4">
-            <span class="text-sm text-gray-500 dark:text-gray-400">分享到：</span>
-            <button
-              class="text-gray-500 transition-colors hover:text-blue-400 dark:text-gray-400"
-              @click="shareToTwitter"
-            >
-              <Icon name="simple-icons:twitter" class="h-5 w-5" />
-            </button>
-            <button
-              class="text-gray-500 transition-colors hover:text-blue-600 dark:text-gray-400"
-              @click="shareToFacebook"
-            >
-              <Icon name="simple-icons:facebook" class="h-5 w-5" />
-            </button>
-            <button
-              class="text-gray-500 transition-colors hover:text-green-500 dark:text-gray-400"
-              @click="copyLink"
-            >
-              <Icon name="heroicons:link" class="h-5 w-5" />
-            </button>
+          <div class="mb-6">
+            <ShareButton
+              :title="post.title"
+              :url="shareUrl"
+              :excerpt="post.excerpt"
+              :cover-image="post.cover_image"
+            />
           </div>
 
           <!-- 上一篇/下一篇导航 -->
@@ -596,37 +583,14 @@ const toggleLike = async () => {
   }
 }
 
-// 分享到Twitter
-const shareToTwitter = () => {
-  if (!post.value) return
-
-  const text = `${post.value.title} - ${post.value.excerpt || ''}`
-  const url = `${window.location.origin}/blog/${post.value.slug}`
-  window.open(
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-    '_blank'
-  )
-}
-
-// 分享到Facebook
-const shareToFacebook = () => {
-  if (!post.value) return
-
-  const url = `${window.location.origin}/blog/${post.value.slug}`
-  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')
-}
-
-// 复制链接
-const copyLink = async () => {
-  if (!post.value) return
-
-  try {
-    await navigator.clipboard.writeText(`${window.location.origin}/blog/${post.value.slug}`)
-    // 这里可以添加一个提示，告诉用户链接已复制
-  } catch (err) {
-    console.error('复制链接失败:', err)
-  }
-}
+// 计算分享 URL
+const config = useRuntimeConfig()
+const shareUrl = computed(() => {
+  if (!post.value) return ''
+  const baseUrl =
+    config.public.appUrl || (typeof window !== 'undefined' ? window.location.origin : '')
+  return `${baseUrl}/blog/${post.value.slug}`
+})
 
 // 格式化日期
 const formatDate = (dateString: string) => {
