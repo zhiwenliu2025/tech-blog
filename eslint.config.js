@@ -11,6 +11,7 @@ export default [
     ignores: [
       '.nuxt/**',
       '.output/**',
+      '.vercel/**',
       'dist/**',
       'node_modules/**',
       '*.d.ts',
