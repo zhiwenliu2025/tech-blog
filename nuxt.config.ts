@@ -27,7 +27,9 @@ export default defineNuxtConfig({
     // 使用 NUXT_PUBLIC_ 前缀的环境变量，确保在客户端和服务端都能访问
     url: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
     key: process.env.NUXT_PUBLIC_SUPABASE_KEY || process.env.SUPABASE_KEY,
-    serviceKey: process.env.SUPABASE_SERVICE_KEY
+    // 注意：@nuxtjs/supabase 模块会检查环境变量 SUPABASE_SERVICE_KEY，如果存在会发出警告
+    // 请确保在 .env 文件中使用 SUPABASE_SECRET_KEY 而不是 SUPABASE_SERVICE_KEY
+    serviceKey: process.env.SUPABASE_SECRET_KEY
   },
 
   // Runtime config
@@ -35,7 +37,7 @@ export default defineNuxtConfig({
     // Private keys (only available on server-side)
     supabaseUrl: process.env.SUPABASE_URL,
     supabaseKey: process.env.SUPABASE_KEY,
-    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY,
+    supabaseServiceKey: process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY,
 
     // Public keys (exposed to client-side)
     // 使用 NUXT_PUBLIC_ 前缀确保客户端可访问

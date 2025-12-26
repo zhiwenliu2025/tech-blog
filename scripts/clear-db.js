@@ -6,7 +6,8 @@ config()
 
 // 从环境变量获取 Supabase 配置
 const supabaseUrl = process.env.SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
+// 优先使用新的 SUPABASE_SECRET_KEY，如果不存在则回退到旧的 SUPABASE_SERVICE_KEY（向后兼容）
+const supabaseServiceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY
 
 // 创建 Supabase 客户端（使用 service key）
 const supabase = createClient(supabaseUrl, supabaseServiceKey)

@@ -300,7 +300,7 @@ tech-blog/
 
 - SUPABASE_URL: Supabase项目URL
 - SUPABASE_KEY: Supabase匿名密钥
-- SUPABASE_SERVICE_KEY: Supabase服务密钥
+- SUPABASE_SECRET_KEY: Supabase服务密钥（原 SUPABASE_SERVICE_KEY 已弃用）
 
 ### Nuxt配置
 

@@ -6,7 +6,8 @@ config()
 
 // 从环境变量获取 Supabase 配置
 const supabaseUrl = process.env.SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY
+// 优先使用新的 SUPABASE_SECRET_KEY，如果不存在则回退到旧的 SUPABASE_SERVICE_KEY（向后兼容）
+const supabaseServiceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_KEY
 
 // 检查必要的环境变量是否存在
 if (!supabaseUrl) {
@@ -15,7 +16,8 @@ if (!supabaseUrl) {
 }
 
 if (!supabaseServiceKey) {
-  console.error('错误: SUPABASE_SERVICE_KEY 环境变量未设置')
+  console.error('错误: SUPABASE_SECRET_KEY 或 SUPABASE_SERVICE_KEY 环境变量未设置')
+  console.error('提示: SUPABASE_SERVICE_KEY 已弃用，请使用 SUPABASE_SECRET_KEY')
   process.exit(1)
 }
 

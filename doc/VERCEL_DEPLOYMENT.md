@@ -17,9 +17,10 @@
    - 复制 "anon" 或 "public" key（不是 service_role key）
    - ⚠️ **重要**：在 Vercel 中需要同时配置这两个变量，值相同
 
-3. **SUPABASE_SERVICE_KEY**（可选，用于服务端操作）
+3. **SUPABASE_SECRET_KEY**（可选，用于服务端操作）
    - 获取方式：在同一个页面（Settings → API）
    - 复制 "service_role" key（⚠️ 注意：这个 key 有完整权限，请保密）
+   - 注意：`SUPABASE_SERVICE_KEY` 已弃用，请使用 `SUPABASE_SECRET_KEY`
 
 ### 在 Vercel 中配置环境变量
 
@@ -35,7 +36,8 @@ SUPABASE_URL=https://your-project-id.supabase.co
 NUXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your-anon-key-here
 NUXT_PUBLIC_SUPABASE_KEY=your-anon-key-here
-SUPABASE_SERVICE_KEY=your-service-role-key-here
+SUPABASE_SECRET_KEY=your-service-role-key-here
+# 注意: SUPABASE_SERVICE_KEY 已弃用，请使用 SUPABASE_SECRET_KEY
 ```
 
 **⚠️ 关键说明**：
@@ -66,7 +68,7 @@ SUPABASE_SERVICE_KEY=your-service-role-key-here
 2. 确认以下变量都已添加：
    - `SUPABASE_URL`
    - `SUPABASE_KEY`
-   - `SUPABASE_SERVICE_KEY`（可选）
+   - `SUPABASE_SECRET_KEY`（可选，或使用已弃用的 `SUPABASE_SERVICE_KEY`）
 
 #### 步骤 2: 检查环境变量值
 
@@ -180,10 +182,11 @@ A: 这是 pnpm 在 Vercel 上的模块解析问题。项目已包含 `.npmrc` �
 5. 在 "Project API keys" 部分，你会看到：
    - **Project URL**: 这就是 `SUPABASE_URL`
    - **anon public**: 这就是 `SUPABASE_KEY`
-   - **service_role** (需要点击 "Reveal" 显示): 这就是 `SUPABASE_SERVICE_KEY`
+   - **service_role** (需要点击 "Reveal" 显示): 这就是 `SUPABASE_SECRET_KEY`
 
 ## 注意事项
 
-- ⚠️ `SUPABASE_SERVICE_KEY` 具有完整权限，请勿在前端代码中使用
+- ⚠️ `SUPABASE_SECRET_KEY` (原 `SUPABASE_SERVICE_KEY`) 具有完整权限，请勿在前端代码中使用
+- ⚠️ `SUPABASE_SERVICE_KEY` 已弃用，请迁移到 `SUPABASE_SECRET_KEY`
 - ✅ `SUPABASE_KEY` (anon key) 可以安全地在前端使用
 - ✅ 环境变量配置后，需要重新部署才能生效

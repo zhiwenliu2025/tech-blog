@@ -51,13 +51,30 @@ cp .env.example .env
 # Supabase Configuration
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_KEY=your-supabase-service-role-key
+SUPABASE_SECRET_KEY=your-supabase-service-role-key
+```
+
+**⚠️ 重要迁移说明**：
+
+如果你之前使用的是 `SUPABASE_SERVICE_KEY`，请按以下步骤迁移：
+
+1. 打开你的 `.env` 文件
+2. 找到 `SUPABASE_SERVICE_KEY=...` 这一行
+3. 将其改为 `SUPABASE_SECRET_KEY=...`（值保持不变）
+4. **删除**旧的 `SUPABASE_SERVICE_KEY` 行
+5. 保存文件并重启开发服务器
+
+**为什么需要迁移？**
+
+`@nuxtjs/supabase` 模块在初始化时会检查环境变量。如果检测到 `SUPABASE_SERVICE_KEY`，会发出弃用警告。即使代码中已经更新，只要环境变量中存在 `SUPABASE_SERVICE_KEY`，警告就会持续出现。
 
 # App Configuration
+
 NUXT_PUBLIC_APP_NAME=技术博客
 NUXT_PUBLIC_APP_DESCRIPTION=基于 Nuxt 3 的技术博客
 NUXT_PUBLIC_APP_URL=http://localhost:3000
-```
+
+````
 
 ### 3. 设置 Supabase 数据库
 
@@ -71,7 +88,7 @@ NUXT_PUBLIC_APP_URL=http://localhost:3000
 
 ```bash
 node scripts/init-db.js
-```
+````
 
 ### 5. 启动开发服务器
 
@@ -198,7 +215,7 @@ tech-blog/
 3. 在 Vercel 控制台添加环境变量：
    - `SUPABASE_URL`
    - `SUPABASE_KEY`
-   - `SUPABASE_SERVICE_KEY`
+   - `SUPABASE_SECRET_KEY` (或 `SUPABASE_SERVICE_KEY`，已弃用)
 4. 部署项目
 
 ### 其他平台
