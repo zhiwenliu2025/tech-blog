@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "type-check": "nuxt typecheck",
     "prepare": "husky",
-    "generate-icons": "node scripts/generate-pwa-icons.js"
+    "generate-icons": "node scripts/generate-pwa-icons.js",
+    "clear-cache": "node scripts/clear-cache.js"
   },
   "dependencies": {
     "@nuxt/icon": "^2.1.0",
