@@ -8,12 +8,15 @@
       :to="`/blog/${post.slug}`"
       class="relative block h-52 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800"
     >
-      <img
+      <OptimizedImage
         :src="coverImage"
         :alt="post.title"
-        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-        loading="lazy"
-        @error="handleImageError"
+        :default-src="getDefaultImage(post.title)"
+        image-class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+        container-class="h-full w-full"
+        :loading="'lazy'"
+        :show-placeholder="true"
+        :use-default-on-no-size="true"
       />
       <!-- 分类标签覆盖层 -->
       <div

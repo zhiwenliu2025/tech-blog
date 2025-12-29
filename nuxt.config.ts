@@ -184,7 +184,13 @@ export default defineNuxtConfig({
         // 只在生产环境添加 manifest 链接
         ...(process.env.NODE_ENV === 'production'
           ? [{ rel: 'manifest', href: '/manifest.webmanifest' }]
-          : [])
+          : []),
+        // DNS 预解析 - 提升外部资源加载速度
+        { rel: 'dns-prefetch', href: 'https://fonts.googleapis.com' },
+        { rel: 'dns-prefetch', href: 'https://fonts.gstatic.com' },
+        // 预连接关键资源
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com', crossorigin: 'anonymous' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' }
       ]
     }
   },
@@ -197,6 +203,16 @@ export default defineNuxtConfig({
       }
     },
     // 确保 Supabase 依赖被正确打包
-    moduleSideEffects: ['@supabase/supabase-js']
+    moduleSideEffects: ['@supabase/supabase-js'],
+    // 压缩配置
+    compressPublicAssets: true,
+    // 移动端优化 - 启用 gzip 压缩
+    minify: true
+  },
+
+  // 性能优化
+  experimental: {
+    // 启用 payload 提取，减少 HTML 大小
+    payloadExtraction: true
   }
 })
