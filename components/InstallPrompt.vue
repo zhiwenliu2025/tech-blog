@@ -50,11 +50,31 @@
 </template>
 
 <script setup lang="ts">
-const { $pwa } = useNuxtApp()
-const { isInstallable, triggerInstall } = usePWAHelpers()
+// 在开发环境中完全禁用，直接返回
+const isProduction = process.env.NODE_ENV === 'production'
 const showPrompt = ref(false)
 
+// 仅在生产环境初始化 PWA 相关功能
+let $pwa: any = null
+let isInstallable: any = null
+let triggerInstall: any = null
+
+if (isProduction) {
+  try {
+    $pwa = useNuxtApp().$pwa
+    const pwaHelpers = usePWAHelpers()
+    isInstallable = pwaHelpers.isInstallable
+    triggerInstall = pwaHelpers.triggerInstall
+  } catch (e) {
+    // PWA 模块未加载时静默失败
+    console.warn('PWA module not available')
+  }
+}
+
 onMounted(() => {
+  // 开发环境不执行任何逻辑
+  if (!isProduction) return
+
   // 检查是否已经安装
   if (typeof window === 'undefined') return
 
@@ -73,27 +93,36 @@ onMounted(() => {
   }
 
   // 监听安装可用状态
-  watch(
-    isInstallable,
-    value => {
-      if (value) {
-        showPrompt.value = true
-      }
-    },
-    { immediate: true }
-  )
+  if (isInstallable) {
+    watch(
+      isInstallable,
+      value => {
+        if (value) {
+          showPrompt.value = true
+        }
+      },
+      { immediate: true }
+    )
+  }
 
-  // 使用 PWA 模块的安装提示
+  // 使用 PWA 模块的安装提示（仅在 PWA 模块存在时）
   if ($pwa?.installPrompt) {
     showPrompt.value = true
   }
 })
 
 const installApp = async () => {
-  const installed = await triggerInstall()
-  if (installed) {
-    showPrompt.value = false
-  } else if ($pwa?.install) {
+  if (!isProduction) return
+
+  if (triggerInstall) {
+    const installed = await triggerInstall()
+    if (installed) {
+      showPrompt.value = false
+      return
+    }
+  }
+
+  if ($pwa?.install) {
     await $pwa.install()
     showPrompt.value = false
   }
