@@ -1,10 +1,10 @@
 <template>
   <div>
     <section class="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
-      <div class="container mx-auto px-4 py-16">
+      <div class="container mx-auto px-3 py-12 sm:px-4 sm:py-16">
         <div class="mx-auto max-w-3xl text-center">
-          <h1 class="mb-4 text-4xl font-bold md:text-5xl">欢迎来到我的技术博客</h1>
-          <p class="mb-8 text-xl opacity-90">分享前端开发、后端技术、云计算等相关内容</p>
+          <h1 class="mb-4 text-3xl font-bold sm:text-4xl md:text-5xl">欢迎来到我的技术博客</h1>
+          <p class="mb-8 text-lg opacity-90 sm:text-xl">分享前端开发、后端技术、云计算等相关内容</p>
           <div class="flex flex-col justify-center gap-4 sm:flex-row">
             <NuxtLink
               to="/blog"
@@ -23,11 +23,11 @@
       </div>
     </section>
 
-    <main class="container mx-auto px-4 py-12">
-      <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+    <main class="container mx-auto px-3 py-8 sm:px-4 sm:py-12">
+      <div class="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-3">
         <div class="lg:col-span-2">
-          <div class="mb-8 flex items-center justify-between">
-            <h2 class="text-3xl font-bold text-gray-900 dark:text-white">最新文章</h2>
+          <div class="mb-6 flex items-center justify-between sm:mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">最新文章</h2>
             <NuxtLink to="/blog" class="font-medium text-primary-600 hover:text-primary-700">
               查看全部
             </NuxtLink>
@@ -50,7 +50,7 @@
             />
           </div>
 
-          <div v-else-if="posts && posts.length > 0" class="space-y-6">
+          <div v-else-if="posts && posts.length > 0" class="space-y-4 sm:space-y-6">
             <BlogPostCard
               v-for="post in paginatedPosts"
               :key="post.id"
@@ -63,7 +63,7 @@
             <!-- 分页组件 -->
             <div
               v-if="totalPages > 1"
-              class="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row"
+              class="mt-6 flex flex-col items-center justify-between gap-4 sm:mt-8 sm:flex-row"
             >
               <div class="text-sm text-gray-600 dark:text-gray-400">
                 显示第
@@ -78,10 +78,12 @@
                 <span class="font-semibold text-gray-900 dark:text-white">{{ posts.length }}</span>
                 条
               </div>
-              <nav class="flex items-center gap-1">
+              <nav
+                class="flex w-full items-center justify-center gap-1 overflow-x-auto pb-2 sm:w-auto sm:justify-start sm:pb-0"
+              >
                 <button
                   :disabled="currentPage === 1"
-                  class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
                   @click="goToPage(currentPage - 1)"
                 >
                   <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
@@ -94,7 +96,7 @@
                     v-for="page in totalPages"
                     :key="page"
                     :class="[
-                      'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
                       currentPage === page
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -108,7 +110,7 @@
                   <!-- 第一页 -->
                   <button
                     :class="[
-                      'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
                       currentPage === 1
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -126,7 +128,7 @@
                     <button
                       v-if="page !== 1 && page !== totalPages"
                       :class="[
-                        'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                        'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
                         currentPage === page
                           ? 'bg-blue-600 text-white shadow-md'
                           : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -143,7 +145,7 @@
                   <!-- 最后一页 -->
                   <button
                     :class="[
-                      'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                      'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
                       currentPage === totalPages
                         ? 'bg-blue-600 text-white shadow-md'
                         : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -156,7 +158,7 @@
 
                 <button
                   :disabled="currentPage === totalPages"
-                  class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
                   @click="goToPage(currentPage + 1)"
                 >
                   <span class="hidden sm:inline">下一页</span>
@@ -176,8 +178,8 @@
         </div>
 
         <div class="lg:col-span-1">
-          <div class="mb-6 overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800">
-            <div class="p-6">
+          <div class="mb-4 overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800 sm:mb-6">
+            <div class="p-4 sm:p-6">
               <h3 class="mb-3 text-lg font-medium text-gray-900 dark:text-white">关于博客</h3>
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 这是一个基于 Nuxt 3 和 Supabase

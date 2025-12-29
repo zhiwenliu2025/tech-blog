@@ -1,15 +1,17 @@
 <template>
   <header
-    class="sticky top-0 z-50 bg-white shadow-sm transition-colors duration-300 dark:bg-gray-800"
+    class="safe-area-top sticky top-0 z-50 bg-white shadow-sm transition-colors duration-300 dark:bg-gray-800"
   >
-    <div class="container mx-auto px-4">
-      <div class="flex h-16 items-center justify-between">
+    <div class="container mx-auto px-3 sm:px-4">
+      <div class="flex h-14 items-center justify-between sm:h-16">
         <!-- Logo 和标题 -->
         <NuxtLink to="/" class="flex items-center space-x-2">
           <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-600">
             <Icon name="i-heroicons-book-open" class="h-5 w-5 text-white" />
           </div>
-          <span class="text-xl font-bold text-gray-900 dark:text-white">{{ appName }}</span>
+          <span class="text-lg font-bold text-gray-900 dark:text-white sm:text-xl">{{
+            appName
+          }}</span>
         </NuxtLink>
 
         <!-- 桌面端导航 -->
@@ -116,42 +118,57 @@
           <button
             class="touch-optimized rounded-lg p-2 text-gray-600 transition-colors hover:bg-gray-100 active:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600 md:hidden"
             aria-label="打开菜单"
+            :aria-expanded="showMobileMenu"
             @click="toggleMobileMenu"
           >
-            <Icon name="i-heroicons-bars-3" class="h-6 w-6" />
+            <Icon
+              v-if="!showMobileMenu"
+              name="i-heroicons-bars-3"
+              class="h-6 w-6 transition-transform"
+            />
+            <Icon v-else name="i-heroicons-x-mark" class="h-6 w-6 transition-transform" />
           </button>
         </div>
       </div>
 
       <!-- 移动端菜单 -->
-      <div
-        v-if="showMobileMenu"
-        class="border-t border-gray-200 py-4 dark:border-gray-700 md:hidden"
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 max-h-0"
+        enter-to-class="opacity-100 max-h-screen"
+        leave-active-class="transition-all duration-300 ease-in"
+        leave-from-class="opacity-100 max-h-screen"
+        leave-to-class="opacity-0 max-h-0"
       >
-        <nav class="flex flex-col space-y-3">
-          <NuxtLink
-            to="/"
-            class="font-medium text-gray-700 transition-colors hover:text-primary-600 dark:text-gray-200 dark:hover:text-primary-400"
-            @click="showMobileMenu = false"
-          >
-            首页
-          </NuxtLink>
-          <NuxtLink
-            to="/blog"
-            class="font-medium text-gray-700 transition-colors hover:text-primary-600 dark:text-gray-200 dark:hover:text-primary-400"
-            @click="showMobileMenu = false"
-          >
-            博客
-          </NuxtLink>
-          <NuxtLink
-            to="/about"
-            class="font-medium text-gray-700 transition-colors hover:text-primary-600 dark:text-gray-200 dark:hover:text-primary-400"
-            @click="showMobileMenu = false"
-          >
-            关于
-          </NuxtLink>
-        </nav>
-      </div>
+        <div
+          v-if="showMobileMenu"
+          class="overflow-hidden border-t border-gray-200 py-4 dark:border-gray-700 md:hidden"
+        >
+          <nav class="flex flex-col space-y-2">
+            <NuxtLink
+              to="/"
+              class="touch-optimized rounded-lg px-4 py-3 font-medium text-gray-700 transition-colors active:bg-gray-100 dark:text-gray-200 dark:active:bg-gray-700"
+              @click="showMobileMenu = false"
+            >
+              首页
+            </NuxtLink>
+            <NuxtLink
+              to="/blog"
+              class="touch-optimized rounded-lg px-4 py-3 font-medium text-gray-700 transition-colors active:bg-gray-100 dark:text-gray-200 dark:active:bg-gray-700"
+              @click="showMobileMenu = false"
+            >
+              博客
+            </NuxtLink>
+            <NuxtLink
+              to="/about"
+              class="touch-optimized rounded-lg px-4 py-3 font-medium text-gray-700 transition-colors active:bg-gray-100 dark:text-gray-200 dark:active:bg-gray-700"
+              @click="showMobileMenu = false"
+            >
+              关于
+            </NuxtLink>
+          </nav>
+        </div>
+      </Transition>
     </div>
 
     <!-- 搜索模态框 -->

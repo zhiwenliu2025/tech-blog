@@ -6,7 +6,7 @@
     <NuxtLink
       v-if="showCover"
       :to="`/blog/${post.slug}`"
-      class="relative block h-52 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800"
+      class="relative block h-40 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 sm:h-52"
     >
       <OptimizedImage
         :src="coverImage"
@@ -28,7 +28,7 @@
     </NuxtLink>
 
     <!-- 文章内容 -->
-    <div class="flex flex-1 flex-col p-6">
+    <div class="flex flex-1 flex-col p-4 sm:p-6">
       <!-- 分类和日期 -->
       <div class="mb-3 flex items-center gap-2">
         <span
@@ -44,10 +44,10 @@
       </div>
 
       <!-- 文章标题 -->
-      <h2 class="mb-3 line-clamp-2 min-h-[3.5rem]">
+      <h2 class="mb-2 line-clamp-2 min-h-[3rem] sm:mb-3 sm:min-h-[3.5rem]">
         <NuxtLink
           :to="`/blog/${post.slug}`"
-          class="text-xl font-bold leading-tight text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400"
+          class="text-lg font-bold leading-tight text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 sm:text-xl"
         >
           {{ post.title }}
         </NuxtLink>

@@ -363,6 +363,95 @@
     padding-right: env(safe-area-inset-right);
   }
   
+  /* 移动端容器优化 */
+  @media (max-width: 640px) {
+    /* 小屏幕下的字体大小优化 */
+    h1 {
+      font-size: 1.75rem;
+      line-height: 2rem;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+      line-height: 1.75rem;
+    }
+    
+    h3 {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+    }
+    
+    /* 优化表格在小屏幕的显示 */
+    table {
+      font-size: 0.875rem;
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* 优化代码块在小屏幕的显示 */
+    pre {
+      font-size: 0.75rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+  
+  /* 超小屏幕优化（< 375px） */
+  @media (max-width: 374px) {
+    /* 进一步减小字体 */
+    h1 {
+      font-size: 1.5rem;
+      line-height: 1.75rem;
+    }
+    
+    h2 {
+      font-size: 1.25rem;
+      line-height: 1.5rem;
+    }
+    
+    /* 优化按钮和输入框 */
+    button,
+    input,
+    select,
+    textarea {
+      font-size: 14px;
+    }
+  }
+  
+  /* 移动端滚动优化 */
+  @media (max-width: 768px) {
+    /* 优化滚动性能 */
+    html {
+      scroll-padding-top: 4rem;
+    }
+    
+    /* 优化长列表的渲染性能 */
+    .virtual-scroll {
+      contain: layout style paint;
+    }
+  }
+  
+  /* 横屏模式优化 */
+  @media (max-width: 768px) and (orientation: landscape) {
+    /* 横屏时减小垂直间距 */
+    main {
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+    
+    /* 横屏时优化 Header 高度 */
+    header {
+      height: auto;
+      min-height: 3.5rem;
+    }
+  }
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+  
   /* 移动端滚动优化 */
   .mobile-scroll {
     -webkit-overflow-scrolling: touch;

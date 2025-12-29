@@ -1,6 +1,6 @@
 <template>
   <div>
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main class="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8">
       <!-- 页面标题和统计 -->
       <div class="mb-8">
         <div
@@ -21,7 +21,7 @@
           </div>
           <button
             v-if="hasActiveFilters"
-            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="hidden items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 md:flex"
             @click="resetFilters"
           >
             <Icon name="heroicons:x-mark" class="h-4 w-4" />
@@ -53,15 +53,24 @@
 
         <!-- 筛选器卡片 -->
         <div
-          class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800"
+          class="mb-6 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-4"
         >
-          <div class="mb-3 flex items-center gap-2">
-            <Icon name="heroicons:funnel" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">筛选条件</span>
+          <div class="mb-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <Icon name="heroicons:funnel" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">筛选条件</span>
+            </div>
+            <button
+              v-if="hasActiveFilters"
+              class="touch-optimized rounded-lg px-2 py-1 text-xs text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30 md:hidden"
+              @click="resetFilters"
+            >
+              清除
+            </button>
           </div>
-          <div class="flex flex-wrap gap-3">
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <!-- 分类筛选 -->
-            <div class="relative min-w-[150px] flex-1">
+            <div class="relative">
               <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
                 分类
               </label>
@@ -84,7 +93,7 @@
             </div>
 
             <!-- 标签筛选 -->
-            <div class="relative min-w-[150px] flex-1">
+            <div class="relative">
               <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
                 标签
               </label>
@@ -107,7 +116,7 @@
             </div>
 
             <!-- 排序 -->
-            <div class="relative min-w-[150px] flex-1">
+            <div class="relative">
               <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
                 排序
               </label>
@@ -154,7 +163,7 @@
       <!-- 文章列表 -->
       <div
         v-else-if="filteredPosts.length > 0"
-        class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+        class="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
         <BlogPostCard
           v-for="post in paginatedPosts"
@@ -177,7 +186,7 @@
       <!-- 分页 -->
       <div
         v-if="filteredPosts.length > postsPerPage"
-        class="mt-12 flex flex-col items-center justify-between gap-4 sm:flex-row"
+        class="mt-8 flex flex-col items-center justify-between gap-4 sm:mt-12 sm:flex-row"
       >
         <div class="text-sm text-gray-600 dark:text-gray-400">
           显示第
@@ -194,10 +203,12 @@
           }}</span>
           条
         </div>
-        <nav class="flex items-center gap-1">
+        <nav
+          class="flex w-full items-center justify-center gap-1 overflow-x-auto pb-2 sm:w-auto sm:justify-start sm:pb-0"
+        >
           <button
             :disabled="currentPage === 1"
-            class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
             @click="goToPage(currentPage - 1)"
           >
             <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
@@ -210,7 +221,7 @@
               v-for="page in totalPages"
               :key="page"
               :class="[
-                'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
                 currentPage === page
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -224,7 +235,7 @@
             <!-- 第一页 -->
             <button
               :class="[
-                'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
                 currentPage === 1
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -242,7 +253,7 @@
               <button
                 v-if="page !== 1 && page !== totalPages"
                 :class="[
-                  'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
                   currentPage === page
                     ? 'bg-blue-600 text-white shadow-md'
                     : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -259,7 +270,7 @@
             <!-- 最后一页 -->
             <button
               :class="[
-                'min-w-[40px] rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
                 currentPage === totalPages
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -272,7 +283,7 @@
 
           <button
             :disabled="currentPage === totalPages"
-            class="flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
             @click="goToPage(currentPage + 1)"
           >
             <span class="hidden sm:inline">下一页</span>
