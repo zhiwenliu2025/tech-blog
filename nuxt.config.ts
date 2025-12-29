@@ -56,6 +56,9 @@ export default defineNuxtConfig({
   // @ts-ignore - PWA module types
   pwa: {
     registerType: 'autoUpdate',
+    // 确保 manifest 文件正确生成
+    manifestFilename: 'manifest.webmanifest',
+    strategies: 'generateSW',
     workbox: {
       navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,woff,woff2}'],
@@ -118,6 +121,7 @@ export default defineNuxtConfig({
       orientation: 'portrait',
       scope: '/',
       start_url: '/',
+      id: '/',
       icons: [
         {
           src: '/pwa-64x64.png',
@@ -166,7 +170,8 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+        { rel: 'manifest', href: '/manifest.webmanifest' }
       ]
     }
   },
