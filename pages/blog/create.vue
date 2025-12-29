@@ -3,8 +3,25 @@
     <div class="container mx-auto px-4">
       <div class="mx-auto max-w-4xl">
         <div class="mb-8">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">创建新文章</h1>
-          <p class="mt-2 text-gray-600 dark:text-gray-400">分享您的知识和想法</p>
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-900 dark:text-white">创建新文章</h1>
+              <p class="mt-2 text-gray-600 dark:text-gray-400">分享您的知识和想法</p>
+            </div>
+            <!-- 草稿保存状态 -->
+            <div
+              v-if="lastSavedAt"
+              class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400"
+            >
+              <Icon
+                v-if="isSaving"
+                name="i-heroicons-arrow-path"
+                class="h-4 w-4 animate-spin text-blue-500"
+              />
+              <Icon v-else name="i-heroicons-check-circle" class="h-4 w-4 text-green-500" />
+              <span>{{ formatSavedTime(lastSavedAt) }}</span>
+            </div>
+          </div>
         </div>
 
         <form class="space-y-6" @submit.prevent="createPost">
@@ -163,6 +180,49 @@
             </button>
           </div>
         </form>
+
+        <!-- 草稿恢复对话框 -->
+        <div
+          v-if="showRestoreDialog"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+          @click.self="ignoreDraft"
+        >
+          <div class="w-full max-w-md rounded-lg bg-white shadow-xl dark:bg-gray-800" @click.stop>
+            <div
+              class="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-700"
+            >
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">发现草稿</h3>
+              <button
+                type="button"
+                class="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                @click="ignoreDraft"
+              >
+                <Icon name="i-heroicons-x-mark" class="h-5 w-5" />
+              </button>
+            </div>
+            <div class="p-4">
+              <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                检测到未保存的草稿，是否恢复？
+              </p>
+              <div class="flex justify-end gap-3">
+                <button
+                  type="button"
+                  class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                  @click="ignoreDraft"
+                >
+                  忽略
+                </button>
+                <button
+                  type="button"
+                  class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  @click="restoreDraft"
+                >
+                  恢复草稿
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -183,6 +243,7 @@ const router = useRouter()
 const { user } = useSupabaseAuth()
 const saving = ref(false)
 const tagsString = ref('')
+const showRestoreDialog = ref(false)
 
 // 文章数据
 const post = reactive({
@@ -195,6 +256,19 @@ const post = reactive({
   category: '',
   tags: []
 })
+
+// 草稿功能
+const draftKey = 'create' // 创建页面的草稿键
+const {
+  loadDraft,
+  clearDraft,
+  startAutoSave,
+  stopAutoSave,
+  manualSave,
+  isSaving,
+  lastSavedAt,
+  formatSavedTime
+} = useDraft(draftKey)
 
 // 生成别名
 const generateSlug = () => {
@@ -210,6 +284,30 @@ const generateSlug = () => {
 
 // 监听标题变化，自动生成别名
 watch(() => post.title, generateSlug)
+
+// 恢复草稿
+const restoreDraft = () => {
+  const draft = loadDraft()
+  if (draft) {
+    post.title = draft.title || ''
+    post.slug = draft.slug || ''
+    post.content = draft.content || ''
+    post.excerpt = draft.excerpt || ''
+    post.cover_image = draft.cover_image || ''
+    post.category = draft.category || ''
+    post.published = draft.published || false
+    tagsString.value = draft.tags ? draft.tags.join(', ') : ''
+    showRestoreDialog.value = false
+    const toast = useToast()
+    toast.success('成功', '草稿已恢复')
+  }
+}
+
+// 忽略草稿
+const ignoreDraft = () => {
+  clearDraft()
+  showRestoreDialog.value = false
+}
 
 // 创建文章
 const createPost = async () => {
@@ -255,6 +353,9 @@ const createPost = async () => {
 
     if (error) throw error
 
+    // 清除草稿
+    clearDraft()
+
     // 显示成功消息
     const toast = useToast()
     toast.success('成功', '文章已创建')
@@ -272,6 +373,51 @@ const createPost = async () => {
 
 // 取消创建
 const cancel = () => {
+  // 保存当前内容为草稿
+  if (post.title || post.content) {
+    manualSave({
+      title: post.title,
+      slug: post.slug,
+      content: post.content,
+      excerpt: post.excerpt,
+      cover_image: post.cover_image,
+      category: post.category,
+      tags: tagsString.value
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0),
+      published: post.published
+    })
+  }
   router.push('/my-blogs')
 }
+
+// 启动自动保存
+onMounted(() => {
+  // 检查是否有草稿
+  const draft = loadDraft()
+  if (draft && (draft.title || draft.content)) {
+    showRestoreDialog.value = true
+  }
+
+  // 启动自动保存
+  startAutoSave(() => ({
+    title: post.title,
+    slug: post.slug,
+    content: post.content,
+    excerpt: post.excerpt,
+    cover_image: post.cover_image,
+    category: post.category,
+    tags: tagsString.value
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0),
+    published: post.published
+  }))
+})
+
+// 组件卸载时停止自动保存
+onBeforeUnmount(() => {
+  stopAutoSave()
+})
 </script>
