@@ -1,16 +1,16 @@
 <template>
   <div>
-    <main class="mx-auto max-w-7xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:px-8">
+    <main class="mx-auto max-w-7xl px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
       <!-- 页面标题和统计 -->
-      <div class="mb-8">
+      <div class="mb-4 sm:mb-6 md:mb-8">
         <div
-          class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"
+          class="mb-4 flex flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4"
         >
           <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">博客文章</h1>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">博客文章</h1>
             <p
               v-if="!loading && filteredPosts.length > 0"
-              class="mt-2 text-sm text-gray-600 dark:text-gray-400"
+              class="mt-1.5 text-xs text-gray-600 dark:text-gray-400 sm:mt-2 sm:text-sm"
             >
               共找到
               <span class="font-semibold text-blue-600 dark:text-blue-400">{{
@@ -30,35 +30,40 @@
         </div>
 
         <!-- 搜索框 -->
-        <div class="mb-6">
+        <div class="mb-4 sm:mb-6">
           <div class="relative">
-            <div class="absolute inset-y-0 left-0 flex items-center pl-4">
-              <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-gray-400" />
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 sm:pl-4">
+              <Icon name="heroicons:magnifying-glass" class="h-4 w-4 text-gray-400 sm:h-5 sm:w-5" />
             </div>
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="搜索文章标题、摘要或标签..."
-              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 pl-11 pr-4 text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
+              placeholder="搜索文章..."
+              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pl-9 pr-10 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400 sm:px-4 sm:py-3 sm:pl-11 sm:pr-12 sm:text-base"
             />
             <button
               v-if="searchQuery"
-              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              class="absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 sm:pr-3"
               @click="searchQuery = ''"
             >
-              <Icon name="heroicons:x-mark" class="h-5 w-5" />
+              <Icon name="heroicons:x-mark" class="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
 
         <!-- 筛选器卡片 -->
         <div
-          class="mb-6 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-4"
+          class="mb-4 rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:mb-6 sm:p-3 md:p-4"
         >
-          <div class="mb-3 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <Icon name="heroicons:funnel" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">筛选条件</span>
+          <div class="mb-2.5 flex items-center justify-between sm:mb-3">
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <Icon
+                name="heroicons:funnel"
+                class="h-4 w-4 text-gray-500 dark:text-gray-400 sm:h-5 sm:w-5"
+              />
+              <span class="text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
+                >筛选条件</span
+              >
             </div>
             <button
               v-if="hasActiveFilters"
@@ -68,7 +73,7 @@
               清除
             </button>
           </div>
-          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
             <!-- 分类筛选 -->
             <div class="relative">
               <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -77,7 +82,7 @@
               <div class="relative">
                 <select
                   v-model="selectedCategory"
-                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400"
+                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
                 >
                   <option value="">所有分类</option>
                   <option v-for="category in categories" :key="category" :value="category">
@@ -85,9 +90,9 @@
                   </option>
                 </select>
                 <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 sm:pr-3"
                 >
-                  <Icon name="i-heroicons-chevron-down" class="h-4 w-4" />
+                  <Icon name="i-heroicons-chevron-down" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
               </div>
             </div>
@@ -100,7 +105,7 @@
               <div class="relative">
                 <select
                   v-model="selectedTag"
-                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400"
+                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
                 >
                   <option value="">所有标签</option>
                   <option v-for="tag in tags" :key="tag" :value="tag">
@@ -108,9 +113,9 @@
                   </option>
                 </select>
                 <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 sm:pr-3"
                 >
-                  <Icon name="i-heroicons-chevron-down" class="h-4 w-4" />
+                  <Icon name="i-heroicons-chevron-down" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
               </div>
             </div>
@@ -123,16 +128,16 @@
               <div class="relative">
                 <select
                   v-model="sortBy"
-                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-2 pl-3 pr-8 text-sm text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400"
+                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
                 >
                   <option value="created_at">最新发布</option>
                   <option value="updated_at">最近更新</option>
                   <option value="title">按标题</option>
                 </select>
                 <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
+                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 sm:pr-3"
                 >
-                  <Icon name="i-heroicons-chevron-down" class="h-4 w-4" />
+                  <Icon name="i-heroicons-chevron-down" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </div>
               </div>
             </div>
@@ -163,7 +168,7 @@
       <!-- 文章列表 -->
       <div
         v-else-if="filteredPosts.length > 0"
-        class="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3"
+        class="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3"
       >
         <BlogPostCard
           v-for="post in paginatedPosts"
