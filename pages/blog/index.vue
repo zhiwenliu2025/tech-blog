@@ -9,13 +9,11 @@
           <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">博客文章</h1>
             <p
-              v-if="!loading && filteredPosts.length > 0"
+              v-if="!loading && totalCount > 0"
               class="mt-1.5 text-xs text-gray-600 dark:text-gray-400 sm:mt-2 sm:text-sm"
             >
               共找到
-              <span class="font-semibold text-blue-600 dark:text-blue-400">{{
-                filteredPosts.length
-              }}</span>
+              <span class="font-semibold text-blue-600 dark:text-blue-400">{{ totalCount }}</span>
               篇文章
             </p>
           </div>
@@ -167,7 +165,7 @@
 
       <!-- 文章列表 -->
       <div
-        v-else-if="filteredPosts.length > 0"
+        v-else-if="paginatedPosts.length > 0"
         class="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-3"
       >
         <BlogPostCard
@@ -190,7 +188,7 @@
 
       <!-- 分页 -->
       <div
-        v-if="filteredPosts.length > postsPerPage"
+        v-if="totalCount > postsPerPage"
         class="mt-8 flex flex-col items-center justify-between gap-4 sm:mt-12 sm:flex-row"
       >
         <div class="text-sm text-gray-600 dark:text-gray-400">
@@ -200,12 +198,10 @@
           }}</span>
           -
           <span class="font-semibold text-gray-900 dark:text-white">{{
-            Math.min(currentPage * postsPerPage, filteredPosts.length)
+            Math.min(currentPage * postsPerPage, totalCount)
           }}</span>
           条， 共
-          <span class="font-semibold text-gray-900 dark:text-white">{{
-            filteredPosts.length
-          }}</span>
+          <span class="font-semibold text-gray-900 dark:text-white">{{ totalCount }}</span>
           条
         </div>
         <nav
@@ -320,20 +316,34 @@ const currentPage = ref(parseInt(route.query.page as string) || 1)
 const postsPerPage = 9
 
 // 获取博客文章
-const { getPublishedPosts, getCategories, getTags } = useBlogPosts()
+const { getPostsWithPagination, getCategories, getTags } = useBlogPosts()
 
-// 使用 useAsyncData 缓存所有已发布文章（缓存键基于查询参数）
+// 使用 useAsyncData 进行服务端分页
+// 使用 computed 生成动态的查询键
+const queryKey = computed(() => {
+  return `blog-posts-${currentPage.value}-${selectedCategory.value}-${selectedTag.value}-${searchQuery.value}-${sortBy.value}`
+})
+
 const {
   data: postsData,
   pending: postsPending,
   error: postsError,
   refresh: refreshPosts
 } = await useAsyncData(
-  'blog-all-posts',
-  () => getPublishedPosts(1000, 0), // 获取所有文章用于客户端筛选
+  () => queryKey.value,
+  () =>
+    getPostsWithPagination({
+      page: currentPage.value,
+      pageSize: postsPerPage,
+      category: selectedCategory.value || null,
+      tag: selectedTag.value || null,
+      searchQuery: searchQuery.value || null,
+      sortBy: sortBy.value as 'created_at' | 'updated_at' | 'title'
+    }),
   {
-    default: () => ({ data: [], error: null }),
-    server: true
+    default: () => ({ data: [], count: 0, error: null }),
+    server: true,
+    watch: [currentPage, selectedCategory, selectedTag, searchQuery, sortBy]
   }
 )
 
@@ -358,11 +368,22 @@ interface BlogPostWithCounts extends BlogPost {
   comments_count?: number
 }
 
-const posts = computed<BlogPostWithCounts[]>(() => {
+// 服务端分页：直接使用返回的数据
+const paginatedPosts = computed<BlogPostWithCounts[]>(() => {
   if (postsData.value?.error) {
     return []
   }
   return (postsData.value?.data as BlogPostWithCounts[]) || []
+})
+
+// 总记录数（来自服务端）
+const totalCount = computed(() => {
+  return postsData.value?.count || 0
+})
+
+// 总页数
+const totalPages = computed(() => {
+  return Math.ceil(totalCount.value / postsPerPage)
 })
 
 const categories = computed<string[]>(() => {
@@ -385,56 +406,6 @@ const error = computed(() => {
     return postsData.value.error
   }
   return postsError.value
-})
-
-// 计算属性
-const filteredPosts = computed(() => {
-  let result = [...posts.value]
-
-  // 分类筛选
-  if (selectedCategory.value) {
-    result = result.filter(post => post.category === selectedCategory.value)
-  }
-
-  // 标签筛选
-  if (selectedTag.value) {
-    result = result.filter(post => post.tags && post.tags.includes(selectedTag.value))
-  }
-
-  // 搜索
-  if (searchQuery.value) {
-    const query = String(searchQuery.value).toLowerCase()
-    result = result.filter(
-      post =>
-        post.title.toLowerCase().includes(query) ||
-        post.excerpt.toLowerCase().includes(query) ||
-        (post.tags && post.tags.some((tag: string) => tag.toLowerCase().includes(query)))
-    )
-  }
-
-  // 排序
-  result.sort((a, b) => {
-    if (sortBy.value === 'created_at') {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    } else if (sortBy.value === 'updated_at') {
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-    } else if (sortBy.value === 'title') {
-      return a.title.localeCompare(b.title)
-    }
-    return 0
-  })
-
-  return result
-})
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredPosts.value.length / postsPerPage)
-})
-
-const paginatedPosts = computed(() => {
-  const startIndex = (currentPage.value - 1) * postsPerPage
-  const endIndex = startIndex + postsPerPage
-  return filteredPosts.value.slice(startIndex, endIndex)
 })
 
 // 检查是否有活动的筛选条件
@@ -477,7 +448,9 @@ const goToPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
     // 滚动到顶部
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (process.client) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
   }
 }
 
@@ -524,5 +497,5 @@ watch(currentPage, () => {
   updateQueryParams()
 })
 
-// 数据已经在服务端通过 useAsyncData 加载，无需在 onMounted 中再次加载
+// 监听查询参数变化，自动刷新数据（useAsyncData 的 watch 会自动处理）
 </script>

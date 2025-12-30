@@ -1,11 +1,19 @@
 // Blog posts database operations
+import type { Database } from '~/types/database.types'
+
+type BlogPostRow = Database['public']['Tables']['blog_posts']['Row']
+type BlogPostInsert = Database['public']['Tables']['blog_posts']['Insert']
+type LikeRow = Database['public']['Tables']['likes']['Row']
+type CommentRow = Database['public']['Tables']['comments']['Row']
+type ProfileRow = Database['public']['Tables']['profiles']['Row']
+
 export const useBlogPosts = () => {
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseClient<Database>()
   const loading = ref(false)
-  const error = ref(null)
-  const posts = ref([])
-  const categories = ref([])
-  const tags = ref([])
+  const error = ref<string | null>(null)
+  const posts = ref<BlogPostRow[]>([])
+  const categories = ref<string[]>([])
+  const tags = ref<string[]>([])
 
   // Get all published blog posts
   const getPosts = async (publishedOnly = true, limit = 10, offset = 0) => {
@@ -27,18 +35,20 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
+      const postsData = (data || []) as BlogPostRow[]
+
       // Get likes and comments counts for all posts
-      if (data && data.length > 0) {
-        const postIds = data.map(post => post.id)
+      if (postsData && postsData.length > 0) {
+        const postIds = postsData.map(post => post.id)
 
         // Get likes counts
-        const { data: likesData, error: likesError } = await supabase
+        const { data: likesData } = await supabase
           .from('likes')
           .select('post_id')
           .in('post_id', postIds)
 
         // Get comments counts
-        const { data: commentsData, error: commentsError } = await supabase
+        const { data: commentsData } = await supabase
           .from('comments')
           .select('post_id')
           .in('post_id', postIds)
@@ -47,26 +57,25 @@ export const useBlogPosts = () => {
         const likesCountMap = new Map<string, number>()
         const commentsCountMap = new Map<string, number>()
 
-        if (likesData) {
-          likesData.forEach(like => {
-            likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-          })
-        }
+        const likesRows = (likesData || []) as LikeRow[]
+        const commentsRows = (commentsData || []) as CommentRow[]
 
-        if (commentsData) {
-          commentsData.forEach(comment => {
-            commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-          })
-        }
+        likesRows.forEach(like => {
+          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
+        })
+
+        commentsRows.forEach(comment => {
+          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
+        })
 
         // Add counts to posts
-        data.forEach(post => {
+        postsData.forEach((post: any) => {
           post.likes_count = likesCountMap.get(post.id) || 0
           post.comments_count = commentsCountMap.get(post.id) || 0
         })
       }
 
-      return { data, error: null }
+      return { data: postsData, error: null }
     } catch (err: any) {
       error.value = err.message
       return { data: null, error: err.message }
@@ -105,18 +114,20 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
+      const postsData = (data || []) as BlogPostRow[]
+
       // Get likes and comments counts for all posts
-      if (data && data.length > 0) {
-        const postIds = data.map(post => post.id)
+      if (postsData && postsData.length > 0) {
+        const postIds = postsData.map(post => post.id)
 
         // Get likes counts
-        const { data: likesData, error: likesError } = await supabase
+        const { data: likesData } = await supabase
           .from('likes')
           .select('post_id')
           .in('post_id', postIds)
 
         // Get comments counts
-        const { data: commentsData, error: commentsError } = await supabase
+        const { data: commentsData } = await supabase
           .from('comments')
           .select('post_id')
           .in('post_id', postIds)
@@ -125,27 +136,26 @@ export const useBlogPosts = () => {
         const likesCountMap = new Map<string, number>()
         const commentsCountMap = new Map<string, number>()
 
-        if (likesData) {
-          likesData.forEach(like => {
-            likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-          })
-        }
+        const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
+        const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
 
-        if (commentsData) {
-          commentsData.forEach(comment => {
-            commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-          })
-        }
+        likesRows.forEach(like => {
+          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
+        })
+
+        commentsRows.forEach(comment => {
+          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
+        })
 
         // Add counts to posts
-        data.forEach(post => {
+        postsData.forEach((post: any) => {
           post.likes_count = likesCountMap.get(post.id) || 0
           post.comments_count = commentsCountMap.get(post.id) || 0
         })
       }
 
-      posts.value = data || []
-      return data || []
+      posts.value = postsData
+      return postsData
     } catch (err: any) {
       error.value = err.message
       posts.value = []
@@ -169,7 +179,7 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      return { data, error: null }
+      return { data: data as BlogPostRow | null, error: null }
     } catch (err: any) {
       error.value = err.message
       return { data: null, error: err.message }
@@ -194,7 +204,7 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      return data || []
+      return (data || []) as BlogPostRow[]
     } catch (err: any) {
       error.value = err.message
       return []
@@ -219,7 +229,7 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      return data || []
+      return (data || []) as BlogPostRow[]
     } catch (err: any) {
       error.value = err.message
       return []
@@ -242,7 +252,10 @@ export const useBlogPosts = () => {
       if (dbError) throw dbError
 
       // Extract unique categories
-      const uniqueCategories = [...new Set(data?.map(post => post.category).filter(Boolean))]
+      const postsData = (data || []) as Pick<BlogPostRow, 'category'>[]
+      const uniqueCategories = [
+        ...new Set(postsData.map(post => post.category).filter(Boolean) as string[])
+      ]
       categories.value = uniqueCategories
 
       return uniqueCategories
@@ -269,8 +282,9 @@ export const useBlogPosts = () => {
       if (dbError) throw dbError
 
       // Extract and flatten all tags, then get unique ones
-      const allTags = data?.flatMap(post => post.tags || [])
-      const uniqueTags = [...new Set(allTags)]
+      const postsData = (data || []) as Pick<BlogPostRow, 'tags'>[]
+      const allTags = postsData.flatMap(post => post.tags || [])
+      const uniqueTags = [...new Set(allTags)] as string[]
       tags.value = uniqueTags
 
       return uniqueTags
@@ -300,59 +314,63 @@ export const useBlogPosts = () => {
           .eq('id', post.id)
           .single()
 
+        const oldPostData = oldPost as Pick<BlogPostRow, 'slug'> | null
+
         // Update existing post
-        const { data, error: dbError } = await supabase
-          .from('blog_posts')
-          .update({
-            title: post.title,
-            slug: post.slug,
-            excerpt: post.excerpt,
-            content: post.content,
-            cover_image: post.cover_image,
-            category: post.category,
-            tags: post.tags,
-            published: post.published,
-            updated_at: new Date().toISOString()
-          })
+        const updateData: Database['public']['Tables']['blog_posts']['Update'] = {
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          content: post.content,
+          cover_image: post.cover_image,
+          category: post.category,
+          tags: post.tags,
+          published: post.published,
+          updated_at: new Date().toISOString()
+        }
+
+        const { data, error: dbError } = await (supabase.from('blog_posts') as any)
+          .update(updateData)
           .eq('id', post.id)
           .select()
 
         if (dbError) throw dbError
-        result = data
+        result = data as BlogPostRow[] | null
 
         // 清除相关缓存
-        if (oldPost?.slug) {
-          await clearNuxtData(`post-${oldPost.slug}`)
-          await clearNuxtData(`post-comments-${oldPost.slug}`)
-          await clearNuxtData(`post-interaction-${oldPost.slug}`)
+        if (oldPostData?.slug) {
+          await clearNuxtData(`post-${oldPostData.slug}`)
+          await clearNuxtData(`post-comments-${oldPostData.slug}`)
+          await clearNuxtData(`post-interaction-${oldPostData.slug}`)
         }
-        if (savedSlug && savedSlug !== oldPost?.slug) {
+        if (savedSlug && savedSlug !== oldPostData?.slug) {
           await clearNuxtData(`post-${savedSlug}`)
           await clearNuxtData(`post-comments-${savedSlug}`)
           await clearNuxtData(`post-interaction-${savedSlug}`)
         }
       } else {
         // Create new post
-        const { data, error: dbError } = await supabase
-          .from('blog_posts')
-          .insert({
-            title: post.title,
-            slug: post.slug,
-            excerpt: post.excerpt,
-            content: post.content,
-            cover_image: post.cover_image,
-            category: post.category,
-            tags: post.tags,
-            published: post.published,
-            author_id: post.author_id,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
+        const insertData: BlogPostInsert = {
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          content: post.content,
+          cover_image: post.cover_image,
+          category: post.category,
+          tags: post.tags,
+          published: post.published,
+          author_id: post.author_id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+
+        const { data, error: dbError } = await (supabase.from('blog_posts') as any)
+          .insert(insertData)
           .select()
 
         if (dbError) throw dbError
-        result = data
-        savedSlug = data?.[0]?.slug
+        result = data as BlogPostRow[] | null
+        savedSlug = (data as BlogPostRow[])?.[0]?.slug
       }
 
       // 清除列表相关缓存
@@ -387,15 +405,17 @@ export const useBlogPosts = () => {
         .eq('id', id)
         .single()
 
+      const postData = postToDelete as Pick<BlogPostRow, 'slug' | 'category'> | null
+
       const { error: dbError } = await supabase.from('blog_posts').delete().eq('id', id)
 
       if (dbError) throw dbError
 
       // 清除相关缓存
-      if (postToDelete?.slug) {
-        await clearNuxtData(`post-${postToDelete.slug}`)
-        await clearNuxtData(`post-comments-${postToDelete.slug}`)
-        await clearNuxtData(`post-interaction-${postToDelete.slug}`)
+      if (postData?.slug) {
+        await clearNuxtData(`post-${postData.slug}`)
+        await clearNuxtData(`post-comments-${postData.slug}`)
+        await clearNuxtData(`post-interaction-${postData.slug}`)
       }
       // 清除列表相关缓存
       await clearNuxtData('home-posts')
@@ -403,8 +423,8 @@ export const useBlogPosts = () => {
       await clearNuxtData('blog-categories')
       await clearNuxtData('blog-tags')
       // 清除分类页缓存
-      if (postToDelete?.category) {
-        await clearNuxtData(`posts-${postToDelete.category}`)
+      if (postData?.category) {
+        await clearNuxtData(`posts-${postData.category}`)
       }
 
       return { error: null }
@@ -430,7 +450,10 @@ export const useBlogPosts = () => {
       if (dbError) throw dbError
 
       // Extract unique categories
-      const uniqueCategories = [...new Set(data?.map(post => post.category).filter(Boolean))]
+      const postsData = (data || []) as Pick<BlogPostRow, 'category'>[]
+      const uniqueCategories = [
+        ...new Set(postsData.map(post => post.category).filter(Boolean) as string[])
+      ]
 
       return { data: uniqueCategories, error: null }
     } catch (err: any) {
@@ -455,10 +478,11 @@ export const useBlogPosts = () => {
       if (dbError) throw dbError
 
       // Extract and flatten all tags, then get unique ones
-      const allTags = data?.flatMap(post => post.tags || [])
-      const tags = [...new Set(allTags)]
+      const postsData = (data || []) as Pick<BlogPostRow, 'tags'>[]
+      const allTags = postsData.flatMap(post => post.tags || [])
+      const uniqueTags = [...new Set(allTags)] as string[]
 
-      return { data: tags, error: null }
+      return { data: uniqueTags, error: null }
     } catch (err: any) {
       error.value = err.message
       return { data: null, error: err.message }
@@ -477,23 +501,26 @@ export const useBlogPosts = () => {
         .eq('id', postId)
         .single()
 
-      const { data, error: dbError } = await supabase
-        .from('likes')
-        .insert({
-          user_id: userId,
-          post_id: postId
-        })
+      const postData = post as Pick<BlogPostRow, 'slug'> | null
+
+      const insertData: Database['public']['Tables']['likes']['Insert'] = {
+        user_id: userId,
+        post_id: postId
+      }
+
+      const { data, error: dbError } = await (supabase.from('likes') as any)
+        .insert(insertData)
         .select()
         .single()
 
       if (dbError) throw dbError
 
       // 清除互动数据缓存
-      if (post?.slug) {
-        await clearNuxtData(`post-interaction-${post.slug}`)
+      if (postData?.slug) {
+        await clearNuxtData(`post-interaction-${postData.slug}`)
       }
 
-      return { data, error: null }
+      return { data: data as LikeRow | null, error: null }
     } catch (err: any) {
       // If error is about unique constraint, the user already liked this post
       if (err.code === '23505') {
@@ -513,6 +540,8 @@ export const useBlogPosts = () => {
         .eq('id', postId)
         .single()
 
+      const postData = post as Pick<BlogPostRow, 'slug'> | null
+
       const { error: dbError } = await supabase
         .from('likes')
         .delete()
@@ -522,8 +551,8 @@ export const useBlogPosts = () => {
       if (dbError) throw dbError
 
       // 清除互动数据缓存
-      if (post?.slug) {
-        await clearNuxtData(`post-interaction-${post.slug}`)
+      if (postData?.slug) {
+        await clearNuxtData(`post-interaction-${postData.slug}`)
       }
 
       return { data: null, error: null }
@@ -597,16 +626,21 @@ export const useBlogPosts = () => {
         throw commentsError
       }
 
-      if (!commentsData || commentsData.length === 0) {
+      const commentsRows = (commentsData || []) as CommentRow[]
+
+      if (commentsRows.length === 0) {
         return { data: [], error: null }
       }
 
       // 获取所有评论的用户ID
-      const userIds = [...new Set(commentsData.map(c => c.user_id).filter(Boolean))]
+      const userIds = [...new Set(commentsRows.map(c => c.user_id).filter(Boolean))]
 
       // 如果没有用户ID，直接返回评论数据
       if (userIds.length === 0) {
-        return { data: commentsData.map(c => ({ ...c, profiles: null })), error: null }
+        return {
+          data: commentsRows.map(c => ({ ...c, profiles: null })) as any[],
+          error: null
+        }
       }
 
       // 查询用户信息
@@ -618,14 +652,21 @@ export const useBlogPosts = () => {
       if (profilesError) {
         console.error('获取用户信息错误:', profilesError)
         // 即使获取用户信息失败，也返回评论数据
-        return { data: commentsData.map(c => ({ ...c, profiles: null })), error: null }
+        return {
+          data: commentsRows.map(c => ({ ...c, profiles: null })) as any[],
+          error: null
+        }
       }
 
       // 创建用户信息映射
-      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || [])
+      const profilesRows = (profilesData || []) as Pick<
+        ProfileRow,
+        'id' | 'username' | 'avatar_url' | 'full_name'
+      >[]
+      const profilesMap = new Map(profilesRows.map(p => [p.id, p]))
 
       // 合并评论和用户信息
-      const commentsWithProfiles = commentsData.map(comment => ({
+      const commentsWithProfiles = commentsRows.map(comment => ({
         ...comment,
         profiles: profilesMap.get(comment.user_id) || null
       }))
@@ -647,25 +688,28 @@ export const useBlogPosts = () => {
         .eq('id', comment.post_id)
         .single()
 
-      const { data, error: dbError } = await supabase
-        .from('comments')
-        .insert({
-          post_id: comment.post_id,
-          user_id: comment.user_id,
-          content: comment.content
-        })
+      const postData = post as Pick<BlogPostRow, 'slug'> | null
+
+      const insertData: Database['public']['Tables']['comments']['Insert'] = {
+        post_id: comment.post_id,
+        user_id: comment.user_id,
+        content: comment.content
+      }
+
+      const { data, error: dbError } = await (supabase.from('comments') as any)
+        .insert(insertData)
         .select()
         .single()
 
       if (dbError) throw dbError
 
       // 清除评论和互动数据缓存
-      if (post?.slug) {
-        await clearNuxtData(`post-comments-${post.slug}`)
-        await clearNuxtData(`post-interaction-${post.slug}`)
+      if (postData?.slug) {
+        await clearNuxtData(`post-comments-${postData.slug}`)
+        await clearNuxtData(`post-interaction-${postData.slug}`)
       }
 
-      return { data, error: null }
+      return { data: data as CommentRow | null, error: null }
     } catch (err: any) {
       return { data: null, error: err.message }
     }
@@ -681,21 +725,25 @@ export const useBlogPosts = () => {
         .eq('id', commentId)
         .single()
 
+      const commentData = comment as Pick<CommentRow, 'post_id'> | null
+
       const { error: dbError } = await supabase.from('comments').delete().eq('id', commentId)
 
       if (dbError) throw dbError
 
       // 获取文章 slug，用于清除缓存
-      if (comment?.post_id) {
+      if (commentData?.post_id) {
         const { data: post } = await supabase
           .from('blog_posts')
           .select('slug')
-          .eq('id', comment.post_id)
+          .eq('id', commentData.post_id)
           .single()
 
-        if (post?.slug) {
-          await clearNuxtData(`post-comments-${post.slug}`)
-          await clearNuxtData(`post-interaction-${post.slug}`)
+        const postData = post as Pick<BlogPostRow, 'slug'> | null
+
+        if (postData?.slug) {
+          await clearNuxtData(`post-comments-${postData.slug}`)
+          await clearNuxtData(`post-interaction-${postData.slug}`)
         }
       }
 
@@ -716,9 +764,131 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      return { data: data?.is_admin || false, error: null }
+      const profileData = data as Pick<ProfileRow, 'is_admin'> | null
+
+      return { data: profileData?.is_admin || false, error: null }
     } catch (err: any) {
       return { data: false, error: err.message }
+    }
+  }
+
+  // Get posts with server-side pagination, filtering, sorting, and search
+  const getPostsWithPagination = async (
+    options: {
+      page?: number
+      pageSize?: number
+      category?: string | null
+      tag?: string | null
+      searchQuery?: string | null
+      sortBy?: 'created_at' | 'updated_at' | 'title'
+    } = {}
+  ) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const {
+        page = 1,
+        pageSize = 10,
+        category = null,
+        tag = null,
+        searchQuery = null,
+        sortBy = 'created_at'
+      } = options
+
+      const offset = (page - 1) * pageSize
+
+      // Build base query
+      let query = supabase.from('blog_posts').select('*', { count: 'exact' }).eq('published', true)
+
+      // Apply category filter
+      if (category) {
+        query = query.eq('category', category)
+      }
+
+      // Apply tag filter
+      if (tag) {
+        query = query.contains('tags', [tag])
+      }
+
+      // Apply search query
+      if (searchQuery && searchQuery.trim()) {
+        const searchTerm = searchQuery.trim()
+        query = query.or(
+          `title.ilike.%${searchTerm}%,excerpt.ilike.%${searchTerm}%,content.ilike.%${searchTerm}%`
+        )
+      }
+
+      // Apply sorting
+      if (sortBy === 'created_at') {
+        query = query.order('created_at', { ascending: false })
+      } else if (sortBy === 'updated_at') {
+        query = query.order('updated_at', { ascending: false })
+      } else if (sortBy === 'title') {
+        query = query.order('title', { ascending: true })
+      }
+
+      // Apply pagination
+      query = query.range(offset, offset + pageSize - 1)
+
+      const { data, error: dbError, count } = await query
+
+      if (dbError) throw dbError
+
+      const postsData = (data || []) as BlogPostRow[]
+
+      // Get likes and comments counts for all posts
+      if (postsData && postsData.length > 0) {
+        const postIds = postsData.map(post => post.id)
+
+        // Get likes counts
+        const { data: likesData } = await supabase
+          .from('likes')
+          .select('post_id')
+          .in('post_id', postIds)
+
+        // Get comments counts
+        const { data: commentsData } = await supabase
+          .from('comments')
+          .select('post_id')
+          .in('post_id', postIds)
+
+        // Count likes and comments per post
+        const likesCountMap = new Map<string, number>()
+        const commentsCountMap = new Map<string, number>()
+
+        const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
+        const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
+
+        likesRows.forEach(like => {
+          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
+        })
+
+        commentsRows.forEach(comment => {
+          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
+        })
+
+        // Add counts to posts
+        postsData.forEach((post: any) => {
+          post.likes_count = likesCountMap.get(post.id) || 0
+          post.comments_count = commentsCountMap.get(post.id) || 0
+        })
+      }
+
+      return {
+        data: postsData,
+        count: count || 0,
+        error: null
+      }
+    } catch (err: any) {
+      error.value = err.message
+      return {
+        data: [],
+        count: 0,
+        error: err.message
+      }
+    } finally {
+      loading.value = false
     }
   }
 
@@ -745,11 +915,14 @@ export const useBlogPosts = () => {
 
       // Use the search function if available, otherwise fallback to manual search
       // First, try using the database function
-      const { data: searchResults, error: searchError } = await supabase.rpc('search_blog_posts', {
-        search_query: query.trim(),
-        result_limit: limit,
-        result_offset: offset
-      })
+      const { data: searchResults, error: searchError } = await (supabase.rpc as any)(
+        'search_blog_posts',
+        {
+          search_query: query.trim(),
+          result_limit: limit,
+          result_offset: offset
+        }
+      )
 
       if (searchError) {
         // Fallback to manual search if function doesn't exist or fails
@@ -776,9 +949,11 @@ export const useBlogPosts = () => {
 
         if (dbError) throw dbError
 
+        const postsData = (data || []) as BlogPostRow[]
+
         // Get likes and comments counts
-        if (data && data.length > 0) {
-          const postIds = data.map(post => post.id)
+        if (postsData && postsData.length > 0) {
+          const postIds = postsData.map(post => post.id)
 
           const { data: likesData } = await supabase
             .from('likes')
@@ -793,41 +968,43 @@ export const useBlogPosts = () => {
           const likesCountMap = new Map<string, number>()
           const commentsCountMap = new Map<string, number>()
 
-          if (likesData) {
-            likesData.forEach(like => {
-              likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-            })
-          }
+          const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
+          const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
 
-          if (commentsData) {
-            commentsData.forEach(comment => {
-              commentsCountMap.set(
-                comment.post_id,
-                (commentsCountMap.get(comment.post_id) || 0) + 1
-              )
-            })
-          }
+          likesRows.forEach(like => {
+            likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
+          })
 
-          data.forEach(post => {
+          commentsRows.forEach(comment => {
+            commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
+          })
+
+          postsData.forEach((post: any) => {
             post.likes_count = likesCountMap.get(post.id) || 0
             post.comments_count = commentsCountMap.get(post.id) || 0
           })
         }
 
-        return { data: data || [], error: null, count: count || 0 }
+        return { data: postsData, error: null, count: count || 0 }
       }
 
       // Process results from search function
-      if (searchResults && searchResults.length > 0) {
+      const searchResultsData = (searchResults || []) as BlogPostRow[]
+
+      if (searchResultsData && searchResultsData.length > 0) {
         // Apply category and tag filters if specified
-        let filteredResults = searchResults
+        let filteredResults = searchResultsData
 
         if (category) {
-          filteredResults = filteredResults.filter(post => post.category === category)
+          filteredResults = filteredResults.filter(
+            (post: BlogPostRow) => post.category === category
+          )
         }
 
         if (tag) {
-          filteredResults = filteredResults.filter(post => post.tags && post.tags.includes(tag))
+          filteredResults = filteredResults.filter(
+            (post: BlogPostRow) => post.tags && post.tags.includes(tag)
+          )
         }
 
         const postIds = filteredResults.map(post => post.id)
@@ -846,19 +1023,18 @@ export const useBlogPosts = () => {
         const likesCountMap = new Map<string, number>()
         const commentsCountMap = new Map<string, number>()
 
-        if (likesData) {
-          likesData.forEach(like => {
-            likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-          })
-        }
+        const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
+        const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
 
-        if (commentsData) {
-          commentsData.forEach(comment => {
-            commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-          })
-        }
+        likesRows.forEach(like => {
+          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
+        })
 
-        filteredResults.forEach(post => {
+        commentsRows.forEach(comment => {
+          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
+        })
+
+        filteredResults.forEach((post: any) => {
           post.likes_count = likesCountMap.get(post.id) || 0
           post.comments_count = commentsCountMap.get(post.id) || 0
         })
@@ -906,6 +1082,7 @@ export const useBlogPosts = () => {
     addComment,
     deleteComment,
     checkIsAdmin,
-    searchPosts
+    searchPosts,
+    getPostsWithPagination
   }
 }
