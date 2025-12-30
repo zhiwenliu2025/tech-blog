@@ -31,7 +31,9 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  icon: 'i-heroicons-inbox'
+  icon: 'i-heroicons-inbox',
+  actionText: undefined,
+  actionUrl: undefined
 })
 
 const handleAction = () => {

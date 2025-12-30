@@ -312,10 +312,10 @@ const route = useRoute()
 const router = useRouter()
 
 // 筛选和分页状态
-const selectedCategory = ref(route.query.category || '')
-const selectedTag = ref(route.query.tag || '')
+const selectedCategory = ref<string>(String(route.query.category || ''))
+const selectedTag = ref<string>(String(route.query.tag || ''))
 const sortBy = ref('created_at')
-const searchQuery = ref(route.query.q || '')
+const searchQuery = ref<string>(String(route.query.q || ''))
 const currentPage = ref(parseInt(route.query.page as string) || 1)
 const postsPerPage = 9
 
@@ -350,25 +350,33 @@ const { data: tagsData } = await useAsyncData('blog-tags', () => getTags(), {
 })
 
 // 从缓存数据中提取实际数据
-const posts = computed(() => {
+import type { BlogPost } from '~/types/blog'
+
+// 扩展 BlogPost 类型以包含统计信息
+interface BlogPostWithCounts extends BlogPost {
+  likes_count?: number
+  comments_count?: number
+}
+
+const posts = computed<BlogPostWithCounts[]>(() => {
   if (postsData.value?.error) {
     return []
   }
-  return postsData.value?.data || []
+  return (postsData.value?.data as BlogPostWithCounts[]) || []
 })
 
-const categories = computed(() => {
+const categories = computed<string[]>(() => {
   if (categoriesData.value?.error) {
     return []
   }
-  return categoriesData.value?.data || []
+  return (categoriesData.value?.data as string[]) || []
 })
 
-const tags = computed(() => {
+const tags = computed<string[]>(() => {
   if (tagsData.value?.error) {
     return []
   }
-  return tagsData.value?.data || []
+  return (tagsData.value?.data as string[]) || []
 })
 
 const loading = computed(() => postsPending.value)
@@ -395,21 +403,21 @@ const filteredPosts = computed(() => {
 
   // 搜索
   if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
+    const query = String(searchQuery.value).toLowerCase()
     result = result.filter(
       post =>
         post.title.toLowerCase().includes(query) ||
         post.excerpt.toLowerCase().includes(query) ||
-        (post.tags && post.tags.some(tag => tag.toLowerCase().includes(query)))
+        (post.tags && post.tags.some((tag: string) => tag.toLowerCase().includes(query)))
     )
   }
 
   // 排序
   result.sort((a, b) => {
     if (sortBy.value === 'created_at') {
-      return new Date(b.created_at) - new Date(a.created_at)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     } else if (sortBy.value === 'updated_at') {
-      return new Date(b.updated_at) - new Date(a.updated_at)
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
     } else if (sortBy.value === 'title') {
       return a.title.localeCompare(b.title)
     }
@@ -465,7 +473,7 @@ const loadPosts = async () => {
   await refreshPosts()
 }
 
-const goToPage = page => {
+const goToPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
     // 滚动到顶部

@@ -64,7 +64,14 @@ const props = withDefaults(defineProps<Props>(), {
   sizes: '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw',
   showPlaceholder: true,
   breakpoints: () => [640, 768, 1024, 1280, 1536],
-  useDefaultOnNoSize: true
+  useDefaultOnNoSize: true,
+  width: undefined,
+  height: undefined,
+  imageClass: undefined,
+  containerClass: undefined,
+  placeholderClass: undefined,
+  errorClass: undefined,
+  defaultSrc: undefined
 })
 
 const loaded = ref(false)
