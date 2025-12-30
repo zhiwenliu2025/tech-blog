@@ -1,6 +1,8 @@
 <template>
   <article
-    class="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600"
+    class="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600 md:cursor-default"
+    :class="{ 'cursor-pointer': isMobile }"
+    @click="handleCardClick"
   >
     <!-- 文章封面图 -->
     <NuxtLink
@@ -203,6 +205,38 @@ const calculateReadTime = (text: string) => {
   const wordCount = plainText.length
   const readTime = Math.max(1, Math.ceil(wordCount / wordsPerMinute))
   return readTime
+}
+
+// 检测是否为移动端
+const isMobile = ref(false)
+
+// 检测移动端
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 768 // md breakpoint
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
+
+// 处理卡片点击（仅在移动端）
+const handleCardClick = (event: MouseEvent) => {
+  // 如果点击的是标签链接或其他有 stopPropagation 的元素，不处理
+  const target = event.target as HTMLElement
+  // 检查是否点击的是链接、按钮或其他交互元素
+  if (target.closest('a') || target.closest('button') || target.closest('[data-no-click]')) {
+    return
+  }
+
+  // 仅在移动端执行跳转
+  if (isMobile.value) {
+    navigateTo(`/blog/${props.post.slug}`)
+  }
 }
 </script>
 
