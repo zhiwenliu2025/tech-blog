@@ -192,10 +192,13 @@
         >
           <form @submit.prevent="submitComment">
             <textarea
+              ref="commentInput"
               v-model="newComment"
               placeholder="写下你的评论..."
               rows="4"
               class="mb-4 w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
+              @focus="keyboardInput.handleFocus"
+              @blur="keyboardInput.handleBlur"
             />
             <div class="flex justify-end">
               <button
@@ -341,6 +344,18 @@ const likeLoading = ref(false)
 const isLiked = ref(false)
 const deleteLoading = ref(null)
 const isAdmin = ref(false)
+
+// 评论输入框 ref
+const commentInput = ref<HTMLTextAreaElement | null>(null)
+
+// 键盘输入优化
+const keyboardInput = useKeyboardInput(commentInput, {
+  scrollDelay: 300,
+  behavior: 'smooth',
+  block: 'center',
+  mobileOnly: true,
+  offset: -20 // 向上偏移 20px，确保输入框上方有足够空间
+})
 
 // 计算阅读时间
 const readTime = computed(() => {

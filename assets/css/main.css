@@ -535,6 +535,34 @@
       background-repeat: no-repeat;
       background-size: 1.5em 1.5em;
     }
+
+    /* 键盘输入优化 */
+    /* 当输入框获得焦点时，确保页面可以正确滚动 */
+    input:focus,
+    textarea:focus {
+      /* 确保输入框在视口中可见 */
+      scroll-margin-top: 20px;
+      scroll-margin-bottom: 20px;
+    }
+
+    /* 键盘打开时的页面优化 */
+    /* iOS Safari 特殊处理：键盘打开时会改变视口高度 */
+    @supports (-webkit-touch-callout: none) {
+      /* iOS 设备 */
+      body.keyboard-open {
+        /* 防止页面在键盘打开时滚动 */
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+    }
+
+    /* 键盘打开时的输入框容器优化 */
+    .keyboard-input-container {
+      /* 确保输入框容器有足够的空间 */
+      padding-bottom: env(safe-area-inset-bottom, 0);
+    }
   }
 }
 

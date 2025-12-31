@@ -33,11 +33,14 @@
             <div class="mt-1">
               <input
                 id="title"
+                ref="titleInput"
                 v-model="post.title"
                 type="text"
                 required
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
                 placeholder="输入文章标题"
+                @focus="titleKeyboardInput.handleFocus"
+                @blur="titleKeyboardInput.handleBlur"
               />
             </div>
           </div>
@@ -70,10 +73,13 @@
             <div class="mt-1">
               <textarea
                 id="excerpt"
+                ref="excerptInput"
                 v-model="post.excerpt"
                 rows="3"
                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
                 placeholder="简短描述文章内容"
+                @focus="excerptKeyboardInput.handleFocus"
+                @blur="excerptKeyboardInput.handleBlur"
               />
             </div>
           </div>
@@ -244,6 +250,27 @@ const { user } = useSupabaseAuth()
 const saving = ref(false)
 const tagsString = ref('')
 const showRestoreDialog = ref(false)
+
+// 输入框 refs
+const titleInput = (ref < HTMLInputElement) | (null > null)
+const excerptInput = (ref < HTMLTextAreaElement) | (null > null)
+
+// 键盘输入优化
+const titleKeyboardInput = useKeyboardInput(titleInput, {
+  scrollDelay: 300,
+  behavior: 'smooth',
+  block: 'center',
+  mobileOnly: true,
+  offset: -10
+})
+
+const excerptKeyboardInput = useKeyboardInput(excerptInput, {
+  scrollDelay: 300,
+  behavior: 'smooth',
+  block: 'center',
+  mobileOnly: true,
+  offset: -10
+})
 
 // 文章数据
 const post = reactive({
