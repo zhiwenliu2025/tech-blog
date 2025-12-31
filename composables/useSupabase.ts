@@ -86,6 +86,34 @@ export const useSupabaseAuth = () => {
     }
   }
 
+  const signInWithGitHub = async () => {
+    loading.value = true
+    error.value = null
+
+    try {
+      // 获取应用 URL，优先使用环境变量，否则使用当前请求的 origin
+      const config = useRuntimeConfig()
+      const appUrl =
+        config.public.appUrl || (process.client ? window.location.origin : 'http://localhost:3000')
+
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${appUrl}/auth/callback`
+        }
+      })
+
+      if (authError) throw authError
+
+      return { data, error: null }
+    } catch (err: any) {
+      error.value = err.message
+      return { data: null, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     user: readonly(user),
     loading: readonly(loading),
@@ -93,6 +121,7 @@ export const useSupabaseAuth = () => {
     signUp,
     signIn,
     signOut,
-    resetPassword
+    resetPassword,
+    signInWithGitHub
   }
 }

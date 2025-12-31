@@ -90,7 +90,7 @@
           </div>
         </div>
 
-        <div>
+        <div class="space-y-3">
           <button
             type="submit"
             :disabled="loading"
@@ -111,6 +111,40 @@
               />
             </span>
             {{ loading ? '处理中...' : isLogin ? '登录' : '注册' }}
+          </button>
+
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-300 dark:border-dark-600" />
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="bg-gray-50 px-2 text-gray-500 dark:bg-dark-900 dark:text-gray-400">
+                或
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            :disabled="loading || githubLoading"
+            class="group relative flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-300 dark:hover:bg-dark-700"
+            @click="handleGitHubLogin"
+          >
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+              <Icon
+                v-if="githubLoading"
+                name="heroicons:arrow-path"
+                class="h-5 w-5 animate-spin text-gray-500 group-hover:text-gray-400 dark:text-gray-400"
+                aria-hidden="true"
+              />
+              <Icon
+                v-else
+                name="simple-icons:github"
+                class="h-5 w-5 text-gray-500 group-hover:text-gray-400 dark:text-gray-400"
+                aria-hidden="true"
+              />
+            </span>
+            {{ githubLoading ? '跳转中...' : '使用 GitHub 登录' }}
           </button>
         </div>
 
@@ -144,12 +178,13 @@ const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const githubLoading = ref(false)
 const error = ref('')
 const successMessage = ref('')
 const resetLoading = ref(false)
 
 // Composables
-const { signIn, signUp, resetPassword: resetPasswordFn } = useSupabaseAuth()
+const { signIn, signUp, resetPassword: resetPasswordFn, signInWithGitHub } = useSupabaseAuth()
 
 // Methods
 const toggleMode = () => {
@@ -218,6 +253,25 @@ const resetPassword = async () => {
     error.value = err.message || '发送失败，请重试'
   } finally {
     resetLoading.value = false
+  }
+}
+
+const handleGitHubLogin = async () => {
+  githubLoading.value = true
+  error.value = ''
+  successMessage.value = ''
+
+  try {
+    const result = await signInWithGitHub()
+
+    if (result.error) {
+      error.value = result.error
+      githubLoading.value = false
+    }
+    // 如果成功，会跳转到 GitHub，所以不需要在这里处理成功情况
+  } catch (err) {
+    error.value = err.message || 'GitHub 登录失败，请重试'
+    githubLoading.value = false
   }
 }
 </script>
