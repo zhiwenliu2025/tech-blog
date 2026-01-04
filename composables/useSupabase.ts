@@ -91,7 +91,6 @@ export const useSupabaseAuth = () => {
     error.value = null
 
     try {
-      // 获取应用 URL，优先使用环境变量，否则使用当前请求的 origin
       const config = useRuntimeConfig()
       const appUrl =
         config.public.appUrl || (process.client ? window.location.origin : 'http://localhost:3000')
@@ -114,6 +113,65 @@ export const useSupabaseAuth = () => {
     }
   }
 
+  const linkIdentity = async (provider: 'github' | 'google') => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const config = useRuntimeConfig()
+      const appUrl =
+        config.public.appUrl || (process.client ? window.location.origin : 'http://localhost:3000')
+
+      const { data, error: linkError } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${appUrl}/auth/callback`,
+          skipBrowserRedirect: false
+        }
+      })
+
+      if (linkError) throw linkError
+
+      return { data, error: null }
+    } catch (err: any) {
+      error.value = err.message
+      return { data: null, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const unlinkIdentity = async (identityId: string) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { error: unlinkError } = await supabase.auth.unlinkIdentity({
+        identityId
+      })
+
+      if (unlinkError) throw unlinkError
+
+      return { error: null }
+    } catch (err: any) {
+      error.value = err.message
+      return { error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const getIdentities = async () => {
+    try {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+      return user?.identities || []
+    } catch (err: any) {
+      return []
+    }
+  }
+
   return {
     user: readonly(user),
     loading: readonly(loading),
@@ -122,6 +180,9 @@ export const useSupabaseAuth = () => {
     signIn,
     signOut,
     resetPassword,
-    signInWithGitHub
+    signInWithGitHub,
+    linkIdentity,
+    unlinkIdentity,
+    getIdentities
   }
 }

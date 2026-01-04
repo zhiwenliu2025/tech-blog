@@ -285,6 +285,91 @@
                 </div>
               </div>
             </div>
+
+            <!-- 关联账号 -->
+            <div class="mt-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+              <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">关联账号</h3>
+              </div>
+              <div class="p-6">
+                <div class="space-y-4">
+                  <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      您可以将其他账号（如 GitHub）与当前账户关联，以便使用这些账号登录。
+                    </p>
+                  </div>
+
+                  <!-- 已关联的账号 -->
+                  <div v-if="identities.length > 0" class="space-y-3">
+                    <div
+                      v-for="identity in identities"
+                      :key="identity.id"
+                      class="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+                    >
+                      <div class="flex items-center space-x-3">
+                        <div
+                          class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
+                        >
+                          <Icon
+                            v-if="identity.provider === 'github'"
+                            name="i-simple-icons-github"
+                            class="h-6 w-6 text-gray-700 dark:text-gray-300"
+                          />
+                          <Icon
+                            v-else
+                            name="i-heroicons-globe-alt"
+                            class="h-6 w-6 text-gray-700 dark:text-gray-300"
+                          />
+                        </div>
+                        <div>
+                          <p class="text-sm font-medium text-gray-900 dark:text-white">
+                            {{ getProviderName(identity.provider) }}
+                          </p>
+                          <p class="text-xs text-gray-500 dark:text-gray-400">
+                            {{ identity.identity_data?.email || '已关联' }}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        v-if="identities.length > 1"
+                        type="button"
+                        :disabled="unlinking"
+                        class="rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 dark:border-red-600 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-red-900/20"
+                        @click="unlinkAccount(identity.id)"
+                      >
+                        <span v-if="unlinking" class="mr-1">
+                          <Icon name="i-heroicons-arrow-path" class="h-3 w-3 animate-spin" />
+                        </span>
+                        解除关联
+                      </button>
+                      <span v-else class="text-xs text-gray-400 dark:text-gray-500">
+                        至少保留一个登录方式
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- 可关联的账号 -->
+                  <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
+                    <p class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
+                      添加新的登录方式
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                      <button
+                        v-if="!isProviderLinked('github')"
+                        type="button"
+                        :disabled="linking"
+                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                        @click="linkGitHub"
+                      >
+                        <Icon name="i-simple-icons-github" class="mr-2 h-5 w-5" />
+                        <span v-if="linking">关联中...</span>
+                        <span v-else>关联 GitHub</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -363,6 +448,9 @@ const supabase = useSupabaseClient()
 const loading = ref(false)
 const profile = ref(null)
 const showDeleteDialog = ref(false)
+const identities = ref([])
+const linking = ref(false)
+const unlinking = ref(false)
 
 // 调试用户对象
 console.log('useSupabaseAuth nuxtUser:', nuxtUser.value)
@@ -664,10 +752,92 @@ const deleteAccount = async () => {
   }
 }
 
+// 获取已关联的账号
+const fetchIdentities = async () => {
+  try {
+    const {
+      data: { user }
+    } = await supabase.auth.getUser()
+    identities.value = user?.identities || []
+  } catch (error) {
+    console.error('获取关联账号失败:', error)
+    identities.value = []
+  }
+}
+
+// 获取提供者名称
+const getProviderName = (provider: string) => {
+  const providerNames: Record<string, string> = {
+    email: '邮箱',
+    github: 'GitHub',
+    google: 'Google'
+  }
+  return providerNames[provider] || provider
+}
+
+// 检查提供者是否已关联
+const isProviderLinked = (provider: string) => {
+  return identities.value.some(identity => identity.provider === provider)
+}
+
+// 关联 GitHub 账号
+const linkGitHub = async () => {
+  linking.value = true
+  try {
+    const config = useRuntimeConfig()
+    const appUrl =
+      config.public.appUrl || (process.client ? window.location.origin : 'http://localhost:3000')
+
+    const { data, error: linkError } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${appUrl}/auth/callback`,
+        skipBrowserRedirect: false
+      }
+    })
+
+    if (linkError) throw linkError
+
+    const toast = useToast()
+    toast.success('成功', '正在跳转到 GitHub 进行授权...')
+  } catch (error) {
+    console.error('关联 GitHub 失败:', error)
+    const toast = useToast()
+    toast.error('错误', '关联 GitHub 失败，请重试')
+  } finally {
+    linking.value = false
+  }
+}
+
+// 解除关联账号
+const unlinkAccount = async (identityId: string) => {
+  unlinking.value = true
+  try {
+    const { error: unlinkError } = await supabase.auth.unlinkIdentity({
+      identityId
+    })
+
+    if (unlinkError) throw unlinkError
+
+    // 刷新关联账号列表
+    await fetchIdentities()
+
+    const toast = useToast()
+    toast.success('成功', '已解除关联')
+  } catch (error) {
+    console.error('解除关联失败:', error)
+    const toast = useToast()
+    toast.error('错误', '解除关联失败，请重试')
+  } finally {
+    unlinking.value = false
+  }
+}
+
 // 页面加载时获取数据
 onMounted(() => {
   fetchProfile()
   fetchStats()
+  fetchIdentities()
 })
 
 // 监听用户变化
@@ -675,6 +845,7 @@ watch(nuxtUser, newUser => {
   if (newUser) {
     fetchProfile()
     fetchStats()
+    fetchIdentities()
   }
 })
 </script>
