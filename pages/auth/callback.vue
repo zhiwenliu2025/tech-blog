@@ -54,27 +54,25 @@ const error = ref('')
 
 onMounted(async () => {
   try {
-    // 处理 OAuth 回调 - Supabase 会自动从 URL hash 中提取 token
-    const { data, error: authError } = await supabase.auth.getSession()
+    const route = useRoute()
 
-    if (authError) {
-      throw authError
+    const { error: oauthError, error_description, error_code } = route.query
+
+    if (oauthError) {
+      throw new Error(error_description || oauthError)
+    }
+
+    const { data, error: sessionError } = await supabase.auth.getSession()
+
+    if (sessionError) {
+      throw sessionError
     }
 
     if (data.session) {
-      // 登录成功，等待一小段时间确保状态更新，然后跳转到首页
       await new Promise(resolve => setTimeout(resolve, 500))
       await navigateTo('/')
     } else {
-      // 尝试从 URL 中获取错误信息
-      const route = useRoute()
-      const errorDescription = route.query.error_description
-
-      if (errorDescription) {
-        error.value = decodeURIComponent(String(errorDescription))
-      } else {
-        error.value = '登录失败，请重试'
-      }
+      error.value = '登录失败，请重试'
       loading.value = false
     }
   } catch (err) {

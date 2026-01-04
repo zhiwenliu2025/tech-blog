@@ -346,8 +346,26 @@ CREATE TRIGGER handle_comments_updated_at
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, username)
-  VALUES (new.id, new.raw_user_meta_data->>'username');
+  INSERT INTO public.profiles (id, username, full_name, avatar_url)
+  VALUES (
+    new.id,
+    COALESCE(
+      new.raw_user_meta_data->>'user_name',
+      new.raw_user_meta_data->>'preferred_username',
+      SPLIT_PART(new.email, '@', 1),
+      'user'
+    ),
+    COALESCE(
+      new.raw_user_meta_data->>'full_name',
+      new.raw_user_meta_data->>'name',
+      ''
+    ),
+    COALESCE(
+      new.raw_user_meta_data->>'avatar_url',
+      new.raw_user_meta_data->>'picture',
+      ''
+    )
+  );
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
