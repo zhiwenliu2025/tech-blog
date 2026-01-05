@@ -193,8 +193,9 @@
 // 获取应用名称
 const appName = useRuntimeConfig().public.appName
 
-// 暗色模式
-const isDark = ref(false)
+// 使用 nuxt color mode 管理暗黑模式
+const colorMode = useColorMode()
+const isDark = computed(() => colorMode.value === 'dark')
 const showMobileMenu = ref(false)
 const showUserMenu = ref(false)
 const showSearchModal = ref(false)
@@ -203,29 +204,9 @@ const showSearchModal = ref(false)
 const { user } = useSupabaseAuth()
 const { isAdmin } = useAdmin()
 
-// 初始化暗色模式
-onMounted(() => {
-  // 检查本地存储或系统偏好
-  const savedTheme = localStorage.getItem('theme')
-  if (
-    savedTheme === 'dark' ||
-    (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
-  ) {
-    isDark.value = true
-    document.documentElement.classList.add('dark')
-  }
-})
-
-// 切换暗色模式
+// 切换暗色模式（使用 nuxt color mode）
 const toggleDarkMode = () => {
-  isDark.value = !isDark.value
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-    localStorage.setItem('theme', 'dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-    localStorage.setItem('theme', 'light')
-  }
+  colorMode.preference = isDark.value ? 'light' : 'dark'
 }
 
 // 切换移动端菜单

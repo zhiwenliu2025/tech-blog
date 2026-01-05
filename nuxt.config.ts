@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@nuxtjs/supabase',
     '@nuxt/icon',
+    '@nuxtjs/color-mode',
     // 只在生产环境启用 PWA
     ...(process.env.NODE_ENV === 'production' ? ['@vite-pwa/nuxt'] : [])
   ],
@@ -25,6 +26,15 @@ export default defineNuxtConfig({
     configPath: 'tailwind.config.js',
     exposeConfig: false,
     viewer: true
+  },
+
+  // Color mode（暗黑模式）
+  // @ts-expect-error - colorMode 由 @nuxtjs/color-mode 模块提供，类型定义可能未被识别
+  colorMode: {
+    preference: 'system', // 默认跟随系统
+    fallback: 'light', // 系统不支持时回退到浅色
+    classSuffix: '', // 使用 .dark 类（配合 TailwindCSS）
+    storageKey: 'nuxt-color-mode' // 本地存储键名
   },
 
   // Supabase
