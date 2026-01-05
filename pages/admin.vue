@@ -152,6 +152,153 @@
           </div>
         </div>
 
+        <!-- 消息管理 -->
+        <div v-if="activeTab === 'messages'" class="space-y-6">
+          <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
+            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">消息管理</h3>
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    共 {{ messages.length }} 条消息
+                  </span>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">|</span>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    未读 {{ unreadCount }} 条
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                    >
+                      状态
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                    >
+                      发送人
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                    >
+                      邮箱
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                    >
+                      主题
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                    >
+                      消息内容
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                    >
+                      发送时间
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-300"
+                    >
+                      操作
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  class="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-800"
+                >
+                  <tr
+                    v-for="message in messages"
+                    :key="message.id"
+                    class="hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <td class="whitespace-nowrap px-6 py-4">
+                      <span
+                        :class="[
+                          message.read
+                            ? 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                          'inline-flex rounded-full px-2 py-1 text-xs font-medium'
+                        ]"
+                      >
+                        {{ message.read ? '已读' : '未读' }}
+                      </span>
+                    </td>
+                    <td class="whitespace-nowrap px-6 py-4">
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ message.name }}
+                      </div>
+                    </td>
+                    <td class="whitespace-nowrap px-6 py-4">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        {{ message.email }}
+                      </div>
+                    </td>
+                    <td class="whitespace-nowrap px-6 py-4">
+                      <div class="text-sm text-gray-900 dark:text-white">
+                        {{ message.subject }}
+                      </div>
+                    </td>
+                    <td class="px-6 py-4">
+                      <div class="max-w-xs truncate text-sm text-gray-900 dark:text-white">
+                        {{ message.message }}
+                      </div>
+                    </td>
+                    <td
+                      class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400"
+                    >
+                      {{ formatDate(message.created_at) }}
+                    </td>
+                    <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                      <button
+                        type="button"
+                        class="mr-4 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                        @click="openMessage(message)"
+                      >
+                        查看
+                      </button>
+                      <button
+                        v-if="!message.read"
+                        type="button"
+                        class="mr-4 text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                        @click="markAsRead(message)"
+                      >
+                        标记已读
+                      </button>
+                      <button
+                        type="button"
+                        class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        @click="confirmDeleteMessage(message)"
+                      >
+                        删除
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div
+                v-if="messages.length === 0"
+                class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
+              >
+                暂无消息
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 用户管理 -->
         <div v-if="activeTab === 'users'" class="space-y-6">
           <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
@@ -440,6 +587,173 @@
         </div>
       </div>
     </div>
+
+    <!-- 消息详情对话框 -->
+    <div v-if="showMessageDialog" class="fixed inset-0 z-50 overflow-y-auto">
+      <div
+        class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0"
+      >
+        <div
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          @click="showMessageDialog = false"
+        />
+        <span class="hidden sm:inline-block sm:h-screen sm:align-middle">&#8203;</span>
+        <div
+          class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-2xl sm:align-middle"
+        >
+          <div class="bg-white px-4 pb-4 pt-5 dark:bg-gray-800 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div
+                class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20 sm:mx-0 sm:h-10 sm:w-10"
+              >
+                <Icon
+                  name="i-heroicons-envelope"
+                  class="h-6 w-6 text-blue-600 dark:text-blue-400"
+                />
+              </div>
+              <div class="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                  消息详情
+                </h3>
+                <div class="mt-4 space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >发送人</label
+                    >
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                      {{ messageToView?.name }}
+                    </p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >邮箱</label
+                    >
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                      {{ messageToView?.email }}
+                    </p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >主题</label
+                    >
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                      {{ messageToView?.subject }}
+                    </p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >消息内容</label
+                    >
+                    <div
+                      class="mt-1 max-h-64 overflow-y-auto rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900"
+                    >
+                      <p class="whitespace-pre-wrap text-sm text-gray-900 dark:text-white">
+                        {{ messageToView?.message }}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >发送时间</label
+                    >
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                      {{ formatDate(messageToView?.created_at) }}
+                    </p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >状态</label
+                    >
+                    <span
+                      :class="[
+                        messageToView?.read
+                          ? 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                        'inline-flex rounded-full px-2 py-1 text-xs font-medium'
+                      ]"
+                    >
+                      {{ messageToView?.read ? '已读' : '未读' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 dark:bg-gray-700 sm:flex sm:flex-row-reverse sm:px-6">
+            <button
+              v-if="!messageToView?.read"
+              type="button"
+              class="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+              @click="markAsRead(messageToView)"
+            >
+              标记为已读
+            </button>
+            <button
+              type="button"
+              class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
+              @click="showMessageDialog = false"
+            >
+              关闭
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 确认删除消息对话框 -->
+    <div v-if="showDeleteMessageDialog" class="fixed inset-0 z-50 overflow-y-auto">
+      <div
+        class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0"
+      >
+        <div
+          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          @click="showDeleteMessageDialog = false"
+        />
+        <span class="hidden sm:inline-block sm:h-screen sm:align-middle">&#8203;</span>
+        <div
+          class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:align-middle"
+        >
+          <div class="bg-white px-4 pb-4 pt-5 dark:bg-gray-800 sm:p-6 sm:pb-4">
+            <div class="sm:flex sm:items-start">
+              <div
+                class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20 sm:mx-0 sm:h-10 sm:w-10"
+              >
+                <Icon
+                  name="i-heroicons-exclamation-triangle"
+                  class="h-6 w-6 text-red-600 dark:text-red-400"
+                />
+              </div>
+              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                  删除消息
+                </h3>
+                <div class="mt-2">
+                  <p class="text-sm text-gray-500 dark:text-gray-400">
+                    您确定要删除来自 "{{ messageToDelete?.name }}" 的消息吗？此操作无法撤销。
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bg-gray-50 px-4 py-3 dark:bg-gray-700 sm:flex sm:flex-row-reverse sm:px-6">
+            <button
+              type="button"
+              class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+              @click="deleteMessage"
+            >
+              删除
+            </button>
+            <button
+              type="button"
+              class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
+              @click="showDeleteMessageDialog = false"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -455,8 +769,13 @@ definePageMeta({
 const activeTab = ref('posts')
 const posts = ref([])
 const users = ref([])
+const messages = ref([])
 const showDeletePostDialog = ref(false)
 const postToDelete = ref(null)
+const showMessageDialog = ref(false)
+const messageToView = ref(null)
+const showDeleteMessageDialog = ref(false)
+const messageToDelete = ref(null)
 
 // 设置
 const settings = reactive({
@@ -469,6 +788,7 @@ const settings = reactive({
 // 标签页
 const tabs = [
   { id: 'posts', name: '文章管理', icon: 'i-heroicons-document-text' },
+  { id: 'messages', name: '消息管理', icon: 'i-heroicons-envelope' },
   { id: 'users', name: '用户管理', icon: 'i-heroicons-users' },
   { id: 'settings', name: '系统设置', icon: 'i-heroicons-cog-6-tooth' }
 ]
@@ -504,6 +824,27 @@ const fetchUsers = async () => {
     console.error('获取用户列表失败:', error)
   }
 }
+
+// 获取消息列表
+const fetchMessages = async () => {
+  try {
+    const supabase = useSupabaseClient()
+    const { data, error } = await supabase
+      .from('contact_messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    messages.value = data || []
+  } catch (error) {
+    console.error('获取消息列表失败:', error)
+  }
+}
+
+// 计算未读消息数量
+const unreadCount = computed(() => {
+  return messages.value.filter(m => !m.read).length
+})
 
 // 获取作者名称
 const getAuthorName = authorId => {
@@ -584,6 +925,66 @@ const toggleAdminRole = async user => {
   }
 }
 
+// 打开消息详情
+const openMessage = message => {
+  messageToView.value = message
+  showMessageDialog.value = true
+}
+
+// 标记消息为已读
+const markAsRead = async message => {
+  try {
+    const supabase = useSupabaseClient()
+    const { error } = await supabase
+      .from('contact_messages')
+      .update({ read: true })
+      .eq('id', message.id)
+
+    if (error) throw error
+
+    await fetchMessages()
+
+    const toast = useToast()
+    toast.success('成功', '消息已标记为已读')
+  } catch (error) {
+    console.error('标记消息失败:', error)
+    const toast = useToast()
+    toast.error('错误', '标记消息失败')
+  }
+}
+
+// 确认删除消息
+const confirmDeleteMessage = message => {
+  messageToDelete.value = message
+  showDeleteMessageDialog.value = true
+}
+
+// 删除消息
+const deleteMessage = async () => {
+  if (!messageToDelete.value) return
+
+  try {
+    const supabase = useSupabaseClient()
+    const { error } = await supabase
+      .from('contact_messages')
+      .delete()
+      .eq('id', messageToDelete.value.id)
+
+    if (error) throw error
+
+    await fetchMessages()
+    showDeleteMessageDialog.value = false
+    messageToDelete.value = null
+
+    const toast = useToast()
+    toast.success('成功', '消息已删除')
+  } catch (error) {
+    console.error('删除消息失败:', error)
+    const toast = useToast()
+    toast.error('错误', '删除消息失败')
+  }
+}
+
 // 保存设置
 const saveSettings = async () => {
   try {
@@ -602,6 +1003,6 @@ const saveSettings = async () => {
 
 // 初始化数据
 onMounted(async () => {
-  await Promise.all([fetchPosts(), fetchUsers()])
+  await Promise.all([fetchPosts(), fetchUsers(), fetchMessages()])
 })
 </script>
