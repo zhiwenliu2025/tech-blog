@@ -29,7 +29,6 @@ export default defineNuxtConfig({
   },
 
   // Color mode（暗黑模式）
-  // @ts-expect-error - colorMode 由 @nuxtjs/color-mode 模块提供，类型定义可能未被识别
   colorMode: {
     preference: 'system', // 默认跟随系统
     fallback: 'light', // 系统不支持时回退到浅色
