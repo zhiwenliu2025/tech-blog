@@ -50,29 +50,39 @@
           </p>
 
           <!-- 作者信息 -->
-          <div class="mb-6 flex items-center space-x-4">
-            <div class="flex-shrink-0">
-              <img
-                v-if="author?.avatar_url"
-                :src="author.avatar_url"
-                :alt="author?.username || '作者'"
-                class="h-10 w-10 rounded-full object-cover"
-              />
-              <div
-                v-else
-                class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600"
-              >
-                <Icon name="heroicons:user" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+          <div class="mb-6 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <div class="flex-shrink-0">
+                <img
+                  v-if="author?.avatar_url"
+                  :src="author.avatar_url"
+                  :alt="author?.username || '作者'"
+                  class="h-10 w-10 rounded-full object-cover"
+                />
+                <div
+                  v-else
+                  class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600"
+                >
+                  <Icon name="heroicons:user" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                </div>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                  {{ author?.username || '匿名作者' }}
+                </p>
+                <p v-if="author?.bio" class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ author.bio }}
+                </p>
               </div>
             </div>
-            <div>
-              <p class="text-sm font-medium text-gray-900 dark:text-white">
-                {{ author?.username || '匿名作者' }}
-              </p>
-              <p v-if="author?.bio" class="text-sm text-gray-500 dark:text-gray-400">
-                {{ author.bio }}
-              </p>
-            </div>
+            <NuxtLink
+              v-if="post?.author_id"
+              :to="`/authors/${post.author_id}`"
+              class="inline-flex items-center space-x-1 rounded-md border border-blue-600 bg-white px-3 py-1.5 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 dark:border-blue-400 dark:bg-gray-800 dark:text-blue-400 dark:hover:bg-gray-700"
+            >
+              <span>查看作者文章</span>
+              <Icon name="heroicons:arrow-right" class="h-4 w-4" />
+            </NuxtLink>
           </div>
 
           <!-- 标签 -->

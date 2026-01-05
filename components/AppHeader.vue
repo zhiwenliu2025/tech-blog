@@ -29,6 +29,12 @@
             博客
           </NuxtLink>
           <NuxtLink
+            to="/authors"
+            class="font-medium text-gray-700 transition-colors hover:text-primary-600 dark:text-gray-200 dark:hover:text-primary-400"
+          >
+            作者
+          </NuxtLink>
+          <NuxtLink
             to="/about"
             class="font-medium text-gray-700 transition-colors hover:text-primary-600 dark:text-gray-200 dark:hover:text-primary-400"
           >
@@ -158,6 +164,13 @@
               @click="showMobileMenu = false"
             >
               博客
+            </NuxtLink>
+            <NuxtLink
+              to="/authors"
+              class="touch-optimized rounded-lg px-4 py-3 font-medium text-gray-700 transition-colors active:bg-gray-100 dark:text-gray-200 dark:active:bg-gray-700"
+              @click="showMobileMenu = false"
+            >
+              作者
             </NuxtLink>
             <NuxtLink
               to="/about"
