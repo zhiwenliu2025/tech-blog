@@ -163,6 +163,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: '技术博客',
+      titleTemplate: '%s | 技术博客',
       meta: [
         { charset: 'utf-8' },
         {
