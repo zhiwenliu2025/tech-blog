@@ -13,6 +13,7 @@ import { watch, onBeforeUnmount, onMounted, nextTick } from 'vue'
 import MarkdownIt from 'markdown-it'
 // @ts-ignore - highlight.js types
 import hljs from 'highlight.js'
+import DOMPurify from 'dompurify'
 // highlight.js 样式已在全局 CSS 中导入
 
 const props = withDefaults(
@@ -86,11 +87,112 @@ const getHtmlContent = (content: string, type: 'html' | 'markdown' | 'auto' = 'a
   }
 
   if (type === 'markdown') {
-    return md.render(content)
+    const html = md.render(content)
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: [
+        'p',
+        'br',
+        'strong',
+        'em',
+        'u',
+        's',
+        'code',
+        'pre',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+        'h5',
+        'h6',
+        'ul',
+        'ol',
+        'li',
+        'blockquote',
+        'a',
+        'img',
+        'table',
+        'thead',
+        'tbody',
+        'tr',
+        'th',
+        'td',
+        'hr',
+        'div',
+        'span',
+        'sub',
+        'sup'
+      ],
+      ALLOWED_ATTR: [
+        'href',
+        'src',
+        'alt',
+        'title',
+        'target',
+        'rel',
+        'class',
+        'id',
+        'style',
+        'data-lang',
+        'data-highlighted'
+      ],
+      ALLOW_DATA_ATTR: true,
+      FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+      FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
+    })
   }
 
-  // 如果已经是 HTML，直接返回
-  return content
+  // 如果已经是 HTML，先进行净化
+  return DOMPurify.sanitize(content, {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'em',
+      'u',
+      's',
+      'code',
+      'pre',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'ul',
+      'ol',
+      'li',
+      'blockquote',
+      'a',
+      'img',
+      'table',
+      'thead',
+      'tbody',
+      'tr',
+      'th',
+      'td',
+      'hr',
+      'div',
+      'span',
+      'sub',
+      'sup'
+    ],
+    ALLOWED_ATTR: [
+      'href',
+      'src',
+      'alt',
+      'title',
+      'target',
+      'rel',
+      'class',
+      'id',
+      'style',
+      'data-lang',
+      'data-highlighted'
+    ],
+    ALLOW_DATA_ATTR: true,
+    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
+  })
 }
 
 // 创建只读编辑器实例（仅在客户端）
@@ -247,8 +349,12 @@ const applyCodeHighlighting = () => {
         detectedLang = result.language || null
       }
 
-      // 更新代码内容
-      codeElement.innerHTML = highlighted
+      // 更新代码内容（先净化 HTML）
+      codeElement.innerHTML = DOMPurify.sanitize(highlighted, {
+        ALLOWED_TAGS: ['span'],
+        ALLOWED_ATTR: ['class'],
+        ALLOW_DATA_ATTR: false
+      })
 
       // 更新类名和属性
       if (detectedLang) {
