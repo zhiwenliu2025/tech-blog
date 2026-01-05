@@ -80,18 +80,13 @@
               <div class="relative">
                 <select
                   v-model="selectedCategory"
-                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
+                  class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
                 >
                   <option value="">所有分类</option>
                   <option v-for="category in categories" :key="category" :value="category">
                     {{ category }}
                   </option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 sm:pr-3"
-                >
-                  <Icon name="i-heroicons-chevron-down" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </div>
               </div>
             </div>
 
@@ -103,18 +98,13 @@
               <div class="relative">
                 <select
                   v-model="selectedTag"
-                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
+                  class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
                 >
                   <option value="">所有标签</option>
                   <option v-for="tag in tags" :key="tag" :value="tag">
                     {{ tag }}
                   </option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 sm:pr-3"
-                >
-                  <Icon name="i-heroicons-chevron-down" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </div>
               </div>
             </div>
 
@@ -126,17 +116,12 @@
               <div class="relative">
                 <select
                   v-model="sortBy"
-                  class="w-full appearance-none rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
+                  class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
                 >
                   <option value="created_at">最新发布</option>
                   <option value="updated_at">最近更新</option>
                   <option value="title">按标题</option>
                 </select>
-                <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 sm:pr-3"
-                >
-                  <Icon name="i-heroicons-chevron-down" class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </div>
               </div>
             </div>
           </div>
@@ -315,8 +300,8 @@ const searchQuery = ref<string>(String(route.query.q || ''))
 const currentPage = ref(parseInt(route.query.page as string) || 1)
 const postsPerPage = 9
 
-// 获取博客文章
-const { getPostsWithPagination, getCategories, getTags } = useBlogPosts()
+// 获取博客文章及分类、标签
+const { getPostsWithPagination, fetchCategories, fetchTags } = useBlogPosts()
 
 // 使用 useAsyncData 进行服务端分页
 // 使用 computed 生成动态的查询键
@@ -347,15 +332,15 @@ const {
   }
 )
 
-// 使用 useAsyncData 缓存分类列表
-const { data: categoriesData } = await useAsyncData('blog-categories', () => getCategories(), {
-  default: () => ({ data: [], error: null }),
+// 使用 useAsyncData 缓存分类列表（与首页保持一致，实现稳定）
+const { data: categoriesData } = await useAsyncData('blog-categories', () => fetchCategories(), {
+  default: () => [],
   server: true
 })
 
-// 使用 useAsyncData 缓存标签列表
-const { data: tagsData } = await useAsyncData('blog-tags', () => getTags(), {
-  default: () => ({ data: [], error: null }),
+// 使用 useAsyncData 缓存标签列表（与首页保持一致，实现稳定）
+const { data: tagsData } = await useAsyncData('blog-tags', () => fetchTags(), {
+  default: () => [],
   server: true
 })
 
@@ -386,19 +371,9 @@ const totalPages = computed(() => {
   return Math.ceil(totalCount.value / postsPerPage)
 })
 
-const categories = computed<string[]>(() => {
-  if (categoriesData.value?.error) {
-    return []
-  }
-  return (categoriesData.value?.data as string[]) || []
-})
+const categories = computed<string[]>(() => (categoriesData.value as string[]) || [])
 
-const tags = computed<string[]>(() => {
-  if (tagsData.value?.error) {
-    return []
-  }
-  return (tagsData.value?.data as string[]) || []
-})
+const tags = computed<string[]>(() => (tagsData.value as string[]) || [])
 
 const loading = computed(() => postsPending.value)
 const error = computed(() => {
