@@ -1,11 +1,11 @@
 <template>
   <div>
     <!-- 文章内容 -->
-    <main class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+    <main class="mx-auto max-w-4xl px-3 py-6 sm:px-4 sm:py-8 md:px-6 lg:px-8 lg:py-12">
       <!-- Loading State -->
       <div v-if="loading" class="animate-pulse">
-        <div class="mb-4 h-8 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-        <div class="mb-6 h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
+        <div class="mb-3 h-8 w-3/4 rounded bg-gray-200 dark:bg-gray-700 sm:mb-4" />
+        <div class="mb-4 h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700 sm:mb-6" />
         <div class="space-y-3">
           <div class="h-4 rounded bg-gray-200 dark:bg-gray-700" />
           <div class="h-4 rounded bg-gray-200 dark:bg-gray-700" />
@@ -14,14 +14,19 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="py-12 text-center">
-        <Icon name="heroicons:exclamation-triangle" class="mx-auto h-12 w-12 text-red-500" />
-        <h2 class="mt-4 text-xl font-semibold text-gray-900 dark:text-white">加载失败</h2>
-        <p class="mt-2 text-gray-600 dark:text-gray-400">
+      <div v-else-if="error" class="py-8 text-center sm:py-12">
+        <Icon
+          name="heroicons:exclamation-triangle"
+          class="mx-auto h-10 w-10 text-red-500 sm:h-12 sm:w-12"
+        />
+        <h2 class="mt-3 text-lg font-semibold text-gray-900 dark:text-white sm:mt-4 sm:text-xl">
+          加载失败
+        </h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 sm:text-base">
           {{ error }}
         </p>
         <button
-          class="mt-4 rounded-md border border-blue-600 bg-white px-4 py-2 text-blue-600 transition-colors hover:bg-blue-50 dark:border-blue-400 dark:bg-gray-800 dark:text-blue-400 dark:hover:bg-gray-700"
+          class="mt-4 rounded-md border border-blue-600 bg-white px-4 py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 dark:border-blue-400 dark:bg-gray-800 dark:text-blue-400 dark:hover:bg-gray-700"
           @click="navigateTo('/')"
         >
           返回首页
@@ -29,48 +34,63 @@
       </div>
 
       <!-- Blog Post -->
-      <article v-else-if="post" class="prose prose-lg max-w-none dark:prose-invert">
-        <header class="mb-8">
-          <div class="mb-4 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+      <article v-else-if="post" class="prose prose-base max-w-none dark:prose-invert sm:prose-lg">
+        <header class="mb-6 sm:mb-8">
+          <div
+            class="mb-3 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400 sm:mb-4 sm:text-sm"
+          >
             <span
-              class="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+              class="inline-block rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200 sm:px-3"
             >
               {{ post.category }}
             </span>
-            <span>•</span>
+            <span class="hidden sm:inline">•</span>
             <time :datetime="post.created_at">{{ formatDate(post.created_at) }}</time>
           </div>
 
-          <h1 class="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
+          <h1
+            class="mb-3 text-2xl font-bold leading-tight text-gray-900 dark:text-white sm:mb-4 sm:text-3xl md:text-4xl"
+          >
             {{ post.title }}
           </h1>
 
-          <p v-if="post.excerpt" class="mb-6 text-xl text-gray-600 dark:text-gray-300">
+          <p
+            v-if="post.excerpt"
+            class="mb-4 text-base leading-relaxed text-gray-600 dark:text-gray-300 sm:mb-6 sm:text-lg md:text-xl"
+          >
             {{ post.excerpt }}
           </p>
 
           <!-- 作者信息 -->
-          <div class="mb-6 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
+          <div
+            class="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div class="flex items-center space-x-3 sm:space-x-4">
               <div class="flex-shrink-0">
                 <img
                   v-if="author?.avatar_url"
                   :src="author.avatar_url"
                   :alt="author?.username || '作者'"
-                  class="h-10 w-10 rounded-full object-cover"
+                  class="h-10 w-10 rounded-full object-cover sm:h-12 sm:w-12"
                 />
                 <div
                   v-else
-                  class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600"
+                  class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 dark:bg-gray-600 sm:h-12 sm:w-12"
                 >
-                  <Icon name="heroicons:user" class="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                  <Icon
+                    name="heroicons:user"
+                    class="h-5 w-5 text-gray-500 dark:text-gray-400 sm:h-6 sm:w-6"
+                  />
                 </div>
               </div>
-              <div>
-                <p class="text-sm font-medium text-gray-900 dark:text-white">
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-gray-900 dark:text-white sm:text-base">
                   {{ author?.username || '匿名作者' }}
                 </p>
-                <p v-if="author?.bio" class="text-sm text-gray-500 dark:text-gray-400">
+                <p
+                  v-if="author?.bio"
+                  class="truncate text-xs text-gray-500 dark:text-gray-400 sm:text-sm"
+                >
                   {{ author.bio }}
                 </p>
               </div>
@@ -78,20 +98,23 @@
             <button
               v-if="post?.author_id"
               type="button"
-              class="inline-flex items-center space-x-1 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600"
+              class="touch-optimized inline-flex items-center justify-center space-x-1.5 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600"
               @click="navigateTo(`/authors/${post.author_id}`)"
             >
-              <span>查看作者文章</span>
+              <span>查看作者</span>
               <Icon name="heroicons:arrow-right" class="h-4 w-4" />
             </button>
           </div>
 
           <!-- 标签 -->
-          <div v-if="post.tags && post.tags.length > 0" class="mb-6 flex flex-wrap gap-2">
+          <div
+            v-if="post.tags && post.tags.length > 0"
+            class="mb-4 flex flex-wrap gap-1.5 sm:mb-6 sm:gap-2"
+          >
             <span
               v-for="tag in post.tags"
               :key="tag"
-              class="cursor-pointer rounded-md border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+              class="touch-optimized cursor-pointer rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
               @click="navigateTo(`/tags/${tag}`)"
             >
               #{{ tag }}

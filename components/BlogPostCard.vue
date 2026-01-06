@@ -1,14 +1,14 @@
 <template>
   <article
     class="group relative flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-300 hover:border-blue-300 hover:shadow-xl dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-600 md:cursor-default"
-    :class="{ 'cursor-pointer': isMobile }"
+    :class="{ 'cursor-pointer active:scale-[0.98]': isMobile }"
     @click="handleCardClick"
   >
     <!-- 文章封面图 -->
     <NuxtLink
       v-if="showCover"
       :to="`/blog/${post.slug}`"
-      class="relative block h-40 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 sm:h-52"
+      class="relative block h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 sm:h-52 md:h-56"
     >
       <OptimizedImage
         :src="coverImage"
@@ -30,26 +30,26 @@
     </NuxtLink>
 
     <!-- 文章内容 -->
-    <div class="flex flex-1 flex-col p-3 sm:p-4 md:p-6">
+    <div class="flex flex-1 flex-col p-4 sm:p-5 md:p-6">
       <!-- 分类和日期 -->
-      <div class="mb-2 flex flex-wrap items-center gap-1.5 sm:mb-3 sm:gap-2">
+      <div class="mb-2.5 flex flex-wrap items-center gap-2 sm:mb-3">
         <span
           v-if="post.category"
-          class="inline-block rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 sm:px-3 sm:py-1"
+          class="inline-block rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 sm:px-3"
         >
           {{ post.category }}
         </span>
-        <div class="flex items-center text-xs text-gray-500 dark:text-gray-400">
-          <Icon name="heroicons:calendar" class="mr-1 h-3 w-3 sm:mr-1.5 sm:h-3.5 sm:w-3.5" />
+        <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+          <Icon name="heroicons:calendar" class="mr-1 h-3.5 w-3.5 sm:mr-1.5 sm:h-4 sm:w-4" />
           <time :datetime="post.created_at">{{ formatDate(post.created_at) }}</time>
         </div>
       </div>
 
       <!-- 文章标题 -->
-      <h2 class="mb-2 line-clamp-2 min-h-[2.5rem] sm:mb-3 sm:min-h-[3rem] md:min-h-[3.5rem]">
+      <h2 class="mb-2.5 line-clamp-2 min-h-[3rem] sm:mb-3 sm:min-h-[3.5rem] md:min-h-[4rem]">
         <NuxtLink
           :to="`/blog/${post.slug}`"
-          class="text-base font-bold leading-tight text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 sm:text-lg md:text-xl"
+          class="text-lg font-bold leading-tight text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 sm:text-xl md:text-2xl"
         >
           {{ post.title }}
         </NuxtLink>
@@ -57,7 +57,7 @@
 
       <!-- 文章摘要 -->
       <p
-        class="mb-3 line-clamp-2 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:mb-4 sm:line-clamp-3"
+        class="mb-3 line-clamp-3 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:mb-4 sm:text-base"
       >
         {{ post.excerpt || '暂无摘要' }}
       </p>
@@ -65,20 +65,20 @@
       <!-- 标签 -->
       <div
         v-if="post.tags && post.tags.length > 0"
-        class="mb-3 flex flex-wrap gap-1 sm:mb-4 sm:gap-1.5"
+        class="mb-3 flex flex-wrap gap-1.5 sm:mb-4 sm:gap-2"
       >
         <NuxtLink
           v-for="tag in post.tags.slice(0, 3)"
           :key="tag"
           :to="`/blog?tag=${encodeURIComponent(tag)}`"
-          class="inline-flex items-center rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-700 transition-colors hover:bg-blue-100 hover:text-blue-700 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-900 dark:hover:text-blue-300 sm:px-2 sm:py-1"
+          class="touch-optimized inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-blue-100 hover:text-blue-700 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-900 dark:hover:text-blue-300 sm:px-2.5 sm:py-1"
           @click.stop
         >
           #{{ tag }}
         </NuxtLink>
         <span
           v-if="post.tags.length > 3"
-          class="inline-flex items-center rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400 sm:px-2 sm:py-1"
+          class="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-500 dark:bg-gray-700 dark:text-gray-400 sm:px-2.5"
         >
           +{{ post.tags.length - 3 }}
         </span>
@@ -91,11 +91,11 @@
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <!-- 统计信息 -->
         <div
-          class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 sm:gap-3 md:gap-4"
+          class="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 sm:gap-4 sm:text-sm"
         >
           <!-- 阅读时间 -->
-          <span class="flex items-center gap-0.5 sm:gap-1">
-            <Icon name="heroicons:clock" class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+          <span class="flex items-center gap-1">
+            <Icon name="heroicons:clock" class="h-4 w-4" />
             <span class="hidden sm:inline"
               >{{ calculateReadTime(post.excerpt || post.content || '') }} 分钟</span
             >
@@ -104,18 +104,18 @@
             >
           </span>
           <!-- 点赞数 -->
-          <span v-if="likesCount > 0" class="flex items-center gap-0.5 sm:gap-1">
-            <Icon name="heroicons:heart" class="h-3 w-3 text-red-500 sm:h-3.5 sm:w-3.5" />
+          <span v-if="likesCount > 0" class="flex items-center gap-1">
+            <Icon name="heroicons:heart" class="h-4 w-4 text-red-500" />
             <span>{{ likesCount }}</span>
           </span>
           <!-- 评论数 -->
-          <span v-if="commentsCount > 0" class="flex items-center gap-0.5 sm:gap-1">
-            <Icon name="heroicons:chat-bubble-left-right" class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+          <span v-if="commentsCount > 0" class="flex items-center gap-1">
+            <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4" />
             <span>{{ commentsCount }}</span>
           </span>
           <!-- 阅读量 -->
-          <span class="flex items-center gap-0.5 sm:gap-1">
-            <Icon name="heroicons:eye" class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+          <span class="flex items-center gap-1">
+            <Icon name="heroicons:eye" class="h-4 w-4" />
             <span>{{ post.view_count || 0 }}</span>
           </span>
         </div>
@@ -123,10 +123,10 @@
         <!-- 阅读更多按钮 - 移动端隐藏，桌面端显示 -->
         <NuxtLink
           :to="`/blog/${post.slug}`"
-          class="hidden items-center gap-1 rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition-all hover:gap-2 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 sm:flex"
+          class="hidden items-center gap-1.5 rounded-lg bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-600 transition-all hover:gap-2 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50 sm:flex"
         >
           阅读
-          <Icon name="heroicons:arrow-right" class="h-3.5 w-3.5" />
+          <Icon name="heroicons:arrow-right" class="h-4 w-4" />
         </NuxtLink>
       </div>
     </div>
