@@ -4,9 +4,9 @@
 
 ## 功能特点
 
-- 📝 文章发布与管理
+- 📝 文章发布与管理（创建、编辑、删除）
 - 🏷️ 分类和标签系统
-- 👤 用户认证系统
+- 👤 用户认证系统（邮箱/密码、GitHub OAuth）
 - 💬 评论功能
 - 👍 点赞功能
 - 🔍 全文搜索（PostgreSQL 全文搜索）
@@ -17,6 +17,17 @@
 - ⚡ 高性能搜索索引（自动维护）
 - 📲 PWA 支持（可安装、离线访问）
 - 🎯 移动端优化（触摸优化、安全区域适配）
+- 💾 草稿自动保存（本地存储，防止内容丢失）
+- 🔄 无限滚动加载
+- 👆 下拉刷新
+- 📤 文章分享功能
+- 👨‍💻 作者页面和作者列表
+- 📄 我的博客页面
+- 🔍 搜索模态框
+- ⬆️ 返回顶部按钮
+- 📊 SEO 优化（Sitemap、Robots.txt）
+- 🖼️ 图片优化和上传
+- ⌨️ 键盘输入优化
 
 ## 技术栈
 
@@ -109,13 +120,31 @@ tech-blog/
 │   ├── AppHeader.vue       # 网站头部导航
 │   ├── AppFooter.vue       # 网站底部
 │   ├── BlogPostCard.vue    # 文章卡片组件
+│   ├── BlogPostCardSkeleton.vue # 文章卡片骨架屏
 │   ├── BlogContentRenderer.vue # 文章内容渲染器
 │   ├── MarkdownEditor.vue  # Markdown编辑器
-│   └── Toast.vue           # 提示消息组件
+│   ├── Toast.vue           # 提示消息组件
+│   ├── AvatarUploader.vue  # 头像上传组件
+│   ├── ImageUploader.vue   # 图片上传组件
+│   ├── OptimizedImage.vue  # 优化图片组件
+│   ├── SearchModal.vue     # 搜索模态框
+│   ├── ShareButton.vue     # 分享按钮
+│   ├── BackToTop.vue       # 返回顶部按钮
+│   ├── EmptyState.vue      # 空状态组件
+│   ├── InstallPrompt.vue   # PWA 安装提示
+│   └── OfflineIndicator.vue # 离线指示器
 ├── composables/            # 组合式函数
 │   ├── useBlogPosts.ts     # 博客文章相关操作（包含全文搜索）
 │   ├── useSupabase.ts      # Supabase认证相关
-│   └── useToast.ts         # 提示消息管理
+│   ├── useToast.ts         # 提示消息管理
+│   ├── useDraft.ts         # 草稿自动保存
+│   ├── useInfiniteScroll.ts # 无限滚动
+│   ├── usePullToRefresh.ts # 下拉刷新
+│   ├── useShare.ts         # 分享功能
+│   ├── usePWA.ts           # PWA 功能
+│   ├── useTouch.ts         # 触摸优化
+│   ├── useKeyboardInput.ts # 键盘输入优化
+│   └── useAdmin.ts         # 管理员功能
 ├── layouts/                # 布局组件
 │   └── default.vue         # 默认布局
 ├── pages/                   # 页面路由
@@ -126,11 +155,19 @@ tech-blog/
 │   │   ├── create.vue       # 创建文章
 │   │   └── edit/[id].vue    # 编辑文章
 │   ├── category/[slug].vue # 分类页面
-│   ├── auth/login.vue       # 登录页面
-│   ├── admin.vue            # 管理后台
-│   ├── profile.vue          # 用户资料
-│   ├── about.vue            # 关于页面
-│   └── contact.vue          # 联系页面
+│   ├── authors/            # 作者相关页面
+│   │   ├── index.vue       # 作者列表
+│   │   └── [id].vue        # 作者详情
+│   ├── auth/               # 认证相关页面
+│   │   ├── login.vue       # 登录页面
+│   │   └── callback.vue    # OAuth 回调页面
+│   ├── admin.vue           # 管理后台
+│   ├── profile.vue         # 用户资料
+│   ├── my-blogs.vue        # 我的博客
+│   ├── about.vue           # 关于页面
+│   ├── contact.vue         # 联系页面
+│   ├── privacy.vue         # 隐私政策
+│   └── terms.vue           # 服务条款
 ├── middleware/             # 路由中间件
 │   ├── auth.ts              # 认证中间件
 │   └── admin.ts             # 管理员中间件
@@ -138,9 +175,15 @@ tech-blog/
 │   └── init-profile.client.ts # 用户资料初始化
 ├── scripts/                 # 脚本文件
 │   ├── init-db.js          # 数据库初始化脚本
-│   └── clear-db.js         # 数据库清理脚本
+│   ├── clear-db.js         # 数据库清理脚本
+│   ├── generate-pwa-icons.js # PWA 图标生成脚本
+│   └── clear-cache.js      # 缓存清理脚本
 ├── server/                  # 服务器API
-│   └── api/                 # API路由
+│   ├── middleware/         # 服务器中间件
+│   │   └── sw-handler.ts   # Service Worker 处理
+│   └── routes/             # 服务器路由
+│       ├── robots.txt.ts   # Robots.txt 生成
+│       └── sitemap.xml.ts  # Sitemap 生成
 ├── supabase/                # Supabase相关
 │   └── schema.sql          # 数据库Schema（包含全文搜索）
 ├── types/                   # TypeScript类型定义
@@ -173,6 +216,11 @@ tech-blog/
 - `node scripts/init-db.js` - 初始化数据库并插入测试数据
 - `node scripts/clear-db.js` - 清理数据库数据
 
+### PWA 相关
+
+- `pnpm generate-icons` - 生成 PWA 图标
+- `pnpm clear-cache` - 清理缓存
+
 ## 核心功能
 
 ### 全文搜索
@@ -195,16 +243,42 @@ tech-blog/
 
 ### 用户系统
 
-- 用户注册和登录
-- 用户资料管理
+- 用户注册和登录（邮箱/密码）
+- GitHub OAuth 登录
+- 用户资料管理（头像、简介等）
 - 管理员权限控制
 - 行级安全策略（RLS）
+- 作者页面展示
+- 我的博客管理
 
 ### 互动功能
 
 - 文章评论
 - 文章点赞
 - 评论和点赞数量统计
+- 文章分享（Web Share API）
+- 作者页面展示
+
+### 用户体验优化
+
+- 草稿自动保存（每 30 秒自动保存，防止内容丢失）
+- 无限滚动加载文章列表
+- 下拉刷新功能
+- 搜索模态框（快捷键支持）
+- 返回顶部按钮
+- 骨架屏加载状态
+- 空状态提示
+- 图片优化和懒加载
+- 触摸手势优化
+- 键盘快捷键支持
+
+### SEO 和可发现性
+
+- 自动生成 Sitemap.xml
+- Robots.txt 配置
+- 结构化数据支持
+- Open Graph 标签
+- 移动端优化
 
 ## 部署
 
@@ -221,6 +295,26 @@ tech-blog/
 ### 其他平台
 
 本项目可以部署到任何支持 Node.js 的平台，如 Netlify、Heroku、AWS 等。
+
+### 环境变量配置
+
+部署时需要配置以下环境变量：
+
+```env
+# Supabase 配置
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_KEY=your-supabase-anon-key
+SUPABASE_SECRET_KEY=your-supabase-service-role-key
+
+# 应用配置
+NUXT_PUBLIC_APP_NAME=技术博客
+NUXT_PUBLIC_APP_DESCRIPTION=基于 Nuxt 3 的技术博客
+NUXT_PUBLIC_APP_URL=https://your-domain.com
+
+# 可选配置
+NUXT_PUBLIC_COMMENTS_ENABLED=true
+NUXT_PUBLIC_ANALYTICS_ENABLED=false
+```
 
 ## 数据库
 
@@ -253,9 +347,18 @@ tech-blog/
 
 1. 克隆项目
 2. 安装依赖：`pnpm install`
-3. 配置环境变量
-4. 初始化数据库：运行 `supabase/schema.sql`
-5. 启动开发服务器：`pnpm dev`
+3. 配置环境变量（复制 `.env.example` 为 `.env`）
+4. 初始化数据库：在 Supabase 控制台运行 `supabase/schema.sql`
+5. （可选）初始化测试数据：`node scripts/init-db.js`
+6. 启动开发服务器：`pnpm dev`
+7. 访问 [http://localhost:3000](http://localhost:3000)
+
+### GitHub OAuth 登录配置
+
+1. 在 GitHub 创建 OAuth App
+2. 在 Supabase 控制台配置 GitHub Provider
+3. 设置回调 URL
+4. 详细步骤请参考 [GitHub OAuth 设置文档](./doc/GITHUB_OAUTH_SETUP.md)
 
 ## 文档
 
@@ -265,6 +368,15 @@ tech-blog/
 - [Vercel 部署指南](./doc/VERCEL_DEPLOYMENT.md) - Vercel 部署配置和环境变量设置
 - [PWA 和移动端优化](./doc/PWA_MOBILE_OPTIMIZATION.md) - PWA 功能和移动端优化实现
 - [PWA 图标说明](./doc/PWA图标说明.md) - PWA 图标生成和使用说明
+- [草稿自动保存](./doc/DRAFT_AUTOSAVE.md) - 草稿自动保存功能说明
+- [功能路线图](./doc/FEATURE_ROADMAP.md) - 功能规划和优先级
+- [GitHub OAuth 设置](./doc/GITHUB_OAUTH_SETUP.md) - GitHub OAuth 登录配置
+- [GitHub OAuth 故障排除](./doc/GITHUB_OAUTH_TROUBLESHOOTING.md) - GitHub 登录问题排查
+- [GitHub 登录用户创建博客](./doc/GITHUB_LOGIN_BLOG_CREATION.md) - GitHub 登录用户功能说明
+- [键盘输入优化](./doc/KEYBOARD_INPUT_OPTIMIZATION.md) - 键盘输入优化说明
+- [移动端优化建议](./doc/MOBILE_OPTIMIZATION_RECOMMENDATIONS.md) - 移动端优化建议
+- [移动端优化总结](./doc/MOBILE_OPTIMIZATION_SUMMARY.md) - 移动端优化总结
+- [触摸优化](./doc/TOUCH_OPTIMIZATION.md) - 触摸手势优化说明
 
 ## 贡献
 
