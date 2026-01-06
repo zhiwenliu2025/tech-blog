@@ -2,15 +2,17 @@
   <div>
     <main class="mx-auto max-w-7xl px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 lg:px-8 lg:py-8">
       <!-- 页面标题和统计 -->
-      <div class="mb-4 sm:mb-6 md:mb-8">
+      <div class="mb-3 sm:mb-4 md:mb-6">
         <div
-          class="mb-4 flex flex-col items-start justify-between gap-3 sm:mb-6 sm:flex-row sm:items-center sm:gap-4"
+          class="mb-3 flex flex-col items-start justify-between gap-2 sm:mb-4 sm:flex-row sm:items-center sm:gap-4 md:mb-6"
         >
           <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">博客文章</h1>
+            <h1 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl md:text-3xl">
+              博客文章
+            </h1>
             <p
               v-if="!loading && totalCount > 0"
-              class="mt-1.5 text-xs text-gray-600 dark:text-gray-400 sm:mt-2 sm:text-sm"
+              class="mt-1 text-xs text-gray-600 dark:text-gray-400 sm:mt-1.5 sm:text-sm"
             >
               共找到
               <span class="font-semibold text-blue-600 dark:text-blue-400">{{ totalCount }}</span>
@@ -19,7 +21,7 @@
           </div>
           <button
             v-if="hasActiveFilters"
-            class="hidden items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 md:flex"
+            class="hidden items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 md:flex"
             @click="resetFilters"
           >
             <Icon name="heroicons:x-mark" class="h-4 w-4" />
@@ -35,25 +37,28 @@
             </div>
             <input
               v-model="searchQuery"
-              type="text"
+              type="search"
               placeholder="搜索文章..."
-              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 pl-9 pr-10 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400 sm:px-4 sm:py-3 sm:pl-11 sm:pr-12 sm:text-base"
+              class="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 pl-10 pr-10 text-sm text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400 sm:px-4 sm:py-3 sm:pl-11 sm:pr-12 sm:text-base"
             />
             <button
               v-if="searchQuery"
-              class="absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 sm:pr-3"
+              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 sm:pr-3"
               @click="searchQuery = ''"
             >
-              <Icon name="heroicons:x-mark" class="h-4 w-4 sm:h-5 sm:w-5" />
+              <Icon name="heroicons:x-mark" class="h-5 w-5" />
             </button>
           </div>
         </div>
 
         <!-- 筛选器卡片 -->
         <div
-          class="mb-4 rounded-xl border border-gray-200 bg-white p-2.5 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:mb-6 sm:p-3 md:p-4"
+          class="mb-4 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:mb-6"
         >
-          <div class="mb-2.5 flex items-center justify-between sm:mb-3">
+          <button
+            class="flex w-full items-center justify-between p-2.5 sm:mb-3 sm:p-3 md:p-4"
+            @click="isFilterExpanded = !isFilterExpanded"
+          >
             <div class="flex items-center gap-1.5 sm:gap-2">
               <Icon
                 name="heroicons:funnel"
@@ -63,65 +68,84 @@
                 >筛选条件</span
               >
             </div>
-            <button
-              v-if="hasActiveFilters"
-              class="touch-optimized rounded-lg px-2 py-1 text-xs text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30 md:hidden"
-              @click="resetFilters"
-            >
-              清除
-            </button>
-          </div>
-          <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
-            <!-- 分类筛选 -->
-            <div class="relative">
-              <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                分类
-              </label>
-              <div class="relative">
-                <select
-                  v-model="selectedCategory"
-                  class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
-                >
-                  <option value="">所有分类</option>
-                  <option v-for="category in categories" :key="category" :value="category">
-                    {{ category }}
-                  </option>
-                </select>
-              </div>
+            <div class="flex items-center gap-2">
+              <button
+                v-if="hasActiveFilters"
+                class="touch-optimized rounded-lg px-2 py-1 text-xs text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30"
+                @click.stop="resetFilters"
+              >
+                清除
+              </button>
+              <Icon
+                name="heroicons:chevron-down"
+                :class="[
+                  'h-4 w-4 text-gray-500 transition-transform duration-200 dark:text-gray-400 sm:h-5 sm:w-5',
+                  isFilterExpanded ? 'rotate-180' : ''
+                ]"
+              />
             </div>
+          </button>
+          <div
+            :class="[
+              'overflow-hidden transition-all duration-300 ease-in-out',
+              isFilterExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0',
+              'sm:max-h-none sm:opacity-100'
+            ]"
+          >
+            <div class="p-2.5 pt-0 sm:p-3 sm:pt-0 md:p-4 md:pt-0">
+              <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
+                <!-- 分类筛选 -->
+                <div class="relative">
+                  <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                    分类
+                  </label>
+                  <div class="relative">
+                    <select
+                      v-model="selectedCategory"
+                      class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
+                    >
+                      <option value="">所有分类</option>
+                      <option v-for="category in categories" :key="category" :value="category">
+                        {{ category }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
 
-            <!-- 标签筛选 -->
-            <div class="relative">
-              <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                标签
-              </label>
-              <div class="relative">
-                <select
-                  v-model="selectedTag"
-                  class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
-                >
-                  <option value="">所有标签</option>
-                  <option v-for="tag in tags" :key="tag" :value="tag">
-                    {{ tag }}
-                  </option>
-                </select>
-              </div>
-            </div>
+                <!-- 标签筛选 -->
+                <div class="relative">
+                  <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                    标签
+                  </label>
+                  <div class="relative">
+                    <select
+                      v-model="selectedTag"
+                      class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
+                    >
+                      <option value="">所有标签</option>
+                      <option v-for="tag in tags" :key="tag" :value="tag">
+                        {{ tag }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
 
-            <!-- 排序 -->
-            <div class="relative">
-              <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
-                排序
-              </label>
-              <div class="relative">
-                <select
-                  v-model="sortBy"
-                  class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
-                >
-                  <option value="created_at">最新发布</option>
-                  <option value="updated_at">最近更新</option>
-                  <option value="title">按标题</option>
-                </select>
+                <!-- 排序 -->
+                <div class="relative">
+                  <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+                    排序
+                  </label>
+                  <div class="relative">
+                    <select
+                      v-model="sortBy"
+                      class="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-2.5 pr-7 text-xs text-gray-700 transition-colors focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:focus:border-blue-400 sm:py-2 sm:pl-3 sm:pr-8 sm:text-sm"
+                    >
+                      <option value="created_at">最新发布</option>
+                      <option value="updated_at">最近更新</option>
+                      <option value="title">按标题</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -174,9 +198,9 @@
       <!-- 分页 -->
       <div
         v-if="totalCount > postsPerPage"
-        class="mt-8 flex flex-col items-center justify-between gap-4 sm:mt-12 sm:flex-row"
+        class="mt-6 flex flex-col items-center justify-between gap-4 sm:mt-8 sm:flex-row md:mt-12"
       >
-        <div class="text-sm text-gray-600 dark:text-gray-400">
+        <div class="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
           显示第
           <span class="font-semibold text-gray-900 dark:text-white">{{
             (currentPage - 1) * postsPerPage + 1
@@ -194,7 +218,7 @@
         >
           <button
             :disabled="currentPage === 1"
-            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
+            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3 sm:py-2"
             @click="goToPage(currentPage - 1)"
           >
             <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
@@ -207,7 +231,7 @@
               v-for="page in totalPages"
               :key="page"
               :class="[
-                'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
+                'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
                 currentPage === page
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -221,7 +245,7 @@
             <!-- 第一页 -->
             <button
               :class="[
-                'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
+                'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
                 currentPage === 1
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -239,7 +263,7 @@
               <button
                 v-if="page !== 1 && page !== totalPages"
                 :class="[
-                  'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
+                  'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
                   currentPage === page
                     ? 'bg-blue-600 text-white shadow-md'
                     : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -256,7 +280,7 @@
             <!-- 最后一页 -->
             <button
               :class="[
-                'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
+                'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
                 currentPage === totalPages
                   ? 'bg-blue-600 text-white shadow-md'
                   : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
@@ -269,7 +293,7 @@
 
           <button
             :disabled="currentPage === totalPages"
-            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
+            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3 sm:py-2"
             @click="goToPage(currentPage + 1)"
           >
             <span class="hidden sm:inline">下一页</span>
@@ -299,6 +323,9 @@ const sortBy = ref('created_at')
 const searchQuery = ref<string>(String(route.query.q || ''))
 const currentPage = ref(parseInt(route.query.page as string) || 1)
 const postsPerPage = 9
+
+// 移动端筛选器折叠状态
+const isFilterExpanded = ref(false)
 
 // 获取博客文章及分类、标签
 const { getPostsWithPagination, fetchCategories, fetchTags } = useBlogPosts()

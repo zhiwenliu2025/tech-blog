@@ -7,9 +7,9 @@
           <p class="mt-2 text-gray-600 dark:text-gray-400">管理博客文章、用户和系统设置</p>
         </div>
 
-        <div class="mb-6">
+        <div class="mb-4 sm:mb-6">
           <div class="border-b border-gray-200 dark:border-gray-700">
-            <nav class="-mb-px flex space-x-8">
+            <nav class="-mb-px flex space-x-2 overflow-x-auto sm:space-x-8">
               <button
                 v-for="tab in tabs"
                 :key="tab.id"
@@ -17,33 +17,99 @@
                   activeTab === tab.id
                     ? 'border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400'
                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300',
-                  'whitespace-nowrap border-b-2 px-1 py-4 text-sm font-medium'
+                  'touch-optimized whitespace-nowrap border-b-2 px-3 py-3 text-xs font-medium sm:px-1 sm:py-4 sm:text-sm'
                 ]"
                 @click="activeTab = tab.id"
               >
-                <Icon :name="tab.icon" class="mr-2 h-5 w-5" />
-                {{ tab.name }}
+                <Icon :name="tab.icon" class="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5" />
+                <span class="inline">{{ tab.name }}</span>
               </button>
             </nav>
           </div>
         </div>
 
         <!-- 文章管理 -->
-        <div v-if="activeTab === 'posts'" class="space-y-6">
+        <div v-if="activeTab === 'posts'" class="space-y-4 sm:space-y-6">
           <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">文章管理</h3>
+            <div class="border-b border-gray-200 px-4 py-3 dark:border-gray-700 sm:px-6 sm:py-4">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h3 class="text-base font-medium text-gray-900 dark:text-white sm:text-lg">
+                  文章管理
+                </h3>
                 <NuxtLink
                   to="/blog/create"
-                  class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  class="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-4 sm:py-2"
                 >
                   <Icon name="i-heroicons-plus" class="mr-2 h-4 w-4" />
                   新建文章
                 </NuxtLink>
               </div>
             </div>
-            <div class="overflow-x-auto">
+
+            <!-- 移动端卡片视图 -->
+            <div class="divide-y divide-gray-200 dark:divide-gray-700 sm:hidden">
+              <div v-for="post in posts" :key="post.id" class="p-4">
+                <div class="mb-3">
+                  <h4 class="text-base font-medium text-gray-900 dark:text-white">
+                    {{ post.title }}
+                  </h4>
+                  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {{ post.excerpt?.substring(0, 80) }}...
+                  </p>
+                </div>
+                <div class="mb-3 flex flex-wrap gap-2">
+                  <span
+                    :class="[
+                      post.published
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                      'inline-flex rounded-full px-2 py-1 text-xs font-medium'
+                    ]"
+                  >
+                    {{ post.published ? '已发布' : '草稿' }}
+                  </span>
+                  <span
+                    class="inline-flex rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-200"
+                  >
+                    {{ post.category || '未分类' }}
+                  </span>
+                </div>
+                <div class="mb-3 space-y-1 text-sm">
+                  <div class="text-gray-600 dark:text-gray-400">
+                    <span class="font-medium">作者:</span> {{ getAuthorName(post.author_id) }}
+                  </div>
+                  <div class="text-gray-600 dark:text-gray-400">
+                    <span class="font-medium">创建时间:</span> {{ formatDate(post.created_at) }}
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <NuxtLink
+                    :to="`/blog/edit/${post.id}`"
+                    class="touch-optimized inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  >
+                    <Icon name="i-heroicons-pencil" class="mr-1.5 h-4 w-4" />
+                    编辑
+                  </NuxtLink>
+                  <button
+                    type="button"
+                    class="touch-optimized inline-flex items-center rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-700 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-red-900/20"
+                    @click="confirmDeletePost(post)"
+                  >
+                    <Icon name="i-heroicons-trash" class="mr-1.5 h-4 w-4" />
+                    删除
+                  </button>
+                </div>
+              </div>
+              <div
+                v-if="posts.length === 0"
+                class="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
+              >
+                暂无文章
+              </div>
+            </div>
+
+            <!-- 桌面端表格视图 -->
+            <div class="hidden overflow-x-auto sm:block">
               <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -153,23 +219,99 @@
         </div>
 
         <!-- 消息管理 -->
-        <div v-if="activeTab === 'messages'" class="space-y-6">
+        <div v-if="activeTab === 'messages'" class="space-y-4 sm:space-y-6">
           <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">消息管理</h3>
-                <div class="flex items-center space-x-2">
-                  <span class="text-sm text-gray-500 dark:text-gray-400">
+            <div class="border-b border-gray-200 px-4 py-3 dark:border-gray-700 sm:px-6 sm:py-4">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 class="text-base font-medium text-gray-900 dark:text-white sm:text-lg">
+                  消息管理
+                </h3>
+                <div class="flex items-center gap-2 text-xs sm:text-sm">
+                  <span class="text-gray-500 dark:text-gray-400">
                     共 {{ messages.length }} 条消息
                   </span>
-                  <span class="text-sm text-gray-500 dark:text-gray-400">|</span>
-                  <span class="text-sm text-gray-500 dark:text-gray-400">
-                    未读 {{ unreadCount }} 条
-                  </span>
+                  <span class="text-gray-500 dark:text-gray-400">|</span>
+                  <span class="text-gray-500 dark:text-gray-400"> 未读 {{ unreadCount }} 条 </span>
                 </div>
               </div>
             </div>
-            <div class="overflow-x-auto">
+
+            <!-- 移动端卡片视图 -->
+            <div class="divide-y divide-gray-200 dark:divide-gray-700 sm:hidden">
+              <div
+                v-for="message in messages"
+                :key="message.id"
+                class="p-4"
+                :class="message.read ? '' : 'bg-blue-50/50 dark:bg-blue-900/10'"
+              >
+                <div class="mb-3 flex items-start justify-between">
+                  <div class="flex-1">
+                    <div class="mb-2 flex items-center gap-2">
+                      <span
+                        :class="[
+                          message.read
+                            ? 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                          'inline-flex rounded-full px-2 py-1 text-xs font-medium'
+                        ]"
+                      >
+                        {{ message.read ? '已读' : '未读' }}
+                      </span>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ formatDate(message.created_at) }}
+                      </span>
+                    </div>
+                    <h4 class="text-base font-medium text-gray-900 dark:text-white">
+                      {{ message.subject }}
+                    </h4>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      {{ message.name }} &lt;{{ message.email }}&gt;
+                    </p>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <p class="line-clamp-3 text-sm text-gray-700 dark:text-gray-300">
+                    {{ message.message }}
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    class="touch-optimized inline-flex items-center rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:bg-gray-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                    @click="openMessage(message)"
+                  >
+                    <Icon name="i-heroicons-eye" class="mr-1.5 h-4 w-4" />
+                    查看
+                  </button>
+                  <button
+                    v-if="!message.read"
+                    type="button"
+                    class="touch-optimized inline-flex items-center rounded-md border border-green-300 bg-white px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-50 dark:border-green-700 dark:bg-gray-700 dark:text-green-400 dark:hover:bg-green-900/20"
+                    @click="markAsRead(message)"
+                  >
+                    <Icon name="i-heroicons-check" class="mr-1.5 h-4 w-4" />
+                    标记已读
+                  </button>
+                  <button
+                    type="button"
+                    class="touch-optimized inline-flex items-center rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-700 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-red-900/20"
+                    @click="confirmDeleteMessage(message)"
+                  >
+                    <Icon name="i-heroicons-trash" class="mr-1.5 h-4 w-4" />
+                    删除
+                  </button>
+                </div>
+              </div>
+              <div
+                v-if="messages.length === 0"
+                class="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
+              >
+                暂无消息
+              </div>
+            </div>
+
+            <!-- 桌面端表格视图 -->
+            <div class="hidden overflow-x-auto sm:block">
               <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -300,12 +442,80 @@
         </div>
 
         <!-- 用户管理 -->
-        <div v-if="activeTab === 'users'" class="space-y-6">
+        <div v-if="activeTab === 'users'" class="space-y-4 sm:space-y-6">
           <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white">用户管理</h3>
+            <div class="border-b border-gray-200 px-4 py-3 dark:border-gray-700 sm:px-6 sm:py-4">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <h3 class="text-base font-medium text-gray-900 dark:text-white sm:text-lg">
+                  用户管理
+                </h3>
+                <div class="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
+                  共 {{ users.length }} 位用户
+                </div>
+              </div>
             </div>
-            <div class="overflow-x-auto">
+
+            <!-- 移动端卡片视图 -->
+            <div class="divide-y divide-gray-200 dark:divide-gray-700 sm:hidden">
+              <div v-for="user in users" :key="user.id" class="p-4">
+                <div class="mb-3 flex items-start gap-3">
+                  <div class="h-12 w-12 flex-shrink-0">
+                    <div
+                      class="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"
+                    >
+                      <Icon name="i-heroicons-user" class="h-6 w-6 text-gray-400" />
+                    </div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h4 class="truncate text-base font-medium text-gray-900 dark:text-white">
+                      {{ user.full_name || user.username || '未知用户' }}
+                    </h4>
+                    <p class="truncate text-sm text-gray-500 dark:text-gray-400">
+                      @{{ user.username || 'unknown' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="mb-3 space-y-1 text-sm">
+                  <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <Icon name="heroicons:identification" class="h-4 w-4" />
+                    <span class="font-medium">角色:</span>
+                    <span
+                      :class="[
+                        user.is_admin
+                          ? 'text-purple-700 dark:text-purple-400'
+                          : 'text-gray-700 dark:text-gray-300'
+                      ]"
+                    >
+                      {{ user.is_admin ? '管理员' : '普通用户' }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                    <Icon name="heroicons:calendar" class="h-4 w-4" />
+                    <span class="font-medium">注册时间:</span>
+                    {{ formatDate(user.created_at) }}
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    class="touch-optimized inline-flex items-center rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:bg-gray-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                    @click="toggleAdminRole(user)"
+                  >
+                    <Icon name="i-heroicons-pencil" class="mr-1.5 h-4 w-4" />
+                    {{ user.is_admin ? '取消管理员' : '设为管理员' }}
+                  </button>
+                </div>
+              </div>
+              <div
+                v-if="users.length === 0"
+                class="px-4 py-8 text-center text-gray-500 dark:text-gray-400"
+              >
+                暂无用户
+              </div>
+            </div>
+
+            <!-- 桌面端表格视图 -->
+            <div class="hidden overflow-x-auto sm:block">
               <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -416,18 +626,22 @@
         <!-- 系统设置 -->
         <div v-if="activeTab === 'settings'" class="space-y-6">
           <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-            <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-              <h3 class="text-lg font-medium text-gray-900 dark:text-white">系统设置</h3>
+            <div class="border-b border-gray-200 px-4 py-3 dark:border-gray-700 sm:px-6 sm:py-4">
+              <h3 class="text-base font-medium text-gray-900 dark:text-white sm:text-lg">
+                系统设置
+              </h3>
             </div>
-            <div class="p-6">
+            <div class="p-4 sm:p-6">
               <div class="space-y-6">
                 <div>
-                  <h4 class="text-md font-medium text-gray-900 dark:text-white">站点信息</h4>
-                  <div class="mt-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                  <h4 class="sm:text-md text-sm font-medium text-gray-900 dark:text-white">
+                    站点信息
+                  </h4>
+                  <div class="mt-4 grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2 sm:gap-y-6">
                     <div>
                       <label
                         for="site_name"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        class="block text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
                         >站点名称</label
                       >
                       <div class="mt-1">
@@ -435,14 +649,14 @@
                           id="site_name"
                           v-model="settings.site_name"
                           type="text"
-                          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                          class="touch-optimized block w-full rounded-md border-gray-300 px-3 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:px-3 sm:py-2"
                         />
                       </div>
                     </div>
                     <div>
                       <label
                         for="site_description"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                        class="block text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
                         >站点描述</label
                       >
                       <div class="mt-1">
@@ -450,7 +664,7 @@
                           id="site_description"
                           v-model="settings.site_description"
                           type="text"
-                          class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                          class="touch-optimized block w-full rounded-md border-gray-300 px-3 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:px-3 sm:py-2"
                         />
                       </div>
                     </div>
@@ -458,14 +672,16 @@
                 </div>
 
                 <div>
-                  <h4 class="text-md font-medium text-gray-900 dark:text-white">功能设置</h4>
+                  <h4 class="sm:text-md text-sm font-medium text-gray-900 dark:text-white">
+                    功能设置
+                  </h4>
                   <div class="mt-4 space-y-4">
                     <div class="flex items-center justify-between">
                       <div class="flex flex-col">
-                        <span class="text-sm font-medium text-gray-900 dark:text-white"
+                        <span class="text-xs font-medium text-gray-900 dark:text-white sm:text-sm"
                           >允许用户注册</span
                         >
-                        <span class="text-sm text-gray-500 dark:text-gray-400"
+                        <span class="text-xs text-gray-500 dark:text-gray-400 sm:text-sm"
                           >新用户可以自行注册账户</span
                         >
                       </div>
@@ -475,7 +691,7 @@
                           settings.allow_registration
                             ? 'bg-blue-600'
                             : 'bg-gray-200 dark:bg-gray-700',
-                          'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                          'touch-optimized relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                         ]"
                         @click="settings.allow_registration = !settings.allow_registration"
                       >
@@ -489,10 +705,10 @@
                     </div>
                     <div class="flex items-center justify-between">
                       <div class="flex flex-col">
-                        <span class="text-sm font-medium text-gray-900 dark:text-white"
+                        <span class="text-xs font-medium text-gray-900 dark:text-white sm:text-sm"
                           >文章需要审核</span
                         >
-                        <span class="text-sm text-gray-500 dark:text-gray-400"
+                        <span class="text-xs text-gray-500 dark:text-gray-400 sm:text-sm"
                           >新发布的文章需要管理员审核后才能公开</span
                         >
                       </div>
@@ -502,7 +718,7 @@
                           settings.require_approval
                             ? 'bg-blue-600'
                             : 'bg-gray-200 dark:bg-gray-700',
-                          'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                          'touch-optimized relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
                         ]"
                         @click="settings.require_approval = !settings.require_approval"
                       >
@@ -520,7 +736,7 @@
                 <div class="flex justify-end">
                   <button
                     type="button"
-                    class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    class="touch-optimized inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:px-4 sm:py-2"
                     @click="saveSettings"
                   >
                     保存设置
@@ -557,7 +773,9 @@
                 />
               </div>
               <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                <h3
+                  class="text-base font-medium leading-6 text-gray-900 dark:text-white sm:text-lg"
+                >
                   删除文章
                 </h3>
                 <div class="mt-2">
@@ -571,14 +789,14 @@
           <div class="bg-gray-50 px-4 py-3 dark:bg-gray-700 sm:flex sm:flex-row-reverse sm:px-6">
             <button
               type="button"
-              class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+              class="touch-optimized inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2.5 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
               @click="deletePost"
             >
               删除
             </button>
             <button
               type="button"
-              class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
+              class="touch-optimized mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2.5 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
               @click="showDeletePostDialog = false"
             >
               取消
@@ -612,56 +830,66 @@
                 />
               </div>
               <div class="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                <h3
+                  class="text-base font-medium leading-6 text-gray-900 dark:text-white sm:text-lg"
+                >
                   消息详情
                 </h3>
                 <div class="mt-4 space-y-4">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    <label
+                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
                       >发送人</label
                     >
-                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white sm:text-base">
                       {{ messageToView?.name }}
                     </p>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    <label
+                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
                       >邮箱</label
                     >
-                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white sm:text-base">
                       {{ messageToView?.email }}
                     </p>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    <label
+                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
                       >主题</label
                     >
-                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white sm:text-base">
                       {{ messageToView?.subject }}
                     </p>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    <label
+                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
                       >消息内容</label
                     >
                     <div
                       class="mt-1 max-h-64 overflow-y-auto rounded-md border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-900"
                     >
-                      <p class="whitespace-pre-wrap text-sm text-gray-900 dark:text-white">
+                      <p
+                        class="whitespace-pre-wrap text-sm text-gray-900 dark:text-white sm:text-base"
+                      >
                         {{ messageToView?.message }}
                       </p>
                     </div>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    <label
+                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
                       >发送时间</label
                     >
-                    <p class="mt-1 text-sm text-gray-900 dark:text-white">
+                    <p class="mt-1 text-sm text-gray-900 dark:text-white sm:text-base">
                       {{ formatDate(messageToView?.created_at) }}
                     </p>
                   </div>
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    <label
+                      class="block text-xs font-medium text-gray-700 dark:text-gray-300 sm:text-sm"
                       >状态</label
                     >
                     <span
@@ -683,14 +911,14 @@
             <button
               v-if="!messageToView?.read"
               type="button"
-              class="inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+              class="touch-optimized inline-flex w-full justify-center rounded-md border border-transparent bg-green-600 px-4 py-2.5 text-base font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
               @click="markAsRead(messageToView)"
             >
               标记为已读
             </button>
             <button
               type="button"
-              class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
+              class="touch-optimized mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2.5 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
               @click="showMessageDialog = false"
             >
               关闭
@@ -724,7 +952,9 @@
                 />
               </div>
               <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                <h3
+                  class="text-base font-medium leading-6 text-gray-900 dark:text-white sm:text-lg"
+                >
                   删除消息
                 </h3>
                 <div class="mt-2">
@@ -738,14 +968,14 @@
           <div class="bg-gray-50 px-4 py-3 dark:bg-gray-700 sm:flex sm:flex-row-reverse sm:px-6">
             <button
               type="button"
-              class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
+              class="touch-optimized inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2.5 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
               @click="deleteMessage"
             >
               删除
             </button>
             <button
               type="button"
-              class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
+              class="touch-optimized mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2.5 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:px-4 sm:py-2 sm:text-sm"
               @click="showDeleteMessageDialog = false"
             >
               取消
