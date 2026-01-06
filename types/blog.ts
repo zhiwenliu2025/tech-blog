@@ -12,6 +12,7 @@ export interface BlogPost {
   category: string | null
   tags: string[] | null
   read_time: number | null
+  view_count?: number
 }
 
 export interface Profile {

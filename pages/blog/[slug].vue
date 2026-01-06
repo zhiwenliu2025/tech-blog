@@ -138,6 +138,11 @@
             </div>
 
             <div class="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+              <Icon name="heroicons:eye" class="h-5 w-5" />
+              <span>{{ post.view_count || 0 }} 次阅读</span>
+            </div>
+
+            <div class="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
               <Icon name="heroicons:clock" class="h-5 w-5" />
               <span>{{ readTime }} 分钟阅读</span>
             </div>
@@ -344,7 +349,8 @@ const {
   unlikePost,
   checkIfUserLikedPost,
   getPostLikesCount,
-  getPostCommentsCount
+  getPostCommentsCount,
+  incrementViewCount
 } = useBlogPosts()
 
 // 状态（部分状态保留，因为需要响应式更新）
@@ -678,6 +684,10 @@ watch(
     if (postId && user.value) {
       await checkLikeStatus()
       await checkAdminStatus()
+    }
+    // 增加阅读量
+    if (postId) {
+      await incrementViewCount(postId)
     }
   },
   { immediate: true }

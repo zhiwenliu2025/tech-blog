@@ -914,7 +914,7 @@ export const useBlogPosts = () => {
       category?: string | null
       tag?: string | null
       searchQuery?: string | null
-      sortBy?: 'created_at' | 'updated_at' | 'title'
+      sortBy?: 'created_at' | 'updated_at' | 'title' | 'view_count'
     } = {}
   ) => {
     loading.value = true
@@ -960,6 +960,8 @@ export const useBlogPosts = () => {
         query = query.order('updated_at', { ascending: false })
       } else if (sortBy === 'title') {
         query = query.order('title', { ascending: true })
+      } else if (sortBy === 'view_count') {
+        query = query.order('view_count', { ascending: false })
       }
 
       // Apply pagination
@@ -1189,6 +1191,85 @@ export const useBlogPosts = () => {
     }
   }
 
+  // Increment view count for a post
+  const incrementViewCount = async (postId: string) => {
+    try {
+      const { error: dbError } = await supabase.rpc('increment_view_count', {
+        post_id: postId
+      })
+
+      if (dbError) throw dbError
+
+      return { error: null }
+    } catch (err: any) {
+      return { error: err.message }
+    }
+  }
+
+  // Get popular posts (sorted by view count)
+  const getPopularPosts = async (limit = 10, offset = 0) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const { data, error: dbError } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('published', true)
+        .order('view_count', { ascending: false })
+        .range(offset, offset + limit - 1)
+
+      if (dbError) throw dbError
+
+      const postsData = (data || []) as BlogPostRow[]
+
+      // Get likes and comments counts for all posts
+      if (postsData && postsData.length > 0) {
+        const postIds = postsData.map(post => post.id)
+
+        // Get likes counts
+        const { data: likesData } = await supabase
+          .from('likes')
+          .select('post_id')
+          .in('post_id', postIds)
+
+        // Get comments counts
+        const { data: commentsData } = await supabase
+          .from('comments')
+          .select('post_id')
+          .in('post_id', postIds)
+
+        // Count likes and comments per post
+        const likesCountMap = new Map<string, number>()
+        const commentsCountMap = new Map<string, number>()
+
+        const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
+        const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
+
+        likesRows.forEach(like => {
+          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
+        })
+
+        commentsRows.forEach(comment => {
+          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
+        })
+
+        // Add counts to posts
+        postsData.forEach((post: any) => {
+          post.likes_count = likesCountMap.get(post.id) || 0
+          post.comments_count = commentsCountMap.get(post.id) || 0
+        })
+      }
+
+      return { data: postsData, error: null }
+    } catch (err: any) {
+      error.value = err.message
+      return { data: null, error: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     loading: readonly(loading),
     error: readonly(error),
@@ -1220,6 +1301,8 @@ export const useBlogPosts = () => {
     deleteComment,
     checkIsAdmin,
     searchPosts,
-    getPostsWithPagination
+    getPostsWithPagination,
+    incrementViewCount,
+    getPopularPosts
   }
 }

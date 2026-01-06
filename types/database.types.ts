@@ -18,6 +18,7 @@ export interface Database {
           category: string | null
           tags: string[] | null
           read_time: number | null
+          view_count: number
         }
         Insert: {
           id?: string
@@ -33,6 +34,7 @@ export interface Database {
           category?: string | null
           tags?: string[] | null
           read_time?: number | null
+          view_count?: number
         }
         Update: {
           id?: string
@@ -48,6 +50,7 @@ export interface Database {
           category?: string | null
           tags?: string[] | null
           read_time?: number | null
+          view_count?: number
         }
       }
       profiles: {

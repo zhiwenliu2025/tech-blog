@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   tags TEXT[],
   published BOOLEAN DEFAULT false,
   author_id UUID REFERENCES auth.users(id),
+  view_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   published_at TIMESTAMP WITH TIME ZONE
@@ -325,6 +326,19 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Function to increment view count
+CREATE OR REPLACE FUNCTION increment_view_count(post_id UUID)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE blog_posts
+  SET view_count = view_count + 1
+  WHERE id = post_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permission to everyone
+GRANT EXECUTE ON FUNCTION increment_view_count(UUID) TO anon, authenticated;
 
 -- Triggers for updated_at
 DROP TRIGGER IF EXISTS handle_blog_posts_updated_at ON blog_posts;

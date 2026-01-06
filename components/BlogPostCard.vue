@@ -113,6 +113,11 @@
             <Icon name="heroicons:chat-bubble-left-right" class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             <span>{{ commentsCount }}</span>
           </span>
+          <!-- 阅读量 -->
+          <span v-if="post.view_count > 0" class="flex items-center gap-0.5 sm:gap-1">
+            <Icon name="heroicons:eye" class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            <span>{{ post.view_count }}</span>
+          </span>
         </div>
 
         <!-- 阅读更多按钮 - 移动端隐藏，桌面端显示 -->

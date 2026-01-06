@@ -142,6 +142,7 @@
                     >
                       <option value="created_at">最新发布</option>
                       <option value="updated_at">最近更新</option>
+                      <option value="view_count">热门文章</option>
                       <option value="title">按标题</option>
                     </select>
                   </div>
