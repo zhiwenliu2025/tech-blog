@@ -178,6 +178,11 @@
         </div>
 
         <div class="lg:col-span-1">
+          <!-- 热门文章组件 -->
+          <div class="mb-4 sm:mb-6">
+            <HotPosts :limit="5" :days="30" :use-decay="true" :show-score="false" />
+          </div>
+
           <div class="mb-4 overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800 sm:mb-6">
             <div class="p-4 sm:p-6">
               <h3 class="mb-3 text-lg font-medium text-gray-900 dark:text-white">关于博客</h3>

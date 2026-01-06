@@ -142,7 +142,8 @@
                     >
                       <option value="created_at">最新发布</option>
                       <option value="updated_at">最近更新</option>
-                      <option value="view_count">热门文章</option>
+                      <option value="hot">🔥 热度排序</option>
+                      <option value="view_count">阅读量</option>
                       <option value="title">按标题</option>
                     </select>
                   </div>
@@ -330,6 +331,7 @@ const isFilterExpanded = ref(false)
 
 // 获取博客文章及分类、标签
 const { getPostsWithPagination, fetchCategories, fetchTags } = useBlogPosts()
+const { fetchPostsSortedByHot } = useHotPosts()
 
 // 使用 useAsyncData 进行服务端分页
 // 使用 computed 生成动态的查询键
@@ -344,15 +346,46 @@ const {
   refresh: refreshPosts
 } = await useAsyncData(
   () => queryKey.value,
-  () =>
-    getPostsWithPagination({
+  async () => {
+    // 如果是热度排序，使用热度排序函数
+    if (sortBy.value === 'hot') {
+      const result = await fetchPostsSortedByHot(currentPage.value, postsPerPage, true)
+
+      // 如果有分类或标签筛选，需要在客户端过滤
+      let filteredData = result.data
+      if (selectedCategory.value) {
+        filteredData = filteredData.filter(post => post.category === selectedCategory.value)
+      }
+      if (selectedTag.value) {
+        filteredData = filteredData.filter(post => post.tags?.includes(selectedTag.value))
+      }
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        filteredData = filteredData.filter(
+          post =>
+            post.title.toLowerCase().includes(query) ||
+            post.excerpt?.toLowerCase().includes(query) ||
+            post.content.toLowerCase().includes(query)
+        )
+      }
+
+      return {
+        data: filteredData,
+        count: filteredData.length,
+        error: null
+      }
+    }
+
+    // 其他排序使用原有的分页函数
+    return getPostsWithPagination({
       page: currentPage.value,
       pageSize: postsPerPage,
       category: selectedCategory.value || null,
       tag: selectedTag.value || null,
       searchQuery: searchQuery.value || null,
-      sortBy: sortBy.value as 'created_at' | 'updated_at' | 'title'
-    }),
+      sortBy: sortBy.value as 'created_at' | 'updated_at' | 'title' | 'view_count'
+    })
+  },
   {
     default: () => ({ data: [], count: 0, error: null }),
     server: true,
