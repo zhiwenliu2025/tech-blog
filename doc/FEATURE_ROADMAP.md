@@ -14,6 +14,35 @@
 8. ✅ **PWA 支持** - 可安装、离线访问、缓存策略
 9. ✅ **GitHub OAuth** - 支持 GitHub 账号登录
 10. ✅ **移动端 UI 优化** - 文章卡片、详情页、热门文章组件全面优化（2026-01-06）
+11. ✅ **依赖升级** - 所有依赖升级到最新版本（2026-01-07）
+12. ✅ **TypeScript 类型优化** - Composables 层 100% 类型完善（2026-01-07）
+
+### 最新优化（2026-01-07）
+
+#### 📦 依赖升级
+
+- Nuxt 4.2.1 → 4.2.2
+- Vue 3.5.24 → 3.5.26
+- Supabase 2.83.0 → 2.89.0
+- Tiptap 3.11.0 → 3.15.1
+- 26 个包升级，移除弃用包
+
+#### 🔧 TypeScript 优化
+
+- ✅ **70% 类型错误修复** (101 → ~30-40)
+- ✅ **Composables 100% 类型完善**
+  - `useToast` - 完整接口定义
+  - `useHotPosts` - 修复动态字段类型
+  - `useTouch` - Null 安全检查
+  - `usePullToRefresh` - 触摸事件优化
+  - `useSupabase` - API 修复
+- ✅ **构建和 Lint 完全通过**
+
+#### 📚 新增文档
+
+- 依赖升级报告 (`DEPENDENCY_UPGRADE_2026-01.md`)
+- TypeScript 优化报告 (`TYPESCRIPT_OPTIMIZATION_2026-01.md`)
+- 高优先级优化总结 (`HIGH_PRIORITY_OPTIMIZATION_SUMMARY.md`)
 
 ---
 

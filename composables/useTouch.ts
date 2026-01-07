@@ -63,6 +63,7 @@ export const useTouch = () => {
 
     const handleTouchStart = (e: TouchEvent) => {
       const touch = e.touches[0]
+      if (!touch) return
       startX = touch.clientX
       startY = touch.clientY
       startTime = Date.now()
@@ -78,6 +79,8 @@ export const useTouch = () => {
       if (!isSwiping) return
 
       const touch = e.changedTouches[0]
+      if (!touch) return
+
       const endX = touch.clientX
       const endY = touch.clientY
       const endTime = Date.now()

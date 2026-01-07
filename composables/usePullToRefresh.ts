@@ -23,14 +23,20 @@ export const usePullToRefresh = (
     // 只在页面顶部时启用下拉刷新
     if (window.scrollY > 0) return
 
-    startY.value = e.touches[0].clientY
+    const touch = e.touches[0]
+    if (!touch) return
+
+    startY.value = touch.clientY
     isPulling.value = true
   }
 
   const handleTouchMove = (e: TouchEvent) => {
     if (!isPulling.value || isRefreshing.value) return
 
-    currentY.value = e.touches[0].clientY
+    const touch = e.touches[0]
+    if (!touch) return
+
+    currentY.value = touch.clientY
     const distance = currentY.value - startY.value
 
     if (distance > 0) {
@@ -65,6 +71,8 @@ export const usePullToRefresh = (
     if (!enabled.value || typeof window === 'undefined') return
 
     const element = document.documentElement
+    if (!element) return
+
     element.addEventListener('touchstart', handleTouchStart, { passive: false })
     element.addEventListener('touchmove', handleTouchMove, { passive: false })
     element.addEventListener('touchend', handleTouchEnd, { passive: true })
@@ -74,6 +82,8 @@ export const usePullToRefresh = (
     if (typeof window === 'undefined') return
 
     const element = document.documentElement
+    if (!element) return
+
     element.removeEventListener('touchstart', handleTouchStart)
     element.removeEventListener('touchmove', handleTouchMove)
     element.removeEventListener('touchend', handleTouchEnd)

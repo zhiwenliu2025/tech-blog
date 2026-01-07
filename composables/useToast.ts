@@ -1,20 +1,37 @@
+// Toast 类型定义
+export interface Toast {
+  id: string
+  type: 'success' | 'error' | 'info' | 'warning'
+  title: string
+  description?: string
+  timeout?: number
+  show: boolean
+}
+
+export interface ToastOptions {
+  type: Toast['type']
+  title: string
+  description?: string
+  timeout?: number
+}
+
 // Toast state
-const toasts = ref([])
+const toasts = ref<Toast[]>([])
 
 // Toast types
 export const ToastType = {
-  SUCCESS: 'success',
-  ERROR: 'error',
-  INFO: 'info',
-  WARNING: 'warning'
+  SUCCESS: 'success' as const,
+  ERROR: 'error' as const,
+  INFO: 'info' as const,
+  WARNING: 'warning' as const
 }
 
 // Toast composable
 export const useToast = () => {
   // Add a new toast
-  const add = toast => {
+  const add = (toast: ToastOptions): string => {
     const id = Date.now().toString()
-    const newToast = {
+    const newToast: Toast = {
       id,
       ...toast,
       show: true
@@ -33,7 +50,7 @@ export const useToast = () => {
   }
 
   // Remove a toast by id
-  const remove = id => {
+  const remove = (id: string): void => {
     const index = toasts.value.findIndex(toast => toast.id === id)
     if (index > -1) {
       toasts.value.splice(index, 1)
@@ -41,12 +58,12 @@ export const useToast = () => {
   }
 
   // Clear all toasts
-  const clear = () => {
+  const clear = (): void => {
     toasts.value = []
   }
 
   // Convenience methods
-  const success = (title, description, timeout = 3000) => {
+  const success = (title: string, description?: string, timeout = 3000): string => {
     return add({
       type: ToastType.SUCCESS,
       title,
@@ -55,7 +72,7 @@ export const useToast = () => {
     })
   }
 
-  const error = (title, description, timeout = 5000) => {
+  const error = (title: string, description?: string, timeout = 5000): string => {
     return add({
       type: ToastType.ERROR,
       title,
@@ -64,7 +81,7 @@ export const useToast = () => {
     })
   }
 
-  const info = (title, description, timeout = 3000) => {
+  const info = (title: string, description?: string, timeout = 3000): string => {
     return add({
       type: ToastType.INFO,
       title,
@@ -73,9 +90,24 @@ export const useToast = () => {
     })
   }
 
-  const warning = (title, description, timeout = 3000) => {
+  const warning = (title: string, description?: string, timeout = 3000): string => {
     return add({
       type: ToastType.WARNING,
+      title,
+      description,
+      timeout
+    })
+  }
+
+  // 添加 showToast 方法（用于兼容）
+  const showToast = (
+    title: string,
+    description?: string,
+    type: Toast['type'] = 'info',
+    timeout = 3000
+  ): string => {
+    return add({
+      type,
       title,
       description,
       timeout
@@ -90,7 +122,8 @@ export const useToast = () => {
     success,
     error,
     info,
-    warning
+    warning,
+    showToast
   }
 }
 

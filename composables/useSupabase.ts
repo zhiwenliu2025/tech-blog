@@ -147,7 +147,7 @@ export const useSupabaseAuth = () => {
 
     try {
       const { error: unlinkError } = await supabase.auth.unlinkIdentity({
-        identityId
+        identity_id: identityId
       })
 
       if (unlinkError) throw unlinkError
