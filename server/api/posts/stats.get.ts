@@ -1,9 +1,11 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseClient } from '#supabase/server'
 import { serverCache, CACHE_KEYS, CACHE_TTL } from '~/server/utils/cache'
 
 /**
  * 获取文章统计信息（带缓存）
  * GET /api/posts/stats?postIds=id1,id2,id3
+ *
+ * 安全性改进：使用 serverSupabaseClient 而不是 serverSupabaseServiceRole
  */
 export default defineEventHandler(async event => {
   const query = getQuery(event)
@@ -19,7 +21,7 @@ export default defineEventHandler(async event => {
   const ids = postIds.split(',').filter(Boolean)
 
   try {
-    const client = serverSupabaseServiceRole(event)
+    const client = await serverSupabaseClient(event)
     const stats = await Promise.all(
       ids.map(async postId => {
         const cacheKey = `${CACHE_KEYS.POST_STATS}${postId}`

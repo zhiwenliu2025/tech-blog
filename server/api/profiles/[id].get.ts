@@ -1,9 +1,11 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseClient } from '#supabase/server'
 import { serverCache, CACHE_KEYS, CACHE_TTL } from '~/server/utils/cache'
 
 /**
  * 获取单个用户资料（带缓存）
  * GET /api/profiles/[id]
+ *
+ * 安全性改进：使用 serverSupabaseClient 而不是 serverSupabaseServiceRole
  */
 export default defineEventHandler(async event => {
   const id = getRouterParam(event, 'id')
@@ -21,7 +23,7 @@ export default defineEventHandler(async event => {
     const profile = await serverCache.getOrSet(
       cacheKey,
       async () => {
-        const client = serverSupabaseServiceRole(event)
+        const client = await serverSupabaseClient(event)
 
         const { data, error } = await client
           .from('profiles')

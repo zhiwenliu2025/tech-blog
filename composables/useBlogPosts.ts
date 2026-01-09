@@ -181,27 +181,28 @@ export const useBlogPosts = () => {
 
       // 如果文章有作者ID，获取作者信息
       // 注意：如果从缓存API获取，profiles 字段已经包含在响应中
-      if (data && data.author_id && data.author_id !== 'undefined' && !(data as any).profiles) {
+      const postData = data as any
+      if (data && postData.author_id && postData.author_id !== 'undefined' && !postData.profiles) {
         try {
           const { data: authorData } = await supabase
             .from('profiles')
             .select('id, username, full_name, avatar_url, bio')
-            .eq('id', data.author_id)
+            .eq('id', postData.author_id)
             .single()
 
           // 将作者信息附加到文章数据
           if (authorData) {
-            ;(data as any).profiles = authorData
+            postData.profiles = authorData
           }
         } catch (authorError) {
           // 如果获取作者信息失败，不影响文章数据返回
           console.warn('Failed to fetch author info:', authorError)
-          ;(data as any).profiles = null
+          postData.profiles = null
         }
-      } else if (!data || !data.author_id) {
+      } else if (!data || !postData.author_id) {
         // 没有作者ID，设置为 null
         if (data) {
-          ;(data as any).profiles = null
+          postData.profiles = null
         }
       }
 
@@ -438,7 +439,7 @@ export const useBlogPosts = () => {
       if (!postsData) return profiles.map(profile => ({ ...profile, post_count: 0 }))
 
       const postCountMap = new Map<string, number>()
-      postsData.forEach(post => {
+      postsData.forEach((post: any) => {
         postCountMap.set(post.author_id, (postCountMap.get(post.author_id) || 0) + 1)
       })
 
@@ -1221,7 +1222,7 @@ export const useBlogPosts = () => {
     try {
       const { error: dbError } = await supabase.rpc('increment_view_count', {
         post_id: postId
-      })
+      } as any)
 
       if (dbError) throw dbError
 

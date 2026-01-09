@@ -1,9 +1,11 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseClient } from '#supabase/server'
 import { serverCache, CACHE_KEYS, CACHE_TTL } from '~/server/utils/cache'
 
 /**
  * 获取热门文章列表（带缓存）
  * GET /api/posts/hot?limit=10&days=30
+ *
+ * 安全性改进：使用 serverSupabaseClient 而不是 serverSupabaseServiceRole
  */
 export default defineEventHandler(async event => {
   const query = getQuery(event)
@@ -16,7 +18,7 @@ export default defineEventHandler(async event => {
     const hotPosts = await serverCache.getOrSet(
       cacheKey,
       async () => {
-        const client = serverSupabaseServiceRole(event)
+        const client = await serverSupabaseClient(event)
 
         // 获取指定天数内的已发布文章
         const daysAgo = new Date()

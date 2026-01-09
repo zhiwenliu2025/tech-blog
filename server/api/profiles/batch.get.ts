@@ -1,9 +1,11 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseClient } from '#supabase/server'
 import { serverCache, CACHE_KEYS, CACHE_TTL } from '~/server/utils/cache'
 
 /**
  * 批量获取用户资料（带智能缓存）
  * GET /api/profiles/batch?ids=id1,id2,id3
+ *
+ * 安全性改进：使用 serverSupabaseClient 而不是 serverSupabaseServiceRole
  */
 export default defineEventHandler(async event => {
   const query = getQuery(event)
@@ -30,7 +32,7 @@ export default defineEventHandler(async event => {
   }
 
   try {
-    const client = serverSupabaseServiceRole(event)
+    const client = await serverSupabaseClient(event)
 
     // 1. 检查缓存中已有的用户
     const cachedProfiles: any[] = []

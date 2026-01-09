@@ -4,6 +4,9 @@ import { cacheInvalidator } from '~/server/utils/cache'
 /**
  * 增加文章阅读量（并清除统计缓存）
  * POST /api/posts/[id]/increment-view
+ *
+ * 使用 RPC 函数实现，需要在数据库中创建 increment_view_count 函数
+ * 保留 service_role 权限：允许匿名用户增加阅读数
  */
 export default defineEventHandler(async event => {
   const id = getRouterParam(event, 'id')
@@ -18,26 +21,12 @@ export default defineEventHandler(async event => {
   try {
     const client = serverSupabaseServiceRole(event)
 
-    // 使用 RPC 函数增加阅读量（如果存在）
-    const { data: functionExists } = await client.rpc('increment_view_count', {
+    // 调用数据库 RPC 函数增加阅读量
+    const { error } = await client.rpc('increment_view_count', {
       post_id: id
-    })
+    } as any)
 
-    // 如果 RPC 函数不存在，使用直接更新
-    if (functionExists === null) {
-      const { data, error } = await client
-        .from('blog_posts')
-        .select('view_count')
-        .eq('id', id)
-        .single()
-
-      if (error) throw error
-
-      await client
-        .from('blog_posts')
-        .update({ view_count: (data.view_count || 0) + 1 })
-        .eq('id', id)
-    }
+    if (error) throw error
 
     // 清除相关缓存
     cacheInvalidator.invalidatePost(id)

@@ -1,9 +1,11 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseClient } from '#supabase/server'
 import { serverCache, CACHE_KEYS, CACHE_TTL } from '~/server/utils/cache'
 
 /**
  * 获取文章列表（带缓存）
  * GET /api/posts/list?page=1&limit=10&category=tech&tag=vue&published=true
+ *
+ * 安全性改进：使用 serverSupabaseClient 而不是 serverSupabaseServiceRole
  */
 export default defineEventHandler(async event => {
   const query = getQuery(event)
@@ -21,7 +23,7 @@ export default defineEventHandler(async event => {
     const result = await serverCache.getOrSet(
       cacheKey,
       async () => {
-        const client = serverSupabaseServiceRole(event)
+        const client = await serverSupabaseClient(event)
 
         // 构建查询
         let query = client.from('blog_posts').select(
