@@ -6,7 +6,7 @@ import { cacheInvalidator } from '~/server/utils/cache'
  */
 export default defineEventHandler(async event => {
   const body = await readBody(event)
-  const { type, postId } = body
+  const { type, postId, userId } = body
 
   try {
     // 可以在这里添加管理员权限验证
@@ -42,6 +42,16 @@ export default defineEventHandler(async event => {
           })
         }
         cacheInvalidator.invalidateComment(postId)
+        break
+
+      case 'profile':
+        if (!userId) {
+          throw createError({
+            statusCode: 400,
+            message: 'Missing userId'
+          })
+        }
+        cacheInvalidator.invalidateProfile(userId)
         break
 
       case 'all':

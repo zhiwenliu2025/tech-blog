@@ -222,6 +222,20 @@ export const useCacheManager = () => {
   }
 
   /**
+   * 清除用户资料缓存
+   */
+  const invalidateProfile = async (userId: string) => {
+    try {
+      await $fetch('/api/cache/invalidate', {
+        method: 'POST',
+        body: { type: 'profile', userId }
+      })
+    } catch (error: any) {
+      console.error('Error invalidating profile cache:', error)
+    }
+  }
+
+  /**
    * 获取缓存统计信息
    */
   const getCacheStats = async () => {
@@ -239,6 +253,62 @@ export const useCacheManager = () => {
     invalidateLike,
     invalidateComment,
     invalidateAll,
+    invalidateProfile,
     getCacheStats
+  }
+}
+
+/**
+ * 使用缓存的用户资料 composable
+ */
+export const useProfileCache = () => {
+  /**
+   * 获取单个用户资料（带缓存）
+   * @param userId 用户ID
+   */
+  const getProfile = async (userId: string) => {
+    if (!userId || userId === 'undefined' || userId === 'null') {
+      return null
+    }
+
+    try {
+      const response = await $fetch(`/api/profiles/${userId}`)
+      return response.data
+    } catch (error: any) {
+      console.error('Error fetching profile:', error)
+      return null
+    }
+  }
+
+  /**
+   * 批量获取用户资料（带智能缓存）
+   * @param userIds 用户ID数组
+   */
+  const getBatchProfiles = async (userIds: string[]) => {
+    if (!userIds || userIds.length === 0) {
+      return []
+    }
+
+    // 过滤无效ID
+    const validIds = userIds.filter(id => id && id !== 'undefined' && id !== 'null')
+
+    if (validIds.length === 0) {
+      return []
+    }
+
+    try {
+      const response = await $fetch('/api/profiles/batch', {
+        params: { ids: validIds.join(',') }
+      })
+      return response.data || []
+    } catch (error: any) {
+      console.error('Error fetching batch profiles:', error)
+      return []
+    }
+  }
+
+  return {
+    getProfile,
+    getBatchProfiles
   }
 }

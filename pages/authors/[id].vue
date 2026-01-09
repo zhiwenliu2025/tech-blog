@@ -186,7 +186,9 @@
 const route = useRoute()
 const authorId = route.params.id as string
 
-const { getPostsByAuthor, getAuthorProfile } = useBlogPosts()
+// ✅ 使用缓存 API
+const { getProfile } = useProfileCache()
+const { getPostsByAuthor } = useBlogPosts()
 
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -216,13 +218,14 @@ const calculateReadTime = (content: string) => {
   return Math.max(1, Math.ceil(wordCount / wordsPerMinute))
 }
 
+// ✅ 使用缓存版本
 const loadAuthorProfile = async () => {
-  const result = await getAuthorProfile(authorId)
-  if (result.error) {
-    error.value = result.error
+  const profile = await getProfile(authorId)
+  if (!profile) {
+    error.value = '作者不存在或无法加载'
     return
   }
-  author.value = result.data
+  author.value = profile
 }
 
 const loadPosts = async (page: number) => {

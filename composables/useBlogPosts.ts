@@ -180,7 +180,8 @@ export const useBlogPosts = () => {
       if (dbError) throw dbError
 
       // 如果文章有作者ID，获取作者信息
-      if (data && data.author_id && data.author_id !== 'undefined') {
+      // 注意：如果从缓存API获取，profiles 字段已经包含在响应中
+      if (data && data.author_id && data.author_id !== 'undefined' && !(data as any).profiles) {
         try {
           const { data: authorData } = await supabase
             .from('profiles')
@@ -197,9 +198,11 @@ export const useBlogPosts = () => {
           console.warn('Failed to fetch author info:', authorError)
           ;(data as any).profiles = null
         }
-      } else {
+      } else if (!data || !data.author_id) {
         // 没有作者ID，设置为 null
-        ;(data as any).profiles = null
+        if (data) {
+          ;(data as any).profiles = null
+        }
       }
 
       return { data: data as BlogPostRow | null, error: null }
@@ -390,22 +393,16 @@ export const useBlogPosts = () => {
     loading.value = true
     error.value = null
 
-    // 防止查询 undefined 或无效的 ID
+    // ✅ 提前验证 ID
     if (!authorId || authorId === 'undefined' || authorId === 'null') {
       loading.value = false
       return { data: null, error: 'Invalid author ID' }
     }
 
     try {
-      const { data, error: dbError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authorId)
-        .single()
-
-      if (dbError) throw dbError
-
-      return { data: data as ProfileRow | null, error: null }
+      // ✅ 使用缓存 API
+      const response: any = await $fetch(`/api/profiles/${authorId}`)
+      return { data: response.data as ProfileRow | null, error: null }
     } catch (err: any) {
       error.value = err.message
       return { data: null, error: err.message }
@@ -806,13 +803,19 @@ export const useBlogPosts = () => {
         }
       }
 
-      // 查询用户信息
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url, full_name')
-        .in('id', userIds)
+      // ✅ 使用批量缓存 API 查询用户信息
+      let profilesMap = new Map<string, any>()
 
-      if (profilesError) {
+      try {
+        const response: any = await $fetch('/api/profiles/batch', {
+          params: { ids: userIds.join(',') }
+        })
+
+        const profiles = response.data || []
+        profiles.forEach((profile: any) => {
+          profilesMap.set(profile.id, profile)
+        })
+      } catch (profilesError) {
         console.error('获取用户信息错误:', profilesError)
         // 即使获取用户信息失败，也返回评论数据
         return {
@@ -821,18 +824,11 @@ export const useBlogPosts = () => {
         }
       }
 
-      // 创建用户信息映射
-      const profilesRows = (profilesData || []) as Pick<
-        ProfileRow,
-        'id' | 'username' | 'avatar_url' | 'full_name'
-      >[]
-      const profilesMap = new Map(profilesRows.map(p => [p.id, p]))
-
       // 合并评论和用户信息
       const commentsWithProfiles = commentsRows.map(comment => ({
         ...comment,
         profiles: profilesMap.get(comment.user_id) || null
-      }))
+      })) as any[]
 
       return { data: commentsWithProfiles, error: null }
     } catch (err: any) {

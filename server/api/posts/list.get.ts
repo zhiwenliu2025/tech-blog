@@ -77,14 +77,25 @@ export default defineEventHandler(async event => {
         // 获取每篇文章的点赞数和评论数（批量查询）
         const postIds = (posts || []).map((p: any) => p.id)
 
-        const [likesResult, commentsResult] = await Promise.all([
+        // 获取所有唯一的作者ID
+        const authorIds = [...new Set((posts || []).map((p: any) => p.author_id).filter(Boolean))]
+
+        const [likesResult, commentsResult, authorsResult] = await Promise.all([
           client.from('likes').select('post_id').in('post_id', postIds),
-          client.from('comments').select('post_id').in('post_id', postIds)
+          client.from('comments').select('post_id').in('post_id', postIds),
+          // 批量查询作者信息
+          authorIds.length > 0
+            ? client
+                .from('profiles')
+                .select('id, username, full_name, avatar_url, bio')
+                .in('id', authorIds)
+            : Promise.resolve({ data: [], error: null })
         ])
 
         // 统计每篇文章的点赞数和评论数
         const likesCount: Record<string, number> = {}
         const commentsCount: Record<string, number> = {}
+        const authorsMap: Record<string, any> = {}
 
         likesResult.data?.forEach((like: any) => {
           likesCount[like.post_id] = (likesCount[like.post_id] || 0) + 1
@@ -94,13 +105,20 @@ export default defineEventHandler(async event => {
           commentsCount[comment.post_id] = (commentsCount[comment.post_id] || 0) + 1
         })
 
-        // 添加统计信息到文章
+        // 构建作者信息映射
+        authorsResult.data?.forEach((author: any) => {
+          authorsMap[author.id] = author
+        })
+
+        // 添加统计信息和作者信息到文章
         const postsWithStats = (posts || []).map((post: any) => ({
           ...post,
           likes_count: likesCount[post.id] || 0,
           comments_count: commentsCount[post.id] || 0,
           likeCount: likesCount[post.id] || 0,
-          commentCount: commentsCount[post.id] || 0
+          commentCount: commentsCount[post.id] || 0,
+          // 添加作者信息
+          profiles: post.author_id ? authorsMap[post.author_id] || null : null
         }))
 
         return {

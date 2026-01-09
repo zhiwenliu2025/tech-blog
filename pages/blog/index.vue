@@ -160,11 +160,11 @@
       </div>
 
       <!-- 错误状态 -->
-      <div v-else-if="error" class="flex flex-col items-center justify-center py-12">
+      <div v-else-if="cachedError" class="flex flex-col items-center justify-center py-12">
         <Icon name="heroicons:exclamation-triangle" class="mb-4 h-12 w-12 text-red-500" />
         <h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">加载失败</h2>
         <p class="mb-4 text-gray-600 dark:text-gray-400">
-          {{ error }}
+          {{ cachedError }}
         </p>
         <button
           class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"

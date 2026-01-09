@@ -44,6 +44,24 @@ export default defineEventHandler(async event => {
 
         if (error) throw error
 
+        // 获取所有唯一的作者ID
+        const authorIds = [...new Set((posts || []).map((p: any) => p.author_id).filter(Boolean))]
+
+        // 批量获取作者信息
+        const authorsResult =
+          authorIds.length > 0
+            ? await client
+                .from('profiles')
+                .select('id, username, full_name, avatar_url, bio')
+                .in('id', authorIds)
+            : { data: [], error: null }
+
+        // 构建作者信息映射
+        const authorsMap: Record<string, any> = {}
+        authorsResult.data?.forEach((author: any) => {
+          authorsMap[author.id] = author
+        })
+
         // 获取每篇文章的点赞数和评论数
         const postsWithStats = await Promise.all(
           (posts || []).map(async (post: any) => {
@@ -77,7 +95,9 @@ export default defineEventHandler(async event => {
               comments_count: commentCount || 0,
               likeCount: likeCount || 0,
               commentCount: commentCount || 0,
-              hotScore: hotScore * timeFactor
+              hotScore: hotScore * timeFactor,
+              // 添加作者信息
+              profiles: post.author_id ? authorsMap[post.author_id] || null : null
             }
           })
         )

@@ -15,7 +15,9 @@ export const CACHE_KEYS = {
   POST_DETAIL: 'post:detail:',
   CATEGORY_POSTS: 'category:posts:',
   TAG_POSTS: 'tag:posts:',
-  AUTHOR_POSTS: 'author:posts:'
+  AUTHOR_POSTS: 'author:posts:',
+  PROFILE: 'profile:',
+  PROFILES_LIST: 'profiles:list:'
 } as const
 
 // 缓存过期时间（毫秒）
@@ -24,6 +26,8 @@ export const CACHE_TTL = {
   HOT_POSTS: 1000 * 60 * 5, // 5 分钟
   POSTS_LIST: 1000 * 60 * 2, // 2 分钟
   POST_DETAIL: 1000 * 60 * 5, // 5 分钟
+  PROFILE: 1000 * 60 * 5, // 5 分钟
+  PROFILES_LIST: 1000 * 60 * 10, // 10 分钟
   SHORT: 1000 * 60, // 1 分钟
   MEDIUM: 1000 * 60 * 5, // 5 分钟
   LONG: 1000 * 60 * 15 // 15 分钟
@@ -164,6 +168,30 @@ export const cacheInvalidator = {
    */
   invalidateAll: () => {
     serverCache.clear()
+  },
+
+  /**
+   * 用户资料更新时失效缓存
+   */
+  invalidateProfile: (userId: string) => {
+    serverCache.delete(`${CACHE_KEYS.PROFILE}${userId}`)
+    // 清除文章列表缓存（因为包含作者信息）
+    serverCache.deleteByPrefix(CACHE_KEYS.POSTS_LIST)
+    serverCache.delete(CACHE_KEYS.HOT_POSTS)
+    console.log(`Cache invalidated: profile:${userId}`)
+  },
+
+  /**
+   * 批量清除用户资料缓存
+   */
+  invalidateProfiles: (userIds: string[]) => {
+    userIds.forEach(id => {
+      serverCache.delete(`${CACHE_KEYS.PROFILE}${id}`)
+    })
+    // 清除文章列表缓存
+    serverCache.deleteByPrefix(CACHE_KEYS.POSTS_LIST)
+    serverCache.delete(CACHE_KEYS.HOT_POSTS)
+    console.log(`Cache invalidated: ${userIds.length} profiles`)
   }
 }
 
