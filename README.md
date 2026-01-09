@@ -1,8 +1,16 @@
 # 技术博客
 
-基于 Nuxt 3 和 Supabase 构建的现代化技术博客系统。
+> 基于 Nuxt 3 和 Supabase 构建的现代化技术博客系统，支持 PWA、缓存优化、移动端适配，提供完整的博客功能。
 
-## 功能特点
+[![Nuxt](https://img.shields.io/badge/Nuxt-4.2.1-00DC82?style=flat&logo=nuxt.js)](https://nuxt.com/)
+[![Vue](https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat&logo=vue.js)](https://vuejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat&logo=supabase)](https://supabase.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com/)
+
+[在线演示](#) | [快速开始](#-快速开始) | [文档](#-文档)
+
+## ✨ 功能特点
 
 - 📝 文章发布与管理（创建、编辑、删除）
 - 🏷️ 分类和标签系统
@@ -32,7 +40,7 @@
 - 🖼️ 图片优化和上传
 - ⌨️ 键盘输入优化
 
-## 技术栈
+## 🛠️ 技术栈
 
 - **前端框架**: Nuxt 3 (4.2.1)
 - **UI 框架**: Tailwind CSS
@@ -43,7 +51,7 @@
 - **代码质量**: ESLint, Prettier, Husky
 - **包管理器**: pnpm
 
-## 快速开始
+## 🚀 快速开始
 
 ### 1. 安装依赖
 
@@ -112,7 +120,7 @@ pnpm dev
 
 访问 [http://localhost:3000](http://localhost:3000) 查看你的博客。
 
-## 项目结构
+## 📂 项目结构
 
 ```
 tech-blog/
@@ -198,7 +206,7 @@ tech-blog/
 └── README.md               # 项目说明
 ```
 
-## 可用脚本
+## 📜 可用脚本
 
 ### 开发相关
 
@@ -224,7 +232,7 @@ tech-blog/
 - `pnpm generate-icons` - 生成 PWA 图标
 - `pnpm clear-cache` - 清理缓存
 
-## 核心功能
+## 🎯 核心功能
 
 ### 全文搜索
 
@@ -285,7 +293,7 @@ tech-blog/
 - Open Graph 标签
 - 移动端优化
 
-## 部署
+## 🚢 部署
 
 ### Vercel 部署
 
@@ -321,7 +329,7 @@ NUXT_PUBLIC_COMMENTS_ENABLED=true
 NUXT_PUBLIC_ANALYTICS_ENABLED=false
 ```
 
-## 数据库
+## 🗄️ 数据库
 
 ### 表结构
 
@@ -340,7 +348,7 @@ NUXT_PUBLIC_ANALYTICS_ENABLED=false
 
 详细说明请参考 `supabase/schema.sql` 文件。
 
-## 开发指南
+## 💻 开发指南
 
 ### 环境要求
 
@@ -360,37 +368,38 @@ NUXT_PUBLIC_ANALYTICS_ENABLED=false
 
 ### GitHub OAuth 登录配置
 
-1. 在 GitHub 创建 OAuth App
-2. 在 Supabase 控制台配置 GitHub Provider
-3. 设置回调 URL
-4. 详细步骤请参考 [GitHub OAuth 设置文档](./doc/GITHUB_OAUTH_SETUP.md)
+详细步骤请参考 [GitHub OAuth 认证文档](./doc/GITHUB_AUTH.md)
 
-## 文档
+## 📚 文档
 
-更多详细文档请参考：
+### 核心功能
 
 - [技术栈文档](./doc/Nuxt3技术栈文档.md) - 详细的技术栈和架构说明
-- [Vercel 部署指南](./doc/VERCEL_DEPLOYMENT.md) - Vercel 部署配置和环境变量设置
-- [PWA 和移动端优化](./doc/PWA_MOBILE_OPTIMIZATION.md) - PWA 功能和移动端优化实现
-- [PWA 图标说明](./doc/PWA图标说明.md) - PWA 图标生成和使用说明
-- [草稿自动保存](./doc/DRAFT_AUTOSAVE.md) - 草稿自动保存功能说明
-- [热门文章功能](./doc/HOT_POSTS_USAGE.md) - 热门文章功能使用指南
-- [热门文章实现方案](./doc/HOT_POSTS_IMPLEMENTATION.md) - 热门文章完整实现方案
-- [应用层缓存实现](./doc/CACHE_IMPLEMENTATION.md) - 缓存方案设计和实现说明
-- [缓存使用示例](./doc/CACHE_USAGE_EXAMPLES.md) - 缓存 API 使用示例
 - [功能路线图](./doc/FEATURE_ROADMAP.md) - 功能规划和优先级
-- [GitHub OAuth 设置](./doc/GITHUB_OAUTH_SETUP.md) - GitHub OAuth 登录配置
-- [GitHub OAuth 故障排除](./doc/GITHUB_OAUTH_TROUBLESHOOTING.md) - GitHub 登录问题排查
-- [GitHub 登录用户创建博客](./doc/GITHUB_LOGIN_BLOG_CREATION.md) - GitHub 登录用户功能说明
-- [键盘输入优化](./doc/KEYBOARD_INPUT_OPTIMIZATION.md) - 键盘输入优化说明
-- [移动端优化建议](./doc/MOBILE_OPTIMIZATION_RECOMMENDATIONS.md) - 移动端优化建议
-- [移动端优化总结](./doc/MOBILE_OPTIMIZATION_SUMMARY.md) - 移动端优化总结
-- [触摸优化](./doc/TOUCH_OPTIMIZATION.md) - 触摸手势优化说明
+- [草稿自动保存](./doc/DRAFT_AUTOSAVE.md) - 草稿自动保存功能说明
+- [热门文章功能](./doc/HOT_POSTS.md) - 热门文章实现和使用指南
+- [缓存系统](./doc/CACHE.md) - 应用层缓存完整文档
 
-## 贡献
+### 部署和配置
+
+- [Vercel 部署指南](./doc/VERCEL_DEPLOYMENT.md) - Vercel 部署配置和环境变量设置
+- [GitHub OAuth 认证](./doc/GITHUB_AUTH.md) - GitHub OAuth 登录配置和故障排除
+
+### 移动端和优化
+
+- [移动端和 PWA](./doc/MOBILE_PWA.md) - PWA 功能和移动端优化
+- [PWA 图标说明](./doc/PWA图标说明.md) - PWA 图标生成和使用说明
+
+### 开发相关
+
+- [阅读量优化](./doc/INCREMENT_VIEW_OPTIMIZATION.md) - 阅读量 API 优化
+- [依赖升级记录](./doc/DEPENDENCY_UPGRADE_2026-01.md) - 2026年1月依赖升级日志
+- [文档整理总结](./doc/DOC_CLEANUP_SUMMARY.md) - 文档精简和整理记录
+
+## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
 
-## 许可证
+## 📄 许可证
 
 MIT
