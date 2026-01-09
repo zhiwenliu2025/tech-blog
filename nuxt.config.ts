@@ -214,6 +214,15 @@ export default defineNuxtConfig({
     },
     // 确保 Supabase 依赖被正确打包
     moduleSideEffects: ['@supabase/supabase-js'],
+    // 外部依赖 - 不打包这些模块，而是从 node_modules 加载
+    externals: {
+      inline: [
+        // 内联这些包以避免运行时错误
+        'unhead',
+        '@unhead/vue',
+        '@unhead/ssr'
+      ]
+    },
     // 压缩配置
     compressPublicAssets: true,
     // 移动端优化 - 启用 gzip 压缩
