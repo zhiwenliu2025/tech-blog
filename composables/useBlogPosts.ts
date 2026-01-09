@@ -179,6 +179,29 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
+      // 如果文章有作者ID，获取作者信息
+      if (data && data.author_id && data.author_id !== 'undefined') {
+        try {
+          const { data: authorData } = await supabase
+            .from('profiles')
+            .select('id, username, full_name, avatar_url, bio')
+            .eq('id', data.author_id)
+            .single()
+
+          // 将作者信息附加到文章数据
+          if (authorData) {
+            ;(data as any).profiles = authorData
+          }
+        } catch (authorError) {
+          // 如果获取作者信息失败，不影响文章数据返回
+          console.warn('Failed to fetch author info:', authorError)
+          ;(data as any).profiles = null
+        }
+      } else {
+        // 没有作者ID，设置为 null
+        ;(data as any).profiles = null
+      }
+
       return { data: data as BlogPostRow | null, error: null }
     } catch (err: any) {
       error.value = err.message
@@ -367,6 +390,12 @@ export const useBlogPosts = () => {
     loading.value = true
     error.value = null
 
+    // 防止查询 undefined 或无效的 ID
+    if (!authorId || authorId === 'undefined' || authorId === 'null') {
+      loading.value = false
+      return { data: null, error: 'Invalid author ID' }
+    }
+
     try {
       const { data, error: dbError } = await supabase
         .from('profiles')
@@ -376,10 +405,10 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      return data as ProfileRow | null
+      return { data: data as ProfileRow | null, error: null }
     } catch (err: any) {
       error.value = err.message
-      return null
+      return { data: null, error: err.message }
     } finally {
       loading.value = false
     }

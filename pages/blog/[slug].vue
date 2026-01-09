@@ -162,7 +162,7 @@
 
             <div class="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
               <Icon name="heroicons:eye" class="h-5 w-5" />
-              <span>{{ post.view_count || 0 }} 次阅读</span>
+              <span>{{ viewCount || 0 }} 次阅读</span>
             </div>
 
             <div class="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
@@ -370,11 +370,12 @@ const {
   checkIsAdmin,
   likePost,
   unlikePost,
-  checkIfUserLikedPost,
-  getPostLikesCount,
-  getPostCommentsCount,
-  incrementViewCount
+  checkIfUserLikedPost
 } = useBlogPosts()
+
+// 使用缓存获取统计信息
+const { getStats, incrementView } = usePostStats()
+const { invalidateLike, invalidateComment } = useCacheManager()
 
 // 状态（部分状态保留，因为需要响应式更新）
 // 状态（保留需要响应式更新的状态）
@@ -490,37 +491,23 @@ const fetchComments = async () => {
   await refreshComments()
 }
 
-// 使用 useAsyncData 缓存互动数据（点赞数和评论数）
-const { data: interactionData, refresh: refreshInteraction } = await useAsyncData(
-  `post-interaction-${slug}`,
-  async () => {
-    // 等待文章数据加载完成
-    if (!postData.value?.id) {
-      return { likesCount: 0, commentsCount: 0 }
-    }
-    const [likesResult, commentsResult] = await Promise.all([
-      getPostLikesCount(postData.value.id),
-      getPostCommentsCount(postData.value.id)
-    ])
+// 使用缓存 API 获取互动数据（点赞数和评论数）
+const likesCount = ref(0)
+const commentsCount = ref(0)
+const viewCount = ref(0)
 
-    return {
-      likesCount: likesResult.error ? 0 : likesResult.count || 0,
-      commentsCount: commentsResult.error ? 0 : commentsResult.count || 0
-    }
-  },
-  {
-    default: () => ({ likesCount: 0, commentsCount: 0 }),
-    server: true,
-    watch: [() => postData.value?.id] // 当文章ID变化时自动刷新
-  }
-)
-
-const likesCount = computed(() => interactionData.value?.likesCount || 0)
-const commentsCount = computed(() => interactionData.value?.commentsCount || 0)
-
-// 获取互动数据（保留用于手动刷新）
+// 获取统计数据（从缓存）
 const fetchInteractionCounts = async () => {
-  await refreshInteraction()
+  if (!postData.value?.id) return
+
+  try {
+    const stats = await getStats(postData.value.id)
+    likesCount.value = stats.likeCount || 0
+    commentsCount.value = stats.commentCount || 0
+    viewCount.value = stats.viewCount || 0
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+  }
 }
 
 // 检查点赞状态
@@ -550,8 +537,9 @@ const submitComment = async () => {
 
     if (!result.error) {
       newComment.value = ''
-      // 刷新评论和互动数据
-      await Promise.all([refreshComments(), refreshInteraction()])
+      // 清除缓存并刷新数据
+      await invalidateComment(postData.value.id)
+      await Promise.all([refreshComments(), fetchInteractionCounts()])
     }
   } catch (err) {
     console.error('发表评论失败:', err)
@@ -594,8 +582,11 @@ const handleDeleteComment = async (commentId: string) => {
   try {
     const result = await deleteComment(commentId)
     if (!result.error) {
-      // 刷新评论和互动数据
-      await Promise.all([refreshComments(), refreshInteraction()])
+      // 清除缓存并刷新数据
+      if (postData.value?.id) {
+        await invalidateComment(postData.value.id)
+      }
+      await Promise.all([refreshComments(), fetchInteractionCounts()])
     } else {
       alert('删除评论失败：' + result.error)
     }
@@ -620,15 +611,17 @@ const toggleLike = async () => {
       result = await unlikePost(user.value.sub, postData.value.id)
       if (!result.error) {
         isLiked.value = false
-        // 刷新互动数据
-        await refreshInteraction()
+        // 清除缓存并刷新数据
+        await invalidateLike(postData.value.id)
+        await fetchInteractionCounts()
       }
     } else {
       result = await likePost(user.value.sub, postData.value.id)
       if (!result.error) {
         isLiked.value = true
-        // 刷新互动数据
-        await refreshInteraction()
+        // 清除缓存并刷新数据
+        await invalidateLike(postData.value.id)
+        await fetchInteractionCounts()
       }
     }
   } catch (err) {
@@ -704,13 +697,17 @@ useHead(() => ({
 watch(
   () => postData.value?.id,
   async postId => {
-    if (postId && user.value) {
-      await checkLikeStatus()
-      await checkAdminStatus()
-    }
-    // 增加阅读量
     if (postId) {
-      await incrementViewCount(postId)
+      // 增加阅读量（使用缓存API）
+      await incrementView(postId)
+
+      // 获取统计数据（从缓存）
+      await fetchInteractionCounts()
+
+      if (user.value) {
+        await checkLikeStatus()
+        await checkAdminStatus()
+      }
     }
   },
   { immediate: true }

@@ -254,19 +254,15 @@ const router = useRouter()
 const currentPage = ref(parseInt((route.query.page as string) || '1'))
 const postsPerPage = 5
 
-const { fetchPosts, fetchCategories, fetchTags } = useBlogPosts()
+const { fetchCategories, fetchTags } = useBlogPosts()
 
-// 使用 useAsyncData 缓存文章列表（获取所有文章用于分页）
+// 使用缓存版本的文章列表
 const {
-  data: postsData,
-  pending: postsPending,
+  posts: cachedPosts,
+  loading: postsLoading,
   error: postsError,
-  refresh: refreshPosts
-} = await useAsyncData('home-posts', () => fetchPosts({ page: 1, pageSize: 100 }), {
-  default: () => [],
-  // 服务端和客户端都缓存
-  server: true
-})
+  fetchPosts
+} = useCachedPostsList()
 
 // 使用 useAsyncData 缓存分类列表（分类变化不频繁，可以长时间缓存）
 const { data: categoriesData, pending: categoriesPending } = await useAsyncData(
@@ -290,15 +286,24 @@ const { data: tagsData, pending: tagsPending } = await useAsyncData(
 
 // 计算属性，提供响应式数据
 const posts = computed(() => {
-  const data = postsData.value
-  return Array.isArray(data) ? data : []
+  return Array.isArray(cachedPosts.value) ? cachedPosts.value : []
 }) as ComputedRef<Array<any>>
 const categories = computed(() => categoriesData.value || [])
 const tags = computed(() => tagsData.value || [])
-const loading = computed(() => postsPending.value)
+const loading = computed(() => postsLoading.value)
 const error = computed(() => postsError.value)
 const categoriesLoading = computed(() => categoriesPending.value)
 const tagsLoading = computed(() => tagsPending.value)
+
+// 刷新文章（使用缓存API）
+const refreshPosts = async () => {
+  await fetchPosts({ page: 1, limit: 100 })
+}
+
+// 初始加载文章
+onMounted(async () => {
+  await refreshPosts()
+})
 
 // 分页计算属性
 const totalPages = computed(() => {

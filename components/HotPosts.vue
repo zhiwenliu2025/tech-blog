@@ -128,11 +128,12 @@ const props = withDefaults(defineProps<Props>(), {
   useDecay: true
 })
 
-const { fetchHotPosts, hotPosts, loading, error } = useHotPosts()
+// 使用缓存版本的热门文章 composable
+const { posts: hotPosts, loading, error, fetchHotPosts } = useCachedHotPosts()
 
-// 组件挂载时获取热门文章
+// 组件挂载时获取热门文章（通过缓存API）
 onMounted(async () => {
-  await fetchHotPosts(props.limit, props.days, props.useDecay)
+  await fetchHotPosts(props.limit, props.days)
 })
 
 // 获取排名样式

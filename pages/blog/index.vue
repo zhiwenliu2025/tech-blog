@@ -330,68 +330,17 @@ const postsPerPage = 9
 const isFilterExpanded = ref(false)
 
 // 获取博客文章及分类、标签
-const { getPostsWithPagination, fetchCategories, fetchTags } = useBlogPosts()
-const { fetchPostsSortedByHot } = useHotPosts()
+const { fetchCategories, fetchTags } = useBlogPosts()
 
-// 使用 useAsyncData 进行服务端分页
-// 使用 computed 生成动态的查询键
-const queryKey = computed(() => {
-  return `blog-posts-${currentPage.value}-${selectedCategory.value}-${selectedTag.value}-${searchQuery.value}-${sortBy.value}`
-})
-
+// 使用缓存版本的文章列表
 const {
-  data: postsData,
-  pending: postsPending,
-  error: postsError,
-  refresh: refreshPosts
-} = await useAsyncData(
-  () => queryKey.value,
-  async () => {
-    // 如果是热度排序，使用热度排序函数
-    if (sortBy.value === 'hot') {
-      const result = await fetchPostsSortedByHot(currentPage.value, postsPerPage, true)
-
-      // 如果有分类或标签筛选，需要在客户端过滤
-      let filteredData = result.data
-      if (selectedCategory.value) {
-        filteredData = filteredData.filter(post => post.category === selectedCategory.value)
-      }
-      if (selectedTag.value) {
-        filteredData = filteredData.filter(post => post.tags?.includes(selectedTag.value))
-      }
-      if (searchQuery.value) {
-        const query = searchQuery.value.toLowerCase()
-        filteredData = filteredData.filter(
-          post =>
-            post.title.toLowerCase().includes(query) ||
-            post.excerpt?.toLowerCase().includes(query) ||
-            post.content.toLowerCase().includes(query)
-        )
-      }
-
-      return {
-        data: filteredData,
-        count: filteredData.length,
-        error: null
-      }
-    }
-
-    // 其他排序使用原有的分页函数
-    return getPostsWithPagination({
-      page: currentPage.value,
-      pageSize: postsPerPage,
-      category: selectedCategory.value || null,
-      tag: selectedTag.value || null,
-      searchQuery: searchQuery.value || null,
-      sortBy: sortBy.value as 'created_at' | 'updated_at' | 'title' | 'view_count'
-    })
-  },
-  {
-    default: () => ({ data: [], count: 0, error: null }),
-    server: true,
-    watch: [currentPage, selectedCategory, selectedTag, searchQuery, sortBy]
-  }
-)
+  posts: cachedPosts,
+  total,
+  totalPages: cachedTotalPages,
+  loading,
+  error: cachedError,
+  fetchPosts
+} = useCachedPostsList()
 
 // 使用 useAsyncData 缓存分类列表（与首页保持一致，实现稳定）
 const { data: categoriesData } = await useAsyncData('blog-categories', () => fetchCategories(), {
@@ -405,6 +354,9 @@ const { data: tagsData } = await useAsyncData('blog-tags', () => fetchTags(), {
   server: true
 })
 
+const categories = computed<string[]>(() => (categoriesData.value as string[]) || [])
+const tags = computed<string[]>(() => (tagsData.value as string[]) || [])
+
 // 从缓存数据中提取实际数据
 import type { BlogPost } from '~/types/blog'
 
@@ -414,37 +366,25 @@ interface BlogPostWithCounts extends BlogPost {
   comments_count?: number
 }
 
-// 服务端分页：直接使用返回的数据
+// 使用缓存API的数据
 const paginatedPosts = computed<BlogPostWithCounts[]>(() => {
-  if (postsData.value?.error) {
-    return []
-  }
-  return (postsData.value?.data as BlogPostWithCounts[]) || []
+  return (cachedPosts.value as BlogPostWithCounts[]) || []
 })
 
-// 总记录数（来自服务端）
+// 总记录数（来自缓存API）
 const totalCount = computed(() => {
-  return postsData.value?.count || 0
+  return total.value || 0
 })
 
-// 总页数
+// 总页数（来自缓存API）
 const totalPages = computed(() => {
-  return Math.ceil(totalCount.value / postsPerPage)
+  return cachedTotalPages.value || 0
 })
 
-const categories = computed<string[]>(() => (categoriesData.value as string[]) || [])
-
-const tags = computed<string[]>(() => (tagsData.value as string[]) || [])
-
-const loading = computed(() => postsPending.value)
-const error = computed(() => {
-  if (postsData.value?.error) {
-    return postsData.value.error
-  }
-  return postsError.value
+// 初始加载文章
+onMounted(async () => {
+  await loadPosts()
 })
-
-// 检查是否有活动的筛选条件
 const hasActiveFilters = computed(() => {
   return !!(
     selectedCategory.value ||
@@ -475,9 +415,15 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// 方法 - 刷新文章数据
+// 方法 - 刷新文章数据（使用缓存API）
 const loadPosts = async () => {
-  await refreshPosts()
+  await fetchPosts({
+    page: currentPage.value,
+    limit: postsPerPage,
+    category: selectedCategory.value || undefined,
+    tag: selectedTag.value || undefined,
+    published: true
+  })
 }
 
 const goToPage = (page: number) => {
@@ -526,12 +472,12 @@ const updateQueryParams = () => {
 watch([selectedCategory, selectedTag, sortBy, searchQuery], () => {
   currentPage.value = 1
   updateQueryParams()
+  loadPosts()
 })
 
 // 监听页码变化，更新URL参数
 watch(currentPage, () => {
   updateQueryParams()
+  loadPosts()
 })
-
-// 监听查询参数变化，自动刷新数据（useAsyncData 的 watch 会自动处理）
 </script>

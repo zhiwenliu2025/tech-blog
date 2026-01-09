@@ -222,7 +222,7 @@ const loadAuthorProfile = async () => {
     error.value = result.error
     return
   }
-  author.value = result
+  author.value = result.data
 }
 
 const loadPosts = async (page: number) => {

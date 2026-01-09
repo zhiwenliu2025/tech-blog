@@ -17,6 +17,7 @@
 - 📱 响应式设计
 - 🔒 行级安全策略（RLS）
 - ⚡ 高性能搜索索引（自动维护）
+- 💾 应用层缓存（LRU 缓存，减少 80% 数据库查询）
 - 📲 PWA 支持（可安装、离线访问）
 - 🎯 移动端优化（触摸优化、安全区域适配）
 - 💾 草稿自动保存（本地存储，防止内容丢失）
@@ -375,6 +376,8 @@ NUXT_PUBLIC_ANALYTICS_ENABLED=false
 - [草稿自动保存](./doc/DRAFT_AUTOSAVE.md) - 草稿自动保存功能说明
 - [热门文章功能](./doc/HOT_POSTS_USAGE.md) - 热门文章功能使用指南
 - [热门文章实现方案](./doc/HOT_POSTS_IMPLEMENTATION.md) - 热门文章完整实现方案
+- [应用层缓存实现](./doc/CACHE_IMPLEMENTATION.md) - 缓存方案设计和实现说明
+- [缓存使用示例](./doc/CACHE_USAGE_EXAMPLES.md) - 缓存 API 使用示例
 - [功能路线图](./doc/FEATURE_ROADMAP.md) - 功能规划和优先级
 - [GitHub OAuth 设置](./doc/GITHUB_OAUTH_SETUP.md) - GitHub OAuth 登录配置
 - [GitHub OAuth 故障排除](./doc/GITHUB_OAUTH_TROUBLESHOOTING.md) - GitHub 登录问题排查
