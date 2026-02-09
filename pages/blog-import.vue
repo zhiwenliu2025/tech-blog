@@ -235,17 +235,32 @@
             class="rounded-lg bg-white p-6 shadow dark:bg-gray-800"
           >
             <h3 class="mb-3 text-lg font-semibold text-gray-900 dark:text-white">图片导入</h3>
-            <div class="flex items-center gap-4 text-sm">
+            <div class="flex flex-wrap items-center gap-4 text-sm">
               <span class="text-gray-600 dark:text-gray-400">
                 共 {{ result.images.total }} 张图片
               </span>
               <span class="text-green-600 dark:text-green-400">
                 {{ result.images.success }} 张成功
               </span>
+              <span v-if="result.images.duplicates > 0" class="text-blue-600 dark:text-blue-400">
+                {{ result.images.duplicates }} 张去重（已存在）
+              </span>
               <span v-if="result.images.failed.length > 0" class="text-red-600 dark:text-red-400">
                 {{ result.images.failed.length }} 张失败
               </span>
             </div>
+            <!-- Duplicate info -->
+            <div
+              v-if="result.images.duplicates > 0"
+              class="mt-3 rounded-md bg-blue-50 p-3 dark:bg-blue-900/20"
+            >
+              <p class="text-sm text-blue-800 dark:text-blue-300">
+                <Icon name="i-heroicons-information-circle" class="mr-1 inline h-4 w-4" />
+                检测到
+                {{ result.images.duplicates }} 张重复图片，已自动使用之前上传的版本，节省存储空间。
+              </p>
+            </div>
+            <!-- Failed images -->
             <div
               v-if="result.images.failed.length > 0"
               class="mt-3 rounded-md bg-yellow-50 p-3 dark:bg-yellow-900/20"

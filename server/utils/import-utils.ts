@@ -6,6 +6,7 @@ export interface ImageReport {
   total: number
   success: number
   failed: string[]
+  duplicates: number // 重复图片数量
 }
 
 export interface ImportResult {
@@ -171,13 +172,14 @@ export function resolveLazyImageSrc(element: Element): string | null {
 
 /**
  * Download a single image and upload to Supabase Storage
+ * Checks for duplicate images based on content hash
  */
 async function processImage(
   imageUrl: string,
   sourceHost: string,
   userId: string,
   supabase: SupabaseClient
-): Promise<{ success: boolean; newUrl?: string; error?: string }> {
+): Promise<{ success: boolean; newUrl?: string; error?: string; isDuplicate?: boolean }> {
   try {
     // Download image with appropriate headers
     const controller = new AbortController()
@@ -227,31 +229,65 @@ async function processImage(
       return { success: false, error: `图片过大: ${(buffer.length / 1024 / 1024).toFixed(1)}MB` }
     }
 
-    // Generate file path
+    // Calculate MD5 hash for duplicate detection
+    const crypto = await import('crypto')
+    const hash = crypto.createHash('md5').update(buffer).digest('hex')
     const ext = getImageExtension(imageUrl, contentType)
-    const timestamp = Date.now()
-    const random = Math.random().toString(36).substring(2, 9)
-    const filePath = `${userId}/imported/${timestamp}-${random}.${ext}`
 
-    // Upload to Supabase Storage
+    // Check if this image already exists (by hash)
+    const hashFilePath = `${userId}/imported/hash-${hash}.${ext}`
+
+    // Try to get existing image URL
+    const { data: existingFiles } = await supabase.storage
+      .from('blog-images')
+      .list(`${userId}/imported`, {
+        search: `hash-${hash}`
+      })
+
+    if (existingFiles && existingFiles.length > 0) {
+      // Image already exists, return existing URL
+      const existingFile = existingFiles[0]
+      const {
+        data: { publicUrl }
+      } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(`${userId}/imported/${existingFile.name}`)
+
+      console.log(`[图片去重] 检测到重复图片，使用已存在的: ${existingFile.name}`)
+      return { success: true, newUrl: publicUrl, isDuplicate: true }
+    }
+
+    // No duplicate found, upload new image with hash-based filename
     const { error: uploadError } = await supabase.storage
       .from('blog-images')
-      .upload(filePath, buffer, {
+      .upload(hashFilePath, buffer, {
         contentType: contentType.split(';')[0]?.trim() ?? 'image/jpeg',
         cacheControl: '3600',
         upsert: false
       })
 
     if (uploadError) {
+      // If file already exists (race condition), try to get it
+      if (
+        uploadError.message.includes('already exists') ||
+        uploadError.message.includes('duplicate')
+      ) {
+        const {
+          data: { publicUrl }
+        } = supabase.storage.from('blog-images').getPublicUrl(hashFilePath)
+        console.log(`[图片去重] 上传时检测到重复，使用已存在的`)
+        return { success: true, newUrl: publicUrl, isDuplicate: true }
+      }
       return { success: false, error: `上传失败: ${uploadError.message}` }
     }
 
     // Get public URL
     const {
       data: { publicUrl }
-    } = supabase.storage.from('blog-images').getPublicUrl(filePath)
+    } = supabase.storage.from('blog-images').getPublicUrl(hashFilePath)
 
-    return { success: true, newUrl: publicUrl }
+    console.log(`[图片上传] 新图片上传成功: ${hashFilePath}`)
+    return { success: true, newUrl: publicUrl, isDuplicate: false }
   } catch (err: any) {
     return { success: false, error: err.message || '未知错误' }
   }
@@ -298,7 +334,8 @@ export async function processAllImages(
   const report: ImageReport = {
     total: images.length,
     success: 0,
-    failed: []
+    failed: [],
+    duplicates: 0
   }
 
   if (images.length === 0) {
@@ -324,6 +361,10 @@ export async function processAllImages(
         // Replace URL in markdown
         content = content.replace(img.fullMatch, `![${img.alt}](${result.newUrl})`)
         report.success++
+        // Count duplicates
+        if (result.isDuplicate) {
+          report.duplicates++
+        }
       } else {
         report.failed.push(img.url)
         console.warn(`图片下载失败 [${img.url}]: ${result.error}`)
