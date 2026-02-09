@@ -49,7 +49,15 @@ export function useImport() {
     try {
       const user = useSupabaseUser()
       if (!user.value) {
+        console.error('[useImport] saveAsPost failed: user not logged in')
         throw new Error('请先登录')
+      }
+
+      // 获取用户ID（兼容 id 和 sub 属性）
+      const userId = user.value.id || user.value.sub
+      if (!userId) {
+        console.error('[useImport] saveAsPost failed: unable to get user id')
+        throw new Error('无法获取用户ID')
       }
 
       const { savePost } = useBlogPosts()
@@ -63,6 +71,15 @@ export function useImport() {
           .replace(/-+/g, '-')
           .trim() || `imported-${Date.now()}`
 
+      console.log('[useImport] saveAsPost: saving post', {
+        title: options.title,
+        slug,
+        category: options.category,
+        tags: options.tags,
+        published: options.published,
+        userId
+      })
+
       const { data, error: saveError } = await savePost({
         title: options.title,
         slug,
@@ -72,16 +89,19 @@ export function useImport() {
         category: options.category || null,
         tags: options.tags.length > 0 ? options.tags : null,
         published: options.published,
-        author_id: user.value.id
+        author_id: userId
       })
 
       if (saveError) {
+        console.error('[useImport] saveAsPost failed: savePost returned error', saveError)
         throw new Error(saveError)
       }
 
       const savedSlug = (data as any)?.[0]?.slug || slug
+      console.log('[useImport] saveAsPost success, slug:', savedSlug)
       return { slug: savedSlug, error: null }
     } catch (err: any) {
+      console.error('[useImport] saveAsPost error:', err.message, err)
       error.value = err.message
       return { slug: null, error: err.message }
     } finally {
