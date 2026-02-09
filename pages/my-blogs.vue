@@ -8,13 +8,22 @@
               <h1 class="text-3xl font-bold text-gray-900 dark:text-white">我的博客</h1>
               <p class="mt-2 text-gray-600 dark:text-gray-400">管理您创建的博客文章</p>
             </div>
-            <NuxtLink
-              to="/blog/create"
-              class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              <Icon name="i-heroicons-plus" class="mr-2 h-4 w-4" />
-              新建文章
-            </NuxtLink>
+            <div class="flex gap-2">
+              <NuxtLink
+                to="/blog-import"
+                class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                <Icon name="i-heroicons-arrow-down-tray" class="mr-2 h-4 w-4" />
+                导入文章
+              </NuxtLink>
+              <NuxtLink
+                to="/blog/create"
+                class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <Icon name="i-heroicons-plus" class="mr-2 h-4 w-4" />
+                新建文章
+              </NuxtLink>
+            </div>
           </div>
         </div>
 
