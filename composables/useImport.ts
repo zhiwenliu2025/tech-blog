@@ -42,7 +42,7 @@ export function useImport() {
     tags: string[]
     coverImage: string | null
     published: boolean
-  }): Promise<{ slug: string | null; error: string | null }> {
+  }): Promise<{ slug: string | null; id: string | null; error: string | null }> {
     step.value = 'saving'
     loading.value = true
 
@@ -98,12 +98,19 @@ export function useImport() {
       }
 
       const savedSlug = (data as any)?.[0]?.slug || slug
-      console.log('[useImport] saveAsPost success, slug:', savedSlug)
-      return { slug: savedSlug, error: null }
+      const savedId = (data as any)?.[0]?.id || null
+      console.log('[useImport] saveAsPost success, full data:', data)
+      console.log('[useImport] saveAsPost success, slug:', savedSlug, 'id:', savedId)
+
+      if (!savedId) {
+        console.warn('[useImport] Warning: savedId is null, data:', data)
+      }
+
+      return { slug: savedSlug, id: savedId, error: null }
     } catch (err: any) {
       console.error('[useImport] saveAsPost error:', err.message, err)
       error.value = err.message
-      return { slug: null, error: err.message }
+      return { slug: null, id: null, error: err.message }
     } finally {
       loading.value = false
     }

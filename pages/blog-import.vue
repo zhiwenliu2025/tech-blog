@@ -321,25 +321,43 @@
           </div>
 
           <!-- Action buttons -->
-          <div class="flex flex-col gap-3 sm:flex-row">
+          <div class="flex flex-col gap-3">
+            <!-- 主要操作按钮 -->
+            <div class="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                :disabled="loading || !editForm.title"
+                class="inline-flex flex-1 items-center justify-center rounded-md bg-green-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                @click="handleSave(true)"
+              >
+                <Icon
+                  v-if="loading"
+                  name="i-heroicons-arrow-path"
+                  class="mr-2 h-4 w-4 animate-spin"
+                />
+                <Icon v-else name="i-heroicons-rocket-launch" class="mr-2 h-4 w-4" />
+                {{ loading ? '发布中...' : '立即发布' }}
+              </button>
+              <button
+                type="button"
+                :disabled="loading || !editForm.title"
+                class="inline-flex flex-1 items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                @click="handleSave(false)"
+              >
+                <Icon
+                  v-if="loading"
+                  name="i-heroicons-arrow-path"
+                  class="mr-2 h-4 w-4 animate-spin"
+                />
+                <Icon v-else name="i-heroicons-document" class="mr-2 h-4 w-4" />
+                {{ loading ? '保存中...' : '保存为草稿' }}
+              </button>
+            </div>
+            <!-- 次要操作按钮 -->
             <button
               type="button"
               :disabled="loading || !editForm.title"
-              class="inline-flex flex-1 items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              @click="handleSave(false)"
-            >
-              <Icon
-                v-if="loading"
-                name="i-heroicons-arrow-path"
-                class="mr-2 h-4 w-4 animate-spin"
-              />
-              <Icon v-else name="i-heroicons-document" class="mr-2 h-4 w-4" />
-              {{ loading ? '保存中...' : '保存为草稿' }}
-            </button>
-            <button
-              type="button"
-              :disabled="loading || !editForm.title"
-              class="inline-flex flex-1 items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              class="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
               @click="handleOpenInEditor"
             >
               <Icon name="i-heroicons-pencil-square" class="mr-2 h-4 w-4" />
@@ -481,7 +499,7 @@ async function handleSave(published: boolean) {
 
 // Handle open in editor (save as draft first, then redirect to editor)
 async function handleOpenInEditor() {
-  const { id, error } = await saveAsPost({
+  const { id, slug, error } = await saveAsPost({
     title: editForm.title,
     content: editForm.content,
     excerpt: editForm.excerpt,
@@ -491,18 +509,22 @@ async function handleOpenInEditor() {
     published: false
   })
 
+  console.log('[handleOpenInEditor] saveAsPost result:', { id, slug, error })
+
   if (error) {
     toast.error('保存失败', error)
     return
   }
 
-  toast.success('已保存为草稿', '正在跳转到编辑器...')
-
-  if (id) {
-    await navigateTo(`/blog/edit/${id}`)
-  } else {
-    await navigateTo('/my-blogs')
+  if (!id) {
+    console.error('[handleOpenInEditor] No id returned from saveAsPost, slug:', slug)
+    toast.error('保存失败', '无法获取文章ID')
+    return
   }
+
+  toast.success('已保存为草稿', '正在跳转到编辑器...')
+  console.log('[handleOpenInEditor] Navigating to:', `/blog/edit/${id}`)
+  await navigateTo(`/blog/edit/${id}`)
 }
 
 // Reset everything
