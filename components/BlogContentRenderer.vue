@@ -64,16 +64,38 @@ const md = new MarkdownIt({
   }
 })
 
-// 检测内容类型（简单检测：如果包含 HTML 标签，则认为是 HTML）
+// 检测内容类型（改进的检测：区分 markdown 和 HTML）
 const detectContentType = (content: string): 'html' | 'markdown' => {
   if (!content) return 'markdown'
 
-  // 简单的检测：如果包含 HTML 标签，则认为是 HTML
-  const htmlTagPattern = /<[a-z][\s\S]*>/i
-  if (htmlTagPattern.test(content)) {
+  // 检测 markdown 特征
+  const markdownPatterns = [
+    /^#{1,6}\s/m, // 标题
+    /^\*\*.*\*\*/, // 粗体
+    /^\*.*\*(?!\*)/, // 斜体
+    /^\[.*\]\(.*\)/, // 链接
+    /^!\[.*\]\(.*\)/, // 图片
+    /^```/m, // 代码块
+    /^>\s/m, // 引用
+    /^[-*+]\s/m, // 无序列表
+    /^\d+\.\s/m // 有序列表
+  ]
+
+  // 如果匹配任何 markdown 特征，认为是 markdown
+  const hasMarkdownFeatures = markdownPatterns.some(pattern => pattern.test(content))
+
+  if (hasMarkdownFeatures) {
+    return 'markdown'
+  }
+
+  // 检测 HTML 标签（更严格的检测）
+  // 只有当包含完整的 HTML 结构标签时才认为是 HTML
+  const htmlStructurePattern = /<(p|div|h[1-6]|ul|ol|li|blockquote|pre|table|article|section)[\s>]/i
+  if (htmlStructurePattern.test(content)) {
     return 'html'
   }
 
+  // 默认返回 markdown
   return 'markdown'
 }
 
