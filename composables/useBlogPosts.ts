@@ -466,6 +466,7 @@ export const useBlogPosts = () => {
     try {
       let result
       let savedSlug = post.slug
+      let postId = post.id
 
       if (post.id) {
         // Update existing post - 需要获取旧的 slug 和发布状态来清除缓存
@@ -545,9 +546,10 @@ export const useBlogPosts = () => {
         if (dbError) throw dbError
         result = data as BlogPostRow[] | null
         savedSlug = (data as BlogPostRow[])?.[0]?.slug
+        postId = (data as BlogPostRow[])?.[0]?.id
       }
 
-      // 清除列表相关缓存
+      // 清除客户端列表相关缓存
       await clearNuxtData('home-posts')
       await clearNuxtData('blog-all-posts')
       await clearNuxtData('blog-categories')
@@ -555,6 +557,20 @@ export const useBlogPosts = () => {
       // 清除所有分类页缓存（因为可能有新文章）
       if (post.category) {
         await clearNuxtData(`posts-${post.category}`)
+      }
+
+      // 清除服务端缓存
+      try {
+        await $fetch('/api/cache/invalidate', {
+          method: 'POST',
+          body: {
+            type: 'post',
+            postId: postId
+          }
+        })
+      } catch (cacheError) {
+        console.warn('Failed to invalidate server cache:', cacheError)
+        // 不中断操作流程
       }
 
       return { data: result, error: null }
@@ -585,7 +601,7 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      // 清除相关缓存
+      // 清除客户端相关缓存
       if (postData?.slug) {
         await clearNuxtData(`post-${postData.slug}`)
         await clearNuxtData(`post-comments-${postData.slug}`)
@@ -599,6 +615,20 @@ export const useBlogPosts = () => {
       // 清除分类页缓存
       if (postData?.category) {
         await clearNuxtData(`posts-${postData.category}`)
+      }
+
+      // 清除服务端缓存
+      try {
+        await $fetch('/api/cache/invalidate', {
+          method: 'POST',
+          body: {
+            type: 'post',
+            postId: id
+          }
+        })
+      } catch (cacheError) {
+        console.warn('Failed to invalidate server cache:', cacheError)
+        // 不中断操作流程
       }
 
       return { error: null }
@@ -694,6 +724,19 @@ export const useBlogPosts = () => {
         await clearNuxtData(`post-interaction-${postData.slug}`)
       }
 
+      // 清除服务端缓存
+      try {
+        await $fetch('/api/cache/invalidate', {
+          method: 'POST',
+          body: {
+            type: 'like',
+            postId: postId
+          }
+        })
+      } catch (cacheError) {
+        console.warn('Failed to invalidate server cache:', cacheError)
+      }
+
       return { data: data as LikeRow | null, error: null }
     } catch (err: any) {
       // If error is about unique constraint, the user already liked this post
@@ -727,6 +770,19 @@ export const useBlogPosts = () => {
       // 清除互动数据缓存
       if (postData?.slug) {
         await clearNuxtData(`post-interaction-${postData.slug}`)
+      }
+
+      // 清除服务端缓存
+      try {
+        await $fetch('/api/cache/invalidate', {
+          method: 'POST',
+          body: {
+            type: 'like',
+            postId: postId
+          }
+        })
+      } catch (cacheError) {
+        console.warn('Failed to invalidate server cache:', cacheError)
       }
 
       return { data: null, error: null }
@@ -882,6 +938,19 @@ export const useBlogPosts = () => {
         await clearNuxtData(`post-interaction-${postData.slug}`)
       }
 
+      // 清除服务端缓存
+      try {
+        await $fetch('/api/cache/invalidate', {
+          method: 'POST',
+          body: {
+            type: 'comment',
+            postId: comment.post_id
+          }
+        })
+      } catch (cacheError) {
+        console.warn('Failed to invalidate server cache:', cacheError)
+      }
+
       return { data: data as CommentRow | null, error: null }
     } catch (err: any) {
       return { data: null, error: err.message }
@@ -917,6 +986,19 @@ export const useBlogPosts = () => {
         if (postData?.slug) {
           await clearNuxtData(`post-comments-${postData.slug}`)
           await clearNuxtData(`post-interaction-${postData.slug}`)
+        }
+
+        // 清除服务端缓存
+        try {
+          await $fetch('/api/cache/invalidate', {
+            method: 'POST',
+            body: {
+              type: 'comment',
+              postId: commentData.post_id
+            }
+          })
+        } catch (cacheError) {
+          console.warn('Failed to invalidate server cache:', cacheError)
         }
       }
 
