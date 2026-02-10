@@ -12,6 +12,7 @@ export interface Database {
           excerpt: string
           cover_image: string | null
           published: boolean
+          published_at: string | null
           created_at: string
           updated_at: string
           author_id: string
@@ -28,6 +29,7 @@ export interface Database {
           excerpt?: string
           cover_image?: string | null
           published?: boolean
+          published_at?: string | null
           created_at?: string
           updated_at?: string
           author_id: string
@@ -44,6 +46,7 @@ export interface Database {
           excerpt?: string
           cover_image?: string | null
           published?: boolean
+          published_at?: string | null
           created_at?: string
           updated_at?: string
           author_id?: string

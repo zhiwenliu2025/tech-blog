@@ -468,14 +468,17 @@ export const useBlogPosts = () => {
       let savedSlug = post.slug
 
       if (post.id) {
-        // Update existing post - 需要获取旧的 slug 来清除缓存
+        // Update existing post - 需要获取旧的 slug 和发布状态来清除缓存
         const { data: oldPost } = await supabase
           .from('blog_posts')
-          .select('slug')
+          .select('slug, published, published_at')
           .eq('id', post.id)
           .single()
 
-        const oldPostData = oldPost as Pick<BlogPostRow, 'slug'> | null
+        const oldPostData = oldPost as Pick<
+          BlogPostRow,
+          'slug' | 'published' | 'published_at'
+        > | null
 
         // Update existing post
         const updateData: Database['public']['Tables']['blog_posts']['Update'] = {
@@ -488,6 +491,11 @@ export const useBlogPosts = () => {
           tags: post.tags,
           published: post.published,
           updated_at: new Date().toISOString()
+        }
+
+        // 如果文章从未发布状态变为发布状态，设置 published_at 为当前时间
+        if (post.published && !oldPostData?.published) {
+          updateData.published_at = new Date().toISOString()
         }
 
         const { data, error: dbError } = await (supabase.from('blog_posts') as any)
@@ -523,6 +531,11 @@ export const useBlogPosts = () => {
           author_id: post.author_id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
+        }
+
+        // 如果创建时就是发布状态，设置 published_at 为当前时间
+        if (post.published) {
+          insertData.published_at = new Date().toISOString()
         }
 
         const { data, error: dbError } = await (supabase.from('blog_posts') as any)

@@ -327,6 +327,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to handle published_at timestamp when post is published
+CREATE OR REPLACE FUNCTION handle_published_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- 如果文章从未发布变为已发布，且 published_at 为空，则设置为当前时间
+  IF NEW.published = true AND (OLD.published = false OR OLD.published IS NULL) AND NEW.published_at IS NULL THEN
+    NEW.published_at = NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Function to increment view count
 CREATE OR REPLACE FUNCTION increment_view_count(post_id UUID)
 RETURNS VOID AS $$
@@ -345,6 +357,12 @@ DROP TRIGGER IF EXISTS handle_blog_posts_updated_at ON blog_posts;
 CREATE TRIGGER handle_blog_posts_updated_at
   BEFORE UPDATE ON blog_posts
   FOR EACH ROW EXECUTE FUNCTION handle_updated_at();
+
+-- Trigger for published_at
+DROP TRIGGER IF EXISTS handle_blog_posts_published_at ON blog_posts;
+CREATE TRIGGER handle_blog_posts_published_at
+  BEFORE INSERT OR UPDATE ON blog_posts
+  FOR EACH ROW EXECUTE FUNCTION handle_published_at();
 
 DROP TRIGGER IF EXISTS handle_profiles_updated_at ON profiles;
 CREATE TRIGGER handle_profiles_updated_at
