@@ -53,8 +53,8 @@ importers:
         specifier: ^11.11.1
         version: 11.11.1
       jsdom:
-        specifier: ^28.0.0
-        version: 28.0.0
+        specifier: ^27.0.0
+        version: 27.4.0
       lru-cache:
         specifier: ^11.2.4
         version: 11.2.5
@@ -108,8 +108,8 @@ importers:
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@3.4.19(tsx@4.21.0)(yaml@2.8.2))
       '@types/jsdom':
-        specifier: ^27.0.0
-        version: 27.0.0
+        specifier: ^21.1.7
+        version: 21.1.7
       '@types/markdown-it':
         specifier: ^14.1.2
         version: 14.1.2
@@ -4285,10 +4285,10 @@ packages:
         integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==
       }
 
-  '@types/jsdom@27.0.0':
+  '@types/jsdom@21.1.7':
     resolution:
       {
-        integrity: sha512-NZyFl/PViwKzdEkQg96gtnB8wm+1ljhdDay9ahn4hgb+SfVtPCbm3TlmDUFXTA+MGN3CijicnMhG18SI5H3rFw==
+        integrity: sha512-yOriVnggzrnQ3a9OKOCxaVuSug3w3/SbOj5i7VwXWZEyUNl3bLF9V3MfxGbZKuwqJOQyRfqXyROBB1CoZLFWzA==
       }
 
   '@types/json-schema@7.0.15':
@@ -6026,12 +6026,12 @@ packages:
       }
     engines: { node: '>=12' }
 
-  data-urls@7.0.0:
+  data-urls@6.0.1:
     resolution:
       {
-        integrity: sha512-23XHcCF+coGYevirZceTVD7NdJOqVn+49IHyxgszm+JIiHLoB2TkmPtsYkNWT1pvRSGkc35L6NHs0yHkN2SumA==
+        integrity: sha512-euIQENZg6x8mj3fO6o9+fOW8MimUI4PpD/fZBhJfeioZVy9TUpM4UY7KjQNVZFlqwJ0UdzRDzkycB997HEq1BQ==
       }
-    engines: { node: ^20.19.0 || ^22.12.0 || >=24.0.0 }
+    engines: { node: '>=20' }
 
   data-view-buffer@1.0.2:
     resolution:
@@ -8040,10 +8040,10 @@ packages:
       }
     engines: { node: '>=20.0.0' }
 
-  jsdom@28.0.0:
+  jsdom@27.4.0:
     resolution:
       {
-        integrity: sha512-KDYJgZ6T2TKdU8yBfYueq5EPG/EylMsBvCaenWMJb2OXmjgczzwveRCoJ+Hgj1lXPDyasvrgneSn4GBuR1hYyA==
+        integrity: sha512-mjzqwWRD9Y1J1KUi7W97Gja1bwOOM5Ug0EZ6UDK3xS7j7mndrkwozHtSblfomlzyB4NepioNt+B2sOSzczVgtQ==
       }
     engines: { node: ^20.19.0 || ^22.12.0 || >=24.0.0 }
     peerDependencies:
@@ -11375,13 +11375,6 @@ packages:
       }
     engines: { node: '>=14.0' }
 
-  undici@7.21.0:
-    resolution:
-      {
-        integrity: sha512-Hn2tCQpoDt1wv23a68Ctc8Cr/BHpUSfaPYrkajTXOS9IKpxVRx/X5m1K2YkbK2ipgZgxXSgsUinl3x+2YdSSfg==
-      }
-    engines: { node: '>=20.18.1' }
-
   unenv@2.0.0-rc.24:
     resolution:
       {
@@ -11878,6 +11871,13 @@ packages:
         integrity: sha512-66/V2i5hQanC51vBQKPH4aI8NMAcBW59FVBs+rC7eGHupMyfn34q7rZIE+ETlJ+XTevqfUhVVBgSUNSW2flEUQ==
       }
 
+  whatwg-mimetype@4.0.0:
+    resolution:
+      {
+        integrity: sha512-QaKxh0eNIi2mE9p2vEdzfagOKHCcj1pJ56EEHGQOVxp8r9/iszLUUV7v89x9O1p/T+NlTM5W7jW6+cz4Fq1YVg==
+      }
+    engines: { node: '>=18' }
+
   whatwg-mimetype@5.0.0:
     resolution:
       {
@@ -11885,12 +11885,12 @@ packages:
       }
     engines: { node: '>=20' }
 
-  whatwg-url@16.0.0:
+  whatwg-url@15.1.0:
     resolution:
       {
-        integrity: sha512-9CcxtEKsf53UFwkSUZjG+9vydAsFO4lFHBpJUtjBcoJOCJpKnSJNwCw813zrYJHpCJ7sgfbtOe0V5Ku7Pa1XMQ==
+        integrity: sha512-2ytDk0kiEj/yu90JOAp44PVPUkO9+jVhyf+SybKlRHSDlvOOZhdPIrr7xTH64l4WixO2cP+wQIcgujkGBPPz6g==
       }
-    engines: { node: ^20.19.0 || ^22.12.0 || >=24.0.0 }
+    engines: { node: '>=20' }
 
   whatwg-url@5.0.0:
     resolution:
@@ -14892,7 +14892,7 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
-  '@types/jsdom@27.0.0':
+  '@types/jsdom@21.1.7':
     dependencies:
       '@types/node': 25.2.2
       '@types/tough-cookie': 4.0.5
@@ -16151,12 +16151,10 @@ snapshots:
 
   dargs@8.1.0: {}
 
-  data-urls@7.0.0:
+  data-urls@6.0.1:
     dependencies:
       whatwg-mimetype: 5.0.0
-      whatwg-url: 16.0.0
-    transitivePeerDependencies:
-      - '@noble/hashes'
+      whatwg-url: 15.1.0
 
   data-view-buffer@1.0.2:
     dependencies:
@@ -17407,13 +17405,13 @@ snapshots:
 
   jsdoc-type-pratt-parser@7.1.1: {}
 
-  jsdom@28.0.0:
+  jsdom@27.4.0:
     dependencies:
       '@acemir/cssom': 0.9.31
       '@asamuzakjp/dom-selector': 6.7.8
       '@exodus/bytes': 1.12.0
       cssstyle: 5.3.7
-      data-urls: 7.0.0
+      data-urls: 6.0.1
       decimal.js: 10.6.0
       html-encoding-sniffer: 6.0.0
       http-proxy-agent: 7.0.2
@@ -17423,15 +17421,17 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.0
-      undici: 7.21.0
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
-      whatwg-mimetype: 5.0.0
-      whatwg-url: 16.0.0
+      whatwg-mimetype: 4.0.0
+      whatwg-url: 15.1.0
+      ws: 8.19.0
       xml-name-validator: 5.0.0
     transitivePeerDependencies:
       - '@noble/hashes'
+      - bufferutil
       - supports-color
+      - utf-8-validate
 
   jsesc@3.1.0: {}
 
@@ -19684,8 +19684,6 @@ snapshots:
     dependencies:
       '@fastify/busboy': 2.1.1
 
-  undici@7.21.0: {}
-
   unenv@2.0.0-rc.24:
     dependencies:
       pathe: 2.0.3
@@ -20048,15 +20046,14 @@ snapshots:
 
   webpack-virtual-modules@0.6.2: {}
 
+  whatwg-mimetype@4.0.0: {}
+
   whatwg-mimetype@5.0.0: {}
 
-  whatwg-url@16.0.0:
+  whatwg-url@15.1.0:
     dependencies:
-      '@exodus/bytes': 1.12.0
       tr46: 6.0.0
       webidl-conversions: 8.0.1
-    transitivePeerDependencies:
-      - '@noble/hashes'
 
   whatwg-url@5.0.0:
     dependencies:
