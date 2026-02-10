@@ -294,11 +294,17 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableHeader } from '@tiptap/extension-table-header'
+import { TableCell } from '@tiptap/extension-table-cell'
 import { watch, onBeforeUnmount, onMounted, nextTick, ref } from 'vue'
 // @ts-ignore
 import MarkdownIt from 'markdown-it'
 // @ts-ignore
 import TurndownService from 'turndown'
+// @ts-ignore - No types available for turndown-plugin-gfm
+import { gfm } from 'turndown-plugin-gfm'
 
 const props = withDefaults(
   defineProps<{
@@ -345,6 +351,9 @@ turndownService.addRule('codeBlock', {
     return language ? `\n\`\`\`${language}\n${code}\n\`\`\`\n` : `\n\`\`\`\n${code}\n\`\`\`\n`
   }
 })
+
+// 使用 GFM 插件支持表格转换
+turndownService.use(gfm)
 
 // 将 Markdown 转换为 HTML
 const markdownToHtml = (markdown: string): string => {
@@ -406,6 +415,20 @@ const editor = useEditor({
       HTMLAttributes: {
         class:
           'text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300'
+      }
+    }),
+    // 添加表格支持
+    Table.configure({
+      resizable: true,
+      HTMLAttributes: {
+        class: 'border-collapse table-auto w-full my-4'
+      }
+    }),
+    TableRow,
+    TableHeader,
+    TableCell.configure({
+      HTMLAttributes: {
+        class: 'border border-gray-300 dark:border-gray-600 px-4 py-2'
       }
     })
   ],

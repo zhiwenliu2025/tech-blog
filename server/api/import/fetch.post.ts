@@ -2,6 +2,8 @@ import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
 import { JSDOM } from 'jsdom'
 import DOMPurifyFactory from 'dompurify'
 import TurndownService from 'turndown'
+// @ts-ignore - No types available for turndown-plugin-gfm
+import { gfm } from 'turndown-plugin-gfm'
 import { getAdapter } from '~/server/utils/import-adapters'
 import {
   validateUrl,
@@ -187,7 +189,9 @@ export default defineEventHandler(async event => {
         'data-actualsrc',
         'colspan',
         'rowspan',
-        'scope'
+        'scope',
+        'align',
+        'valign'
       ],
       ALLOW_DATA_ATTR: true
     })
@@ -258,6 +262,9 @@ export default defineEventHandler(async event => {
         return node.textContent || ''
       }
     })
+
+    // Use GitHub Flavored Markdown plugin for tables, strikethrough, etc.
+    turndownService.use(gfm)
 
     let markdown = turndownService.turndown(extracted.content)
 

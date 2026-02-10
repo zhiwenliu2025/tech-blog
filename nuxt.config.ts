@@ -231,7 +231,14 @@ export default defineNuxtConfig({
 
   // 性能优化
   experimental: {
-    // 启用 payload 提取，减少 HTML 大小
+    // 启用 payload 提取,减少 HTML 大小
     payloadExtraction: true
+  },
+
+  // TypeScript 配置
+  typescript: {
+    tsConfig: {
+      include: ['types/**/*.d.ts']
+    }
   }
 })

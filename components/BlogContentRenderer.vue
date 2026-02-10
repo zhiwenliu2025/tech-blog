@@ -8,6 +8,10 @@
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
+import { Table } from '@tiptap/extension-table'
+import { TableRow } from '@tiptap/extension-table-row'
+import { TableHeader } from '@tiptap/extension-table-header'
+import { TableCell } from '@tiptap/extension-table-cell'
 import { watch, onBeforeUnmount, onMounted, nextTick } from 'vue'
 // @ts-ignore - markdown-it types may not be available
 import MarkdownIt from 'markdown-it'
@@ -246,6 +250,20 @@ const editor = useEditor({
         loading: 'lazy'
       },
       inline: false
+    }),
+    // 添加表格支持
+    Table.configure({
+      resizable: false,
+      HTMLAttributes: {
+        class: 'border-collapse table-auto w-full my-4'
+      }
+    }),
+    TableRow,
+    TableHeader,
+    TableCell.configure({
+      HTMLAttributes: {
+        class: 'border border-gray-300 dark:border-gray-600 px-4 py-2'
+      }
     })
   ],
   content: typeof window !== 'undefined' ? getHtmlContent(props.content, props.contentType) : '',
