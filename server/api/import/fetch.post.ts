@@ -28,8 +28,17 @@ export default defineEventHandler(async event => {
     })
   }
 
+  // 获取用户ID（兼容 id 和 sub 属性）
+  const userId = user.id || (user as any).sub
+  if (!userId) {
+    throw createError({
+      statusCode: 401,
+      message: '无法获取用户ID'
+    })
+  }
+
   // 2. Check rate limit
-  const rateCheck = checkRateLimit(user.id)
+  const rateCheck = checkRateLimit(userId)
   if (!rateCheck.allowed) {
     throw createError({
       statusCode: 429,
@@ -265,7 +274,7 @@ export default defineEventHandler(async event => {
     const { content: processedContent, report: imageReport } = await processAllImages(
       markdown,
       body.url,
-      user.id,
+      userId,
       supabase
     )
     markdown = processedContent
@@ -279,7 +288,7 @@ export default defineEventHandler(async event => {
         const { content: processedCover } = await processCovers(
           coverMarkdown,
           body.url,
-          user.id,
+          userId,
           supabase
         )
         const coverMatch = processedCover.match(/!\[cover\]\(([^)]+)\)/)
