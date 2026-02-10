@@ -1,17 +1,19 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8 dark:bg-gray-900">
-    <div class="container mx-auto px-4">
+  <div class="min-h-screen bg-gray-50 py-4 dark:bg-gray-900 sm:py-8">
+    <div class="container mx-auto px-3 sm:px-4">
       <div class="mx-auto max-w-4xl">
         <!-- Header -->
-        <div class="mb-8">
-          <div class="flex items-center justify-between">
-            <div>
-              <h1 class="text-3xl font-bold text-gray-900 dark:text-white">导入文章</h1>
-              <p class="mt-2 text-gray-600 dark:text-gray-400">从其他博客网站导入文章到本系统</p>
+        <div class="mb-6 sm:mb-8">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex-1">
+              <h1 class="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">导入文章</h1>
+              <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 sm:mt-2 sm:text-base">
+                从其他博客网站导入文章到本系统
+              </p>
             </div>
             <NuxtLink
               to="/my-blogs"
-              class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             >
               <Icon name="i-heroicons-arrow-left" class="mr-2 h-4 w-4" />
               返回我的博客
@@ -20,25 +22,33 @@
         </div>
 
         <!-- Step Indicator -->
-        <div class="mb-8">
-          <div class="flex items-center justify-center space-x-4">
+        <div class="mb-6 sm:mb-8">
+          <div class="flex items-center justify-center space-x-2 sm:space-x-4">
             <div class="flex items-center">
               <div
                 :class="[
-                  'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium',
+                  'flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium sm:h-8 sm:w-8 sm:text-sm',
                   step === 'input' ? 'bg-blue-600 text-white' : 'bg-green-500 text-white'
                 ]"
               >
-                <Icon v-if="step !== 'input'" name="i-heroicons-check" class="h-5 w-5" />
+                <Icon
+                  v-if="step !== 'input'"
+                  name="i-heroicons-check"
+                  class="h-4 w-4 sm:h-5 sm:w-5"
+                />
                 <span v-else>1</span>
               </div>
-              <span class="ml-2 text-sm font-medium text-gray-900 dark:text-white">输入 URL</span>
+              <span
+                class="ml-1.5 text-xs font-medium text-gray-900 dark:text-white sm:ml-2 sm:text-sm"
+              >
+                输入 URL
+              </span>
             </div>
-            <div class="h-px w-12 bg-gray-300 dark:bg-gray-600" />
+            <div class="h-px w-8 bg-gray-300 dark:bg-gray-600 sm:w-12" />
             <div class="flex items-center">
               <div
                 :class="[
-                  'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium',
+                  'flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium sm:h-8 sm:w-8 sm:text-sm',
                   step === 'preview'
                     ? 'bg-blue-600 text-white'
                     : step === 'saving'
@@ -46,12 +56,16 @@
                       : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
                 ]"
               >
-                <Icon v-if="step === 'saving'" name="i-heroicons-check" class="h-5 w-5" />
+                <Icon
+                  v-if="step === 'saving'"
+                  name="i-heroicons-check"
+                  class="h-4 w-4 sm:h-5 sm:w-5"
+                />
                 <span v-else>2</span>
               </div>
               <span
                 :class="[
-                  'ml-2 text-sm font-medium',
+                  'ml-1.5 text-xs font-medium sm:ml-2 sm:text-sm',
                   step === 'input'
                     ? 'text-gray-500 dark:text-gray-400'
                     : 'text-gray-900 dark:text-white'
@@ -60,11 +74,11 @@
                 预览编辑
               </span>
             </div>
-            <div class="h-px w-12 bg-gray-300 dark:bg-gray-600" />
+            <div class="h-px w-8 bg-gray-300 dark:bg-gray-600 sm:w-12" />
             <div class="flex items-center">
               <div
                 :class="[
-                  'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium',
+                  'flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium sm:h-8 sm:w-8 sm:text-sm',
                   step === 'saving'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
@@ -74,7 +88,7 @@
               </div>
               <span
                 :class="[
-                  'ml-2 text-sm font-medium',
+                  'ml-1.5 text-xs font-medium sm:ml-2 sm:text-sm',
                   step === 'saving'
                     ? 'text-gray-900 dark:text-white'
                     : 'text-gray-500 dark:text-gray-400'
@@ -87,24 +101,26 @@
         </div>
 
         <!-- Step 1: URL Input -->
-        <div v-if="step === 'input'" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-          <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">输入文章 URL</h2>
+        <div v-if="step === 'input'" class="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6">
+          <h2 class="mb-3 text-base font-semibold text-gray-900 dark:text-white sm:mb-4 sm:text-lg">
+            输入文章 URL
+          </h2>
           <form @submit.prevent="handleFetch">
-            <div class="flex flex-col gap-4 sm:flex-row">
+            <div class="flex flex-col gap-3 sm:flex-row sm:gap-4">
               <div class="flex-1">
                 <input
                   v-model="url"
                   type="url"
                   required
                   placeholder="https://blog.csdn.net/xxx/article/details/xxx"
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                  class="block w-full rounded-md border-gray-300 px-3 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:py-2 sm:text-sm"
                   :disabled="loading"
                 />
               </div>
               <button
                 type="submit"
                 :disabled="loading || !url"
-                class="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                class="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2 sm:text-sm"
               >
                 <Icon
                   v-if="loading"
@@ -117,9 +133,12 @@
             </div>
 
             <!-- Error message -->
-            <div v-if="importError" class="mt-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
+            <div
+              v-if="importError"
+              class="mt-3 rounded-md bg-red-50 p-3 dark:bg-red-900/20 sm:mt-4 sm:p-4"
+            >
               <div class="flex">
-                <Icon name="i-heroicons-x-circle" class="h-5 w-5 text-red-400" />
+                <Icon name="i-heroicons-x-circle" class="h-5 w-5 flex-shrink-0 text-red-400" />
                 <div class="ml-3">
                   <p class="text-sm text-red-700 dark:text-red-400">
                     {{ importError }}
@@ -129,13 +148,13 @@
             </div>
 
             <!-- Supported platforms hint -->
-            <div class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-              <p>支持大多数博客网站文章导入，包括但不限于：</p>
-              <div class="mt-2 flex flex-wrap gap-2">
+            <div class="mt-3 text-sm text-gray-500 dark:text-gray-400 sm:mt-4">
+              <p class="font-medium">支持大多数博客网站文章导入，包括但不限于：</p>
+              <div class="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
                 <span
                   v-for="platform in supportedPlatforms"
                   :key="platform"
-                  class="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                  class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:px-2.5"
                 >
                   {{ platform }}
                 </span>
@@ -145,23 +164,26 @@
         </div>
 
         <!-- Step 2: Preview & Edit -->
-        <div v-if="step === 'preview' && result" class="space-y-6">
+        <div v-if="step === 'preview' && result" class="space-y-4 sm:space-y-6">
           <!-- Success banner -->
-          <div class="rounded-md bg-green-50 p-4 dark:bg-green-900/20">
-            <div class="flex items-center">
-              <Icon name="i-heroicons-check-circle" class="h-5 w-5 text-green-400" />
-              <div class="ml-3">
-                <p class="text-sm font-medium text-green-800 dark:text-green-300">
-                  解析成功
-                  <span class="ml-2 font-normal text-green-600 dark:text-green-400">
-                    来源：{{ result.sourceSiteName }}
-                  </span>
+          <div class="rounded-md bg-green-50 p-3 dark:bg-green-900/20 sm:p-4">
+            <div class="flex items-start sm:items-center">
+              <Icon
+                name="i-heroicons-check-circle"
+                class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-400 sm:mt-0"
+              />
+              <div class="ml-3 flex-1">
+                <p class="text-sm font-medium text-green-800 dark:text-green-300">解析成功</p>
+                <p
+                  class="mt-0.5 text-xs text-green-600 dark:text-green-400 sm:ml-2 sm:mt-0 sm:inline sm:text-sm sm:font-normal"
+                >
+                  来源：{{ result.sourceSiteName }}
                 </p>
               </div>
-              <div class="ml-auto">
+              <div class="ml-auto flex-shrink-0">
                 <button
                   type="button"
-                  class="text-sm text-green-600 hover:text-green-500 dark:text-green-400"
+                  class="text-xs font-medium text-green-600 hover:text-green-500 dark:text-green-400 sm:text-sm"
                   @click="reset"
                 >
                   重新导入
@@ -171,25 +193,29 @@
           </div>
 
           <!-- Metadata edit form -->
-          <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">文章信息</h3>
+          <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6">
+            <h3
+              class="mb-3 text-base font-semibold text-gray-900 dark:text-white sm:mb-4 sm:text-lg"
+            >
+              文章信息
+            </h3>
 
-            <div class="space-y-4">
+            <div class="space-y-3 sm:space-y-4">
               <!-- Title -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  标题
+                  标题 <span class="text-red-500">*</span>
                 </label>
                 <input
                   v-model="editForm.title"
                   type="text"
                   required
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                  class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
               </div>
 
               <!-- Category & Tags row -->
-              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     分类
@@ -198,19 +224,19 @@
                     v-model="editForm.category"
                     type="text"
                     placeholder="如：前端开发、后端开发"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                    class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     标签
-                    <span class="text-gray-400">（逗号分隔）</span>
+                    <span class="text-xs text-gray-400">（逗号分隔）</span>
                   </label>
                   <input
                     v-model="tagsString"
                     type="text"
-                    placeholder="如：Vue3, TypeScript, 前端"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                    placeholder="如：Vue3, TypeScript"
+                    class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
               </div>
@@ -223,7 +249,7 @@
                 <textarea
                   v-model="editForm.excerpt"
                   rows="3"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                  class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
               </div>
             </div>
@@ -232,10 +258,14 @@
           <!-- Image report -->
           <div
             v-if="result.images.total > 0"
-            class="rounded-lg bg-white p-6 shadow dark:bg-gray-800"
+            class="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6"
           >
-            <h3 class="mb-3 text-lg font-semibold text-gray-900 dark:text-white">图片导入</h3>
-            <div class="flex flex-wrap items-center gap-4 text-sm">
+            <h3
+              class="mb-2 text-base font-semibold text-gray-900 dark:text-white sm:mb-3 sm:text-lg"
+            >
+              图片导入
+            </h3>
+            <div class="flex flex-wrap items-center gap-3 text-xs sm:gap-4 sm:text-sm">
               <span class="text-gray-600 dark:text-gray-400">
                 共 {{ result.images.total }} 张图片
               </span>
@@ -243,7 +273,7 @@
                 {{ result.images.success }} 张成功
               </span>
               <span v-if="result.images.duplicates > 0" class="text-blue-600 dark:text-blue-400">
-                {{ result.images.duplicates }} 张去重（已存在）
+                {{ result.images.duplicates }} 张去重
               </span>
               <span v-if="result.images.failed.length > 0" class="text-red-600 dark:text-red-400">
                 {{ result.images.failed.length }} 张失败
@@ -252,27 +282,28 @@
             <!-- Duplicate info -->
             <div
               v-if="result.images.duplicates > 0"
-              class="mt-3 rounded-md bg-blue-50 p-3 dark:bg-blue-900/20"
+              class="mt-2 rounded-md bg-blue-50 p-2.5 dark:bg-blue-900/20 sm:mt-3 sm:p-3"
             >
-              <p class="text-sm text-blue-800 dark:text-blue-300">
+              <p class="text-xs text-blue-800 dark:text-blue-300 sm:text-sm">
                 <Icon name="i-heroicons-information-circle" class="mr-1 inline h-4 w-4" />
-                检测到
-                {{ result.images.duplicates }} 张重复图片，已自动使用之前上传的版本，节省存储空间。
+                检测到 {{ result.images.duplicates }} 张重复图片，已自动使用之前上传的版本。
               </p>
             </div>
             <!-- Failed images -->
             <div
               v-if="result.images.failed.length > 0"
-              class="mt-3 rounded-md bg-yellow-50 p-3 dark:bg-yellow-900/20"
+              class="mt-2 rounded-md bg-yellow-50 p-2.5 dark:bg-yellow-900/20 sm:mt-3 sm:p-3"
             >
-              <p class="mb-2 text-sm font-medium text-yellow-800 dark:text-yellow-300">
+              <p
+                class="mb-1.5 text-xs font-medium text-yellow-800 dark:text-yellow-300 sm:mb-2 sm:text-sm"
+              >
                 以下图片下载失败，已保留原始链接：
               </p>
-              <ul class="space-y-1">
+              <ul class="max-h-32 space-y-1 overflow-y-auto">
                 <li
                   v-for="failedUrl in result.images.failed"
                   :key="failedUrl"
-                  class="truncate text-xs text-yellow-700 dark:text-yellow-400"
+                  class="break-all text-xs text-yellow-700 dark:text-yellow-400"
                 >
                   {{ failedUrl }}
                 </li>
@@ -281,12 +312,14 @@
           </div>
 
           <!-- Content Preview -->
-          <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white">正文预览</h3>
+          <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6">
+            <div class="mb-3 flex items-center justify-between sm:mb-4">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                正文预览
+              </h3>
               <button
                 type="button"
-                class="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                class="text-xs font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 sm:text-sm"
                 @click="showRawMarkdown = !showRawMarkdown"
               >
                 {{ showRawMarkdown ? '渲染预览' : '查看 Markdown' }}
@@ -294,9 +327,9 @@
             </div>
 
             <!-- Raw markdown view -->
-            <div v-if="showRawMarkdown" class="max-h-96 overflow-y-auto">
+            <div v-if="showRawMarkdown" class="max-h-64 overflow-y-auto sm:max-h-96">
               <pre
-                class="whitespace-pre-wrap rounded-md bg-gray-50 p-4 text-sm text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                class="whitespace-pre-wrap rounded-md bg-gray-50 p-3 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-200 sm:p-4 sm:text-sm"
                 >{{ editForm.content }}</pre
               >
             </div>
@@ -304,7 +337,7 @@
             <!-- Rendered preview -->
             <div
               v-else
-              class="prose prose-sm max-h-96 max-w-none overflow-y-auto rounded-md bg-gray-50 p-4 dark:prose-invert dark:bg-gray-900"
+              class="prose prose-sm max-h-64 max-w-none overflow-y-auto rounded-md bg-gray-50 p-3 dark:prose-invert dark:bg-gray-900 sm:max-h-96 sm:p-4"
               v-html="renderedContent"
             />
           </div>
@@ -312,16 +345,16 @@
           <!-- Source info -->
           <div
             v-if="result.author || result.sourceUrl"
-            class="rounded-md bg-blue-50 p-4 dark:bg-blue-900/20"
+            class="rounded-md bg-blue-50 p-3 dark:bg-blue-900/20 sm:p-4"
           >
-            <div class="text-sm text-blue-700 dark:text-blue-300">
+            <div class="space-y-1 text-xs text-blue-700 dark:text-blue-300 sm:text-sm">
               <p v-if="result.author">
                 <span class="font-medium">原作者：</span>{{ result.author }}
               </p>
               <p v-if="result.publishedAt">
                 <span class="font-medium">发布时间：</span>{{ formatDate(result.publishedAt) }}
               </p>
-              <p>
+              <p class="break-all">
                 <span class="font-medium">原文链接：</span>
                 <a
                   :href="result.sourceUrl"
@@ -384,14 +417,16 @@
         <!-- Loading overlay for saving -->
         <div
           v-if="step === 'saving' && loading"
-          class="rounded-lg bg-white p-12 text-center shadow dark:bg-gray-800"
+          class="rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800 sm:p-12"
         >
           <Icon
             name="i-heroicons-arrow-path"
-            class="mx-auto h-12 w-12 animate-spin text-blue-500"
+            class="mx-auto h-10 w-10 animate-spin text-blue-500 sm:h-12 sm:w-12"
           />
-          <p class="mt-4 text-lg font-medium text-gray-900 dark:text-white">正在保存文章...</p>
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-3 text-base font-medium text-gray-900 dark:text-white sm:mt-4 sm:text-lg">
+            正在保存文章...
+          </p>
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400 sm:mt-2 sm:text-sm">
             请稍候，正在将文章保存到数据库
           </p>
         </div>
