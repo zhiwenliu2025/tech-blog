@@ -226,7 +226,9 @@ export default defineNuxtConfig({
     // 压缩配置
     compressPublicAssets: true,
     // 移动端优化 - 启用 gzip 压缩
-    minify: true
+    minify: true,
+    // 为 Vercel 构建优化
+    preset: 'vercel'
   },
 
   // 性能优化

@@ -1,5 +1,4 @@
 import { Readability } from '@mozilla/readability'
-import { JSDOM } from 'jsdom'
 
 export interface ExtractResult {
   title: string
@@ -28,8 +27,8 @@ export class BaseAdapter implements ImportAdapter {
   }
 
   async extract(html: string, url: string): Promise<ExtractResult> {
-    const dom = new JSDOM(html, { url })
-    const document = dom.window.document
+    const { parseHTML } = await import('linkedom')
+    const { document } = parseHTML(html)
 
     // Handle lazy-loaded images before parsing
     this.processLazyImages(document)
@@ -43,13 +42,13 @@ export class BaseAdapter implements ImportAdapter {
     }
 
     // Extract cover image from og:image or first image
-    const coverImage = this.extractCoverImage(dom.window.document, url)
+    const coverImage = this.extractCoverImage(document, url)
 
     // Extract tags from meta keywords
-    const tags = this.extractTags(dom.window.document)
+    const tags = this.extractTags(document)
 
     // Extract published time
-    const publishedAt = this.extractPublishedTime(dom.window.document)
+    const publishedAt = this.extractPublishedTime(document)
 
     return {
       title: article.title || '',

@@ -1,5 +1,4 @@
 import { serverSupabaseClient, serverSupabaseUser } from '#supabase/server'
-import { JSDOM } from 'jsdom'
 import DOMPurifyFactory from 'dompurify'
 import TurndownService from 'turndown'
 // @ts-ignore - No types available for turndown-plugin-gfm
@@ -101,8 +100,9 @@ export default defineEventHandler(async event => {
       })
     }
 
-    // 5. Sanitize HTML with DOMPurify (server-side using jsdom window)
-    const purifyWindow = new JSDOM('').window
+    // 5. Sanitize HTML with DOMPurify (server-side using linkedom window)
+    const { parseHTML } = await import('linkedom')
+    const { window: purifyWindow } = parseHTML('')
 
     const DOMPurify = DOMPurifyFactory(purifyWindow as any)
     const cleanHtml = DOMPurify.sanitize(html, {

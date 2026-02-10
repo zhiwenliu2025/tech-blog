@@ -1,6 +1,11 @@
 {
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
-  "framework": "nuxtjs"
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "framework": "nuxtjs",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "env": {
+    "NODE_VERSION": "20"
+  }
 }
