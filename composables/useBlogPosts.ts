@@ -588,18 +588,86 @@ export const useBlogPosts = () => {
     error.value = null
 
     try {
-      // 先获取文章信息，用于清除缓存
+      // 先获取文章信息，用于清除缓存和删除图片
       const { data: postToDelete } = await supabase
         .from('blog_posts')
-        .select('slug, category')
+        .select('slug, category, cover_image, content')
         .eq('id', id)
         .single()
 
-      const postData = postToDelete as Pick<BlogPostRow, 'slug' | 'category'> | null
+      const postData = postToDelete as
+        | (Pick<BlogPostRow, 'slug' | 'category'> & {
+            cover_image?: string | null
+            content?: string
+          })
+        | null
 
+      // 删除文章
       const { error: dbError } = await supabase.from('blog_posts').delete().eq('id', id)
 
       if (dbError) throw dbError
+
+      // 删除关联的图片
+      const imagesToDelete: string[] = []
+
+      // 1. 收集封面图片
+      if (postData?.cover_image) {
+        imagesToDelete.push(postData.cover_image)
+      }
+
+      // 2. 从文章内容中提取图片 URL
+      if (postData?.content) {
+        // 匹配 Markdown 格式的图片: ![alt](url)
+        const markdownImageRegex = /!\[.*?\]\((.*?)\)/g
+        // 匹配 HTML img 标签: <img src="url" />
+        const htmlImageRegex = /<img[^>]+src=["']([^"']+)["']/g
+
+        let match
+        while ((match = markdownImageRegex.exec(postData.content)) !== null) {
+          if (match[1]) imagesToDelete.push(match[1])
+        }
+
+        while ((match = htmlImageRegex.exec(postData.content)) !== null) {
+          if (match[1]) imagesToDelete.push(match[1])
+        }
+      }
+
+      // 3. 删除所有图片
+      if (imagesToDelete.length > 0) {
+        const filePaths: string[] = []
+
+        for (const imageUrl of imagesToDelete) {
+          try {
+            // 从 URL 中提取文件路径
+            // URL 格式: https://xxx.supabase.co/storage/v1/object/public/blog-images/path/to/file.webp
+            const urlParts = imageUrl.split('/blog-images/')
+            if (urlParts.length === 2 && urlParts[1]) {
+              filePaths.push(urlParts[1])
+            }
+          } catch (err) {
+            console.warn('无法解析图片 URL:', imageUrl, err)
+          }
+        }
+
+        // 批量删除图片
+        if (filePaths.length > 0) {
+          try {
+            const { error: storageError } = await supabase.storage
+              .from('blog-images')
+              .remove(filePaths)
+
+            if (storageError) {
+              console.warn('删除图片失败:', storageError)
+              // 不中断操作流程，因为文章已经删除
+            } else {
+              console.log(`成功删除 ${filePaths.length} 张图片`)
+            }
+          } catch (storageErr) {
+            console.warn('删除图片异常:', storageErr)
+            // 不中断操作流程
+          }
+        }
+      }
 
       // 清除客户端相关缓存
       if (postData?.slug) {

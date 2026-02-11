@@ -250,11 +250,43 @@ const validateFile = (file: File): string | null => {
   return null
 }
 
+// 计算文件的 MD5 哈希
+const calculateFileHash = async (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = async e => {
+      try {
+        const arrayBuffer = e.target?.result as ArrayBuffer
+        const buffer = new Uint8Array(arrayBuffer)
+
+        // 使用 Web Crypto API 计算 SHA-256（浏览器环境）
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+        const hashArray = Array.from(new Uint8Array(hashBuffer))
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+        resolve(hashHex)
+      } catch (err) {
+        reject(err)
+      }
+    }
+    reader.onerror = () => reject(new Error('文件读取失败'))
+    reader.readAsArrayBuffer(file)
+  })
+}
+
 // 上传图片
 const uploadImage = async (file: File) => {
   if (!user.value) {
     error.value = '请先登录'
     emit('error', '请先登录')
+    return
+  }
+
+  // 获取用户ID（兼容 id 和 sub 属性）
+  const userId = user.value.id || (user.value as any).sub
+  if (!userId) {
+    error.value = '无法获取用户ID'
+    emit('error', '无法获取用户ID')
     return
   }
 
@@ -278,12 +310,42 @@ const uploadImage = async (file: File) => {
     // 压缩图片
     const compressedFile = await compressImage(file)
 
-    // 生成文件名
+    // 计算文件哈希（用于去重）
+    uploadProgress.value = 10
+    const fileHash = await calculateFileHash(compressedFile)
+
+    // 获取文件扩展名
     const fileExt = compressedFile.name.split('.').pop() || 'jpg'
-    const timestamp = Date.now()
-    const random = Math.random().toString(36).substring(2, 9)
-    const folder = props.postId || user.value.id
-    const fileName = `${folder}/${timestamp}-${random}.${fileExt}`
+
+    // 使用哈希作为文件名（与导入逻辑一致）
+    const fileName = `${userId}/manual/hash-${fileHash}.${fileExt}`
+
+    uploadProgress.value = 20
+
+    // 检查文件是否已存在（去重）
+    const { data: existingFiles } = await supabase.storage
+      .from('blog-images')
+      .list(`${userId}/manual`, {
+        search: `hash-${fileHash}`
+      })
+
+    if (existingFiles && existingFiles.length > 0) {
+      // 图片已存在，直接使用已有的
+      const existingFile = existingFiles[0]
+      if (existingFile) {
+        const { data: urlData } = supabase.storage
+          .from('blog-images')
+          .getPublicUrl(`${userId}/manual/${existingFile.name}`)
+
+        console.log('[图片去重] 检测到重复图片，使用已存在的:', existingFile.name)
+        imageUrl.value = urlData.publicUrl
+        uploadedFileName.value = `${userId}/manual/${existingFile.name}`
+        lastUploadFile.value = null
+        uploadProgress.value = 100
+        uploading.value = false
+        return
+      }
+    }
 
     // 使用 XMLHttpRequest 实现真实上传进度
     const config = useRuntimeConfig()
@@ -304,7 +366,8 @@ const uploadImage = async (file: File) => {
         xhr.upload.addEventListener('progress', e => {
           if (e.lengthComputable) {
             const percentComplete = Math.round((e.loaded / e.total) * 100)
-            uploadProgress.value = Math.min(percentComplete, 95) // 保留 5% 给完成阶段
+            // 20-95% 用于上传进度
+            uploadProgress.value = Math.min(20 + Math.round(percentComplete * 0.75), 95)
           }
         })
 
@@ -339,8 +402,7 @@ const uploadImage = async (file: File) => {
         xhr.setRequestHeader('Authorization', `Bearer ${sessionData.session.access_token}`)
         xhr.setRequestHeader('apikey', supabaseKey)
         xhr.setRequestHeader('x-upsert', 'false')
-        // 注意：cache-control 是响应头，不能通过请求头设置
-        // Supabase Storage 会自动设置适当的缓存响应头
+        xhr.setRequestHeader('cache-control', '3600')
 
         // 创建 FormData
         const formData = new FormData()
@@ -352,11 +414,26 @@ const uploadImage = async (file: File) => {
 
     const { data, error: uploadError } = await uploadPromise
 
-    if (uploadError) throw uploadError
+    if (uploadError) {
+      // 如果文件已存在（竞态条件），尝试获取它
+      if (
+        uploadError.message?.includes('already exists') ||
+        uploadError.message?.includes('duplicate')
+      ) {
+        const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
+        console.log('[图片去重] 上传时检测到重复，使用已存在的')
+        imageUrl.value = urlData.publicUrl
+        uploadedFileName.value = fileName
+        lastUploadFile.value = null
+        return
+      }
+      throw uploadError
+    }
 
     // 获取公共 URL
     const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
 
+    console.log('[图片上传] 新图片上传成功:', fileName)
     imageUrl.value = urlData.publicUrl
     uploadedFileName.value = fileName
     lastUploadFile.value = null // 清除，表示上传成功

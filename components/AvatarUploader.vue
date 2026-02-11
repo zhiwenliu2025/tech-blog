@@ -198,7 +198,8 @@ const uploadAvatar = async (file: File) => {
     return
   }
 
-  const userId = sessionData.session.user.id
+  // 获取用户ID（兼容 id 和 sub 属性）
+  const userId = sessionData.session.user.id || (sessionData.session.user as any).sub
   if (!userId) {
     error.value = '无法获取用户ID'
     emit('error', '无法获取用户ID，请重新登录')
