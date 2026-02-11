@@ -224,6 +224,7 @@ definePageMeta({
 // 状态
 const { user } = useSupabaseAuth()
 const supabase = useSupabaseClient()
+const { deletePost: deletePostFromBlog } = useBlogPosts()
 const posts = ref([])
 const loading = ref(true)
 const showDeleteDialog = ref(false)
@@ -276,7 +277,7 @@ const confirmDeletePost = post => {
   showDeleteDialog.value = true
 }
 
-// 删除文章
+// 删除文章（使用统一的 deletePost 方法）
 const deletePost = async () => {
   if (!postToDelete.value || !user.value) return
 
@@ -284,13 +285,17 @@ const deletePost = async () => {
     deleting.value = true
     const userId = user.value.id || user.value.sub
 
-    const { error } = await supabase
-      .from('blog_posts')
-      .delete()
-      .eq('id', postToDelete.value.id)
-      .eq('author_id', userId) // 确保只能删除自己的文章
+    // 验证当前用户是文章作者
+    if (postToDelete.value.author_id !== userId) {
+      const toast = useToast()
+      toast.error('错误', '您只能删除自己的文章')
+      return
+    }
 
-    if (error) throw error
+    // 使用统一的 deletePost 方法（会自动删除关联的图片）
+    const { error } = await deletePostFromBlog(postToDelete.value.id)
+
+    if (error) throw new Error(error)
 
     // 更新文章列表
     await fetchMyPosts()

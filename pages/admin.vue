@@ -995,6 +995,9 @@ definePageMeta({
   middleware: 'admin'
 })
 
+// 导入 useBlogPosts
+const { deletePost: deletePostFromBlog } = useBlogPosts()
+
 // 状态
 const activeTab = ref('posts')
 const posts = ref([])
@@ -1106,15 +1109,15 @@ const confirmDeletePost = post => {
   showDeletePostDialog.value = true
 }
 
-// 删除文章
+// 删除文章（使用统一的 deletePost 方法）
 const deletePost = async () => {
   if (!postToDelete.value) return
 
   try {
-    const supabase = useSupabaseClient()
-    const { error } = await supabase.from('blog_posts').delete().eq('id', postToDelete.value.id)
+    // 使用统一的 deletePost 方法（会自动删除关联的图片）
+    const { error } = await deletePostFromBlog(postToDelete.value.id)
 
-    if (error) throw error
+    if (error) throw new Error(error)
 
     // 更新文章列表
     await fetchPosts()

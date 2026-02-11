@@ -612,6 +612,7 @@ export const useBlogPosts = () => {
 
       // 1. 收集封面图片
       if (postData?.cover_image) {
+        console.log('[删除图片] 添加封面图片:', postData.cover_image)
         imagesToDelete.push(postData.cover_image)
       }
 
@@ -624,13 +625,21 @@ export const useBlogPosts = () => {
 
         let match
         while ((match = markdownImageRegex.exec(postData.content)) !== null) {
-          if (match[1]) imagesToDelete.push(match[1])
+          if (match[1]) {
+            console.log('[删除图片] 从 Markdown 提取:', match[1])
+            imagesToDelete.push(match[1])
+          }
         }
 
         while ((match = htmlImageRegex.exec(postData.content)) !== null) {
-          if (match[1]) imagesToDelete.push(match[1])
+          if (match[1]) {
+            console.log('[删除图片] 从 HTML 提取:', match[1])
+            imagesToDelete.push(match[1])
+          }
         }
       }
+
+      console.log(`[删除图片] 总共找到 ${imagesToDelete.length} 张图片需要删除`)
 
       // 3. 删除所有图片
       if (imagesToDelete.length > 0) {
@@ -638,35 +647,53 @@ export const useBlogPosts = () => {
 
         for (const imageUrl of imagesToDelete) {
           try {
+            // 只删除 Supabase Storage 中的图片
+            if (!imageUrl.includes('supabase') || !imageUrl.includes('blog-images')) {
+              console.log('[删除图片] 跳过外部图片:', imageUrl)
+              continue
+            }
+
             // 从 URL 中提取文件路径
             // URL 格式: https://xxx.supabase.co/storage/v1/object/public/blog-images/path/to/file.webp
             const urlParts = imageUrl.split('/blog-images/')
             if (urlParts.length === 2 && urlParts[1]) {
-              filePaths.push(urlParts[1])
+              // 解码 URL（处理可能的 URL 编码）
+              const filePath = decodeURIComponent(urlParts[1])
+              console.log('[删除图片] 提取文件路径:', filePath)
+              filePaths.push(filePath)
+            } else {
+              console.warn('[删除图片] 无法从 URL 提取路径:', imageUrl)
             }
           } catch (err) {
-            console.warn('无法解析图片 URL:', imageUrl, err)
+            console.warn('[删除图片] 解析 URL 异常:', imageUrl, err)
           }
         }
+
+        console.log(`[删除图片] 准备删除 ${filePaths.length} 个文件:`, filePaths)
 
         // 批量删除图片
         if (filePaths.length > 0) {
           try {
-            const { error: storageError } = await supabase.storage
+            const { data: deleteData, error: storageError } = await supabase.storage
               .from('blog-images')
               .remove(filePaths)
 
             if (storageError) {
-              console.warn('删除图片失败:', storageError)
-              // 不中断操作流程，因为文章已经删除
+              console.error('[删除图片] Storage API 返回错误:', storageError)
+              console.error('[删除图片] 错误详情:', JSON.stringify(storageError, null, 2))
             } else {
-              console.log(`成功删除 ${filePaths.length} 张图片`)
+              console.log(`[删除图片] ✅ 成功删除 ${filePaths.length} 张图片`)
+              console.log('[删除图片] 删除结果:', deleteData)
             }
-          } catch (storageErr) {
-            console.warn('删除图片异常:', storageErr)
-            // 不中断操作流程
+          } catch (storageErr: any) {
+            console.error('[删除图片] 删除异常:', storageErr)
+            console.error('[删除图片] 异常详情:', storageErr.message || storageErr)
           }
+        } else {
+          console.log('[删除图片] 没有找到需要删除的 Supabase Storage 文件')
         }
+      } else {
+        console.log('[删除图片] 文章中没有图片需要删除')
       }
 
       // 清除客户端相关缓存
