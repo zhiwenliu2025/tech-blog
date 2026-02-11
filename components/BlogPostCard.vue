@@ -10,15 +10,19 @@
       :to="`/blog/${post.slug}`"
       class="relative block h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 sm:h-52 md:h-56"
     >
-      <OptimizedImage
-        :src="coverImage"
+      <NuxtImg
+        :src="optimizedCoverImage"
         :alt="post.title"
-        :default-src="getDefaultImage(post.title)"
-        image-class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-        container-class="h-full w-full"
-        :loading="'lazy'"
-        :show-placeholder="true"
-        :use-default-on-no-size="true"
+        :width="800"
+        :height="450"
+        :sizes="responsiveSizes"
+        format="webp"
+        :quality="80"
+        fit="cover"
+        loading="lazy"
+        :placeholder="[20, 11, 75, 5]"
+        class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+        @error="handleImageError"
       />
       <!-- 分类标签覆盖层 -->
       <div
@@ -161,23 +165,33 @@ const getDefaultImage = (title: string) => {
   return `https://picsum.photos/seed/${seed}/800/400`
 }
 
+// 使用图片优化器
+const { getOptimizedUrl, getResponsiveSizes } = useImageOptimizer()
+
 // 图片加载错误处理
 const imageError = ref(false)
 
-// 计算封面图片URL
-const coverImage = computed(() => {
+// 优化后的封面图片 URL
+const optimizedCoverImage = computed(() => {
   // 如果图片加载失败或没有提供图片，使用默认图片
   if (imageError.value || !props.post.cover_image) {
     return getDefaultImage(props.post.title)
   }
-  // 使用用户提供的图片
-  return props.post.cover_image
+  // 使用优化器处理 Supabase URL
+  return getOptimizedUrl(props.post.cover_image)
+})
+
+// 响应式尺寸配置
+const responsiveSizes = getResponsiveSizes({
+  mobile: '100vw',
+  tablet: '50vw',
+  desktop: '400px'
 })
 
 // 处理图片加载错误
 const handleImageError = () => {
-  // 如果用户提供的图片加载失败，切换到默认图片
   if (props.post.cover_image && !imageError.value) {
+    console.warn(`[BlogPostCard] 图片加载失败: ${props.post.cover_image}`)
     imageError.value = true
   }
 }

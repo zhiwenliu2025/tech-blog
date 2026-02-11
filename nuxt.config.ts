@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     '@nuxtjs/supabase',
     '@nuxt/icon',
     '@nuxtjs/color-mode',
+    '@nuxt/image',
     // 只在生产环境启用 PWA
     ...(process.env.NODE_ENV === 'production' ? ['@vite-pwa/nuxt'] : [])
   ],
@@ -45,6 +46,94 @@ export default defineNuxtConfig({
     // 注意：@nuxtjs/supabase 模块会检查环境变量 SUPABASE_SERVICE_KEY，如果存在会发出警告
     // 请确保在 .env 文件中使用 SUPABASE_SECRET_KEY 而不是 SUPABASE_SERVICE_KEY
     serviceKey: process.env.SUPABASE_SECRET_KEY
+  },
+
+  // Nuxt Image Configuration
+  image: {
+    // 使用 IPX provider（Nuxt Image 内置的图片优化服务）
+    provider: 'ipx',
+
+    // IPX 配置
+    ipx: {
+      // 图片最大尺寸
+      maxAge: 60 * 60 * 24 * 7, // 7 天缓存
+      // 允许的图片格式
+      formats: ['webp', 'avif', 'jpeg', 'jpg', 'png', 'gif']
+    },
+
+    // 预设配置（可选）
+    presets: {
+      // 博客封面图预设
+      cover: {
+        modifiers: {
+          format: 'webp',
+          quality: 80,
+          fit: 'cover'
+        }
+      },
+      // 缩略图预设
+      thumbnail: {
+        modifiers: {
+          format: 'webp',
+          width: 400,
+          height: 300,
+          quality: 75,
+          fit: 'cover'
+        }
+      },
+      // 高清图预设
+      hd: {
+        modifiers: {
+          format: 'webp',
+          width: 1920,
+          quality: 85,
+          fit: 'inside'
+        }
+      }
+    },
+
+    // 允许的域名（Supabase Storage）
+    domains: [
+      // 自动从环境变量提取 Supabase 域名
+      new URL(process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').hostname
+    ].filter(Boolean),
+
+    // 别名配置（简化路径）
+    alias: {
+      // supabase: 将映射到完整的 Supabase Storage URL
+      supabase:
+        (process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(
+          /\/$/,
+          ''
+        ) + '/storage/v1/object/public'
+    },
+
+    // 响应式图片断点
+    screens: {
+      xs: 320,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+      xxl: 1536
+    },
+
+    // 质量设置
+    quality: 80,
+
+    // 格式优先级（浏览器支持时自动选择最优格式）
+    format: ['webp', 'avif'],
+
+    // 开发环境配置
+    ...(process.env.NODE_ENV === 'development'
+      ? {
+          // 开发时禁用某些优化以加快构建
+          densities: [1, 2]
+        }
+      : {
+          // 生产环境支持更多像素密度
+          densities: [1, 2, 3]
+        })
   },
 
   // Runtime config
