@@ -161,9 +161,6 @@ const getDefaultImage = (title: string) => {
   return `https://picsum.photos/seed/${seed}/800/400`
 }
 
-// 使用图片优化器
-const { getResponsiveSizes } = useImageOptimizer()
-
 // 图片加载错误处理
 const imageError = ref(false)
 
@@ -177,12 +174,8 @@ const coverImageSrc = computed(() => {
   return props.post.cover_image
 })
 
-// 响应式尺寸配置
-const responsiveSizes = getResponsiveSizes({
-  mobile: '100vw',
-  tablet: '50vw',
-  desktop: '400px'
-})
+// 响应式尺寸配置 - 直接定义，不需要 composable
+const responsiveSizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px'
 
 // 处理图片加载错误
 const handleImageError = () => {
