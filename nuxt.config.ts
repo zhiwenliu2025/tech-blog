@@ -81,7 +81,15 @@ export default defineNuxtConfig({
           fit: 'cover'
         }
       },
-      // 高清图预设（详情页使用）
+      // 文章正文图片预设（保持原始尺寸，仅转换格式）
+      article: {
+        modifiers: {
+          format: 'webp',
+          quality: 85
+          // 不设置 width/height，保持原始尺寸
+        }
+      },
+      // 高清图预设（详情页使用，限制最大尺寸）
       hd: {
         modifiers: {
           format: 'webp',

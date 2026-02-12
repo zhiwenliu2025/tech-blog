@@ -292,7 +292,7 @@
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import Image from '@tiptap/extension-image'
+import { OptimizedImage } from './extensions/OptimizedImage'
 import Link from '@tiptap/extension-link'
 import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
@@ -402,13 +402,13 @@ const editor = useEditor({
         }
       }
     }),
-    Image.configure({
-      HTMLAttributes: {
-        class: 'rounded-lg max-w-full h-auto my-4',
-        loading: 'lazy'
-      },
+    // 使用自定义的优化图片扩展，支持响应式 WebP
+    OptimizedImage.configure({
       inline: false,
-      allowBase64: false
+      allowBase64: false,
+      HTMLAttributes: {
+        class: 'rounded-lg max-w-full h-auto my-4'
+      }
     }),
     Link.configure({
       openOnClick: false,
@@ -446,9 +446,9 @@ const editor = useEditor({
         const { selection } = state
         const pos = selection.$anchor.pos
 
-        // 检查当前位置的节点
+        // 检查当前位置的节点（支持原生 image 和自定义 optimizedImage）
         const node = state.doc.nodeAt(pos - 1)
-        if (node && node.type.name === 'image') {
+        if (node && (node.type.name === 'image' || node.type.name === 'optimizedImage')) {
           const imageUrl = node.attrs.src
           // 异步删除 Storage 中的图片（不阻塞删除操作）
           if (imageUploaderRef.value && imageUrl && imageUrl.includes('/blog-images/')) {

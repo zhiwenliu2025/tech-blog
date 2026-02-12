@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import Image from '@tiptap/extension-image'
+import { OptimizedImage } from './extensions/OptimizedImage'
 import { Table } from '@tiptap/extension-table'
 import { TableRow } from '@tiptap/extension-table-row'
 import { TableHeader } from '@tiptap/extension-table-header'
@@ -244,12 +244,13 @@ const editor = useEditor({
         }
       }
     }),
-    Image.configure({
+    // 使用自定义的优化图片扩展，支持响应式 WebP
+    OptimizedImage.configure({
+      inline: false,
+      allowBase64: false,
       HTMLAttributes: {
-        class: 'rounded-lg max-w-full h-auto my-4 mx-auto block',
-        loading: 'lazy'
-      },
-      inline: false
+        class: 'rounded-lg max-w-full h-auto my-4 mx-auto block'
+      }
     }),
     // 添加表格支持
     Table.configure({
