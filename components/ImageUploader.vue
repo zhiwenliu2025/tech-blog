@@ -139,14 +139,6 @@ const isDragging = ref(false)
 const lastUploadFile = ref<File | null>(null)
 const uploadedFileName = ref<string | null>(null)
 
-// 检查是否支持 WebP
-const supportsWebP = (): boolean => {
-  const canvas = document.createElement('canvas')
-  canvas.width = 1
-  canvas.height = 1
-  return canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0
-}
-
 // 验证图片尺寸
 const validateImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {
@@ -160,70 +152,6 @@ const validateImageDimensions = (file: File): Promise<{ width: number; height: n
           return
         }
         resolve({ width: img.width, height: img.height })
-      }
-      img.onerror = () => reject(new Error('图片加载失败'))
-      img.src = e.target?.result as string
-    }
-    reader.onerror = () => reject(new Error('文件读取失败'))
-    reader.readAsDataURL(file)
-  })
-}
-
-// 压缩图片（支持 WebP 转换）
-const compressImage = (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      const img = new Image()
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        let width = img.width
-        let height = img.height
-
-        // 最大宽度 1920px
-        const maxWidth = 1920
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width
-          width = maxWidth
-        }
-
-        canvas.width = width
-        canvas.height = height
-
-        const ctx = canvas.getContext('2d')
-        if (!ctx) {
-          reject(new Error('无法创建画布上下文'))
-          return
-        }
-
-        // 使用高质量缩放算法
-        ctx.imageSmoothingEnabled = true
-        ctx.imageSmoothingQuality = 'high'
-        ctx.drawImage(img, 0, 0, width, height)
-
-        // 优先使用 WebP 格式（如果支持）
-        const useWebP = supportsWebP()
-        const outputType = useWebP ? 'image/webp' : file.type
-        const outputQuality = useWebP ? 0.85 : 0.8 // WebP 可以使用更高的质量
-
-        canvas.toBlob(
-          blob => {
-            if (!blob) {
-              reject(new Error('图片压缩失败'))
-              return
-            }
-            // 生成新的文件名
-            const originalName = file.name.split('.')[0]
-            const newExt = useWebP ? 'webp' : file.name.split('.').pop() || 'jpg'
-            const compressedFile = new File([blob], `${originalName}.${newExt}`, {
-              type: outputType,
-              lastModified: Date.now()
-            })
-            resolve(compressedFile)
-          },
-          outputType,
-          outputQuality
-        )
       }
       img.onerror = () => reject(new Error('图片加载失败'))
       img.src = e.target?.result as string
@@ -250,43 +178,11 @@ const validateFile = (file: File): string | null => {
   return null
 }
 
-// 计算文件的 MD5 哈希
-const calculateFileHash = async (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = async e => {
-      try {
-        const arrayBuffer = e.target?.result as ArrayBuffer
-        const buffer = new Uint8Array(arrayBuffer)
-
-        // 使用 Web Crypto API 计算 SHA-256（浏览器环境）
-        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
-        const hashArray = Array.from(new Uint8Array(hashBuffer))
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-
-        resolve(hashHex)
-      } catch (err) {
-        reject(err)
-      }
-    }
-    reader.onerror = () => reject(new Error('文件读取失败'))
-    reader.readAsArrayBuffer(file)
-  })
-}
-
-// 上传图片
+// 上传图片（使用服务端 API 进行 WebP 转换）
 const uploadImage = async (file: File) => {
   if (!user.value) {
     error.value = '请先登录'
     emit('error', '请先登录')
-    return
-  }
-
-  // 获取用户ID（兼容 id 和 sub 属性）
-  const userId = user.value.id || (user.value as any).sub
-  if (!userId) {
-    error.value = '无法获取用户ID'
-    emit('error', '无法获取用户ID')
     return
   }
 
@@ -306,136 +202,78 @@ const uploadImage = async (file: File) => {
   try {
     // 验证图片尺寸
     await validateImageDimensions(file)
-
-    // 压缩图片
-    const compressedFile = await compressImage(file)
-
-    // 计算文件哈希（用于去重）
     uploadProgress.value = 10
-    const fileHash = await calculateFileHash(compressedFile)
 
-    // 获取文件扩展名
-    const fileExt = compressedFile.name.split('.').pop() || 'jpg'
-
-    // 使用哈希作为文件名（与导入逻辑一致）
-    const fileName = `${userId}/manual/hash-${fileHash}.${fileExt}`
+    // 创建 FormData
+    const formData = new FormData()
+    formData.append('file', file)
 
     uploadProgress.value = 20
 
-    // 检查文件是否已存在（去重）
-    const { data: existingFiles } = await supabase.storage
-      .from('blog-images')
-      .list(`${userId}/manual`, {
-        search: `hash-${fileHash}`
-      })
-
-    if (existingFiles && existingFiles.length > 0) {
-      // 图片已存在，直接使用已有的
-      const existingFile = existingFiles[0]
-      if (existingFile) {
-        const { data: urlData } = supabase.storage
-          .from('blog-images')
-          .getPublicUrl(`${userId}/manual/${existingFile.name}`)
-
-        console.log('[图片去重] 检测到重复图片，使用已存在的:', existingFile.name)
-        imageUrl.value = urlData.publicUrl
-        uploadedFileName.value = `${userId}/manual/${existingFile.name}`
-        lastUploadFile.value = null
-        uploadProgress.value = 100
-        uploading.value = false
-        return
-      }
-    }
-
     // 使用 XMLHttpRequest 实现真实上传进度
-    const config = useRuntimeConfig()
-    const supabaseUrl = config.public.supabaseUrl
-    const supabaseKey = config.public.supabaseKey
+    const uploadPromise = new Promise<any>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
 
-    const uploadPromise = new Promise<{ data: any; error: any }>((resolve, reject) => {
-      // 获取上传 URL 和认证信息
-      supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
-        if (sessionError || !sessionData?.session) {
-          reject(new Error('未登录'))
-          return
+      xhr.upload.addEventListener('progress', e => {
+        if (e.lengthComputable) {
+          const percentComplete = Math.round((e.loaded / e.total) * 100)
+          // 20-95% 用于上传进度
+          uploadProgress.value = Math.min(20 + Math.round(percentComplete * 0.75), 95)
         }
-
-        const xhr = new XMLHttpRequest()
-        const uploadUrl = `${supabaseUrl}/storage/v1/object/blog-images/${fileName}`
-
-        xhr.upload.addEventListener('progress', e => {
-          if (e.lengthComputable) {
-            const percentComplete = Math.round((e.loaded / e.total) * 100)
-            // 20-95% 用于上传进度
-            uploadProgress.value = Math.min(20 + Math.round(percentComplete * 0.75), 95)
-          }
-        })
-
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            uploadProgress.value = 100
-            try {
-              const response = xhr.responseText ? JSON.parse(xhr.responseText) : {}
-              resolve({ data: response, error: null })
-            } catch {
-              resolve({ data: {}, error: null })
-            }
-          } else {
-            try {
-              const error = JSON.parse(xhr.responseText)
-              reject(error)
-            } catch {
-              reject(new Error(`上传失败: ${xhr.statusText || '未知错误'}`))
-            }
-          }
-        })
-
-        xhr.addEventListener('error', () => {
-          reject(new Error('网络错误，上传失败'))
-        })
-
-        xhr.addEventListener('abort', () => {
-          reject(new Error('上传已取消'))
-        })
-
-        xhr.open('POST', uploadUrl)
-        xhr.setRequestHeader('Authorization', `Bearer ${sessionData.session.access_token}`)
-        xhr.setRequestHeader('apikey', supabaseKey)
-        xhr.setRequestHeader('x-upsert', 'false')
-        xhr.setRequestHeader('cache-control', '3600')
-
-        // 创建 FormData
-        const formData = new FormData()
-        formData.append('file', compressedFile)
-
-        xhr.send(formData)
       })
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          uploadProgress.value = 100
+          try {
+            const response = JSON.parse(xhr.responseText)
+            resolve(response)
+          } catch {
+            reject(new Error('响应解析失败'))
+          }
+        } else {
+          try {
+            const error = JSON.parse(xhr.responseText)
+            reject(new Error(error.message || `上传失败: ${xhr.statusText}`))
+          } catch {
+            reject(new Error(`上传失败: ${xhr.statusText || '未知错误'}`))
+          }
+        }
+      })
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('网络错误，上传失败'))
+      })
+
+      xhr.addEventListener('abort', () => {
+        reject(new Error('上传已取消'))
+      })
+
+      xhr.open('POST', '/api/images/upload')
+      xhr.send(formData)
     })
 
-    const { data, error: uploadError } = await uploadPromise
+    const response = await uploadPromise
 
-    if (uploadError) {
-      // 如果文件已存在（竞态条件），尝试获取它
-      if (
-        uploadError.message?.includes('already exists') ||
-        uploadError.message?.includes('duplicate')
-      ) {
-        const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
-        console.log('[图片去重] 上传时检测到重复，使用已存在的')
-        imageUrl.value = urlData.publicUrl
-        uploadedFileName.value = fileName
-        lastUploadFile.value = null
-        return
-      }
-      throw uploadError
+    if (!response.success) {
+      throw new Error(response.message || '上传失败')
     }
 
-    // 获取公共 URL
-    const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(fileName)
+    // 记录转换信息
+    if (response.converted) {
+      console.log(
+        `[图片上传] 已转换为 WebP - 原始: ${(response.originalSize / 1024).toFixed(1)}KB, WebP: ${(response.processedSize / 1024).toFixed(1)}KB, 节省: ${((response.savedBytes / response.originalSize) * 100).toFixed(1)}%`
+      )
+    }
 
-    console.log('[图片上传] 新图片上传成功:', fileName)
-    imageUrl.value = urlData.publicUrl
-    uploadedFileName.value = fileName
+    if (response.isDuplicate) {
+      console.log('[图片去重] 检测到重复图片，使用已存在的')
+    } else {
+      console.log('[图片上传] 新图片上传成功')
+    }
+
+    imageUrl.value = response.url
+    uploadedFileName.value = response.url // 保存 URL 用于后续删除
     lastUploadFile.value = null // 清除，表示上传成功
     // 不立即触发 uploaded 事件，等待用户确认 Alt 文本
   } catch (err: any) {
@@ -542,15 +380,6 @@ const confirmUpload = () => {
 // 重试上传
 const retryUpload = async () => {
   if (lastUploadFile.value) {
-    // 如果之前上传成功但用户取消了，先删除已上传的文件
-    if (uploadedFileName.value) {
-      try {
-        await supabase.storage.from('blog-images').remove([uploadedFileName.value])
-      } catch (err) {
-        console.warn('删除已上传文件失败:', err)
-      }
-      uploadedFileName.value = null
-    }
     await uploadImage(lastUploadFile.value)
   }
 }

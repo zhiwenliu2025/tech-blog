@@ -173,6 +173,7 @@ export function resolveLazyImageSrc(element: Element): string | null {
 /**
  * Download a single image and upload to Supabase Storage
  * Checks for duplicate images based on content hash
+ * Converts images to WebP format for optimization
  */
 async function processImage(
   imageUrl: string,
@@ -222,17 +223,59 @@ async function processImage(
 
     // Get image data
     const arrayBuffer = await response.arrayBuffer()
-    const buffer = new Uint8Array(arrayBuffer)
+    const buffer = Buffer.from(arrayBuffer)
 
     // Check size
     if (buffer.length > MAX_SINGLE_IMAGE_SIZE) {
       return { success: false, error: `图片过大: ${(buffer.length / 1024 / 1024).toFixed(1)}MB` }
     }
 
-    // Calculate MD5 hash for duplicate detection
+    // Convert to WebP format (unless it's already WebP or SVG/GIF which should be preserved)
+    let processedBuffer = buffer
+    let finalContentType = contentType
+    let shouldConvertToWebP = true
+
+    // Skip conversion for these formats
+    const preserveFormats = ['image/svg+xml', 'image/gif', 'image/webp']
+    if (preserveFormats.some(format => contentType.includes(format))) {
+      shouldConvertToWebP = false
+    }
+
+    if (shouldConvertToWebP) {
+      try {
+        // Import sharp dynamically
+        const sharp = (await import('sharp')).default
+
+        // Convert to WebP with optimization
+        processedBuffer = await sharp(buffer)
+          .webp({
+            quality: 85,
+            effort: 4 // Balance between compression and speed (0-6)
+          })
+          .toBuffer()
+
+        finalContentType = 'image/webp'
+
+        console.log(
+          `[图片转换] ${imageUrl} - 原始: ${(buffer.length / 1024).toFixed(1)}KB, WebP: ${(processedBuffer.length / 1024).toFixed(1)}KB, 节省: ${((1 - processedBuffer.length / buffer.length) * 100).toFixed(1)}%`
+        )
+      } catch (conversionError: any) {
+        // If conversion fails, use original
+        console.warn(`[图片转换失败] ${imageUrl}: ${conversionError.message}, 使用原始格式`)
+        processedBuffer = buffer
+        finalContentType = contentType
+      }
+    }
+
+    // Calculate MD5 hash for duplicate detection (using processed buffer)
     const crypto = await import('crypto')
-    const hash = crypto.createHash('md5').update(buffer).digest('hex')
-    const ext = getImageExtension(imageUrl, contentType)
+    const hash = crypto.createHash('md5').update(processedBuffer).digest('hex')
+
+    // Always use .webp extension for converted images, or preserve original
+    const ext =
+      shouldConvertToWebP && finalContentType.includes('webp')
+        ? 'webp'
+        : getImageExtension(imageUrl, contentType)
 
     // Check if this image already exists (by hash)
     const hashFilePath = `${userId}/imported/hash-${hash}.${ext}`
@@ -260,8 +303,8 @@ async function processImage(
     // No duplicate found, upload new image with hash-based filename
     const { error: uploadError } = await supabase.storage
       .from('blog-images')
-      .upload(hashFilePath, buffer, {
-        contentType: contentType.split(';')[0]?.trim() ?? 'image/jpeg',
+      .upload(hashFilePath, processedBuffer, {
+        contentType: finalContentType.split(';')[0]?.trim() ?? 'image/webp',
         cacheControl: '3600',
         upsert: false
       })
