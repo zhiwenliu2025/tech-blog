@@ -11,14 +11,10 @@
       class="relative block h-48 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800 sm:h-52 md:h-56"
     >
       <NuxtImg
-        :src="optimizedCoverImage"
+        :src="coverImageSrc"
         :alt="post.title"
-        :width="800"
-        :height="450"
+        preset="cover"
         :sizes="responsiveSizes"
-        format="webp"
-        :quality="80"
-        fit="cover"
         loading="lazy"
         :placeholder="[20, 11, 75, 5]"
         class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
@@ -166,19 +162,19 @@ const getDefaultImage = (title: string) => {
 }
 
 // 使用图片优化器
-const { getOptimizedUrl, getResponsiveSizes } = useImageOptimizer()
+const { getResponsiveSizes } = useImageOptimizer()
 
 // 图片加载错误处理
 const imageError = ref(false)
 
-// 优化后的封面图片 URL
-const optimizedCoverImage = computed(() => {
+// 封面图片源 - 直接使用原始 URL，让 NuxtImg + IPX 处理优化和 WebP 转换
+const coverImageSrc = computed(() => {
   // 如果图片加载失败或没有提供图片，使用默认图片
   if (imageError.value || !props.post.cover_image) {
     return getDefaultImage(props.post.title)
   }
-  // 使用优化器处理 Supabase URL
-  return getOptimizedUrl(props.post.cover_image)
+  // 直接返回原始 URL，NuxtImg 会通过 IPX provider 自动优化为 WebP
+  return props.post.cover_image
 })
 
 // 响应式尺寸配置

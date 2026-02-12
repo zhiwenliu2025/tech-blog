@@ -48,30 +48,30 @@ export default defineNuxtConfig({
     serviceKey: process.env.SUPABASE_SECRET_KEY
   },
 
-  // Nuxt Image Configuration
+  // Nuxt Image Configuration with IPX v3
   image: {
     // 使用 IPX provider（Nuxt Image 内置的图片优化服务）
     provider: 'ipx',
 
-    // IPX 配置
+    // IPX v3 配置（简化配置，IPX 会自动处理格式转换）
     ipx: {
-      // 图片最大尺寸
-      maxAge: 60 * 60 * 24 * 7, // 7 天缓存
-      // 允许的图片格式
-      formats: ['webp', 'avif', 'jpeg', 'jpg', 'png', 'gif']
+      // 图片缓存时间（秒）
+      maxAge: 60 * 60 * 24 * 7 // 7 天缓存
     },
 
-    // 预设配置（可选）
+    // 预设配置 - 针对不同使用场景优化
     presets: {
-      // 博客封面图预设
+      // 博客封面图预设（卡片使用）
       cover: {
         modifiers: {
           format: 'webp',
-          quality: 80,
-          fit: 'cover'
+          quality: 85,
+          fit: 'cover',
+          width: 800,
+          height: 450
         }
       },
-      // 缩略图预设
+      // 缩略图预设（列表使用）
       thumbnail: {
         modifiers: {
           format: 'webp',
@@ -81,22 +81,35 @@ export default defineNuxtConfig({
           fit: 'cover'
         }
       },
-      // 高清图预设
+      // 高清图预设（详情页使用）
       hd: {
         modifiers: {
           format: 'webp',
           width: 1920,
-          quality: 85,
+          height: 1080,
+          quality: 90,
           fit: 'inside'
+        }
+      },
+      // 移动端优化预设
+      mobile: {
+        modifiers: {
+          format: 'webp',
+          width: 640,
+          quality: 75,
+          fit: 'cover'
         }
       }
     },
 
-    // 允许的域名（Supabase Storage）
+    // 允许的域名（Supabase Storage 和其他外部图片源）
     domains: [
-      // 自动从环境变量提取 Supabase 域名
-      new URL(process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').hostname
-    ].filter(Boolean),
+      // Supabase Storage 域名
+      'vlipmiqsmusynhdaquoh.supabase.co',
+      // 允许常用的图片占位服务（用于默认图片）
+      'picsum.photos',
+      'via.placeholder.com'
+    ],
 
     // 别名配置（简化路径）
     alias: {
@@ -118,8 +131,8 @@ export default defineNuxtConfig({
       xxl: 1536
     },
 
-    // 质量设置
-    quality: 80,
+    // 默认质量设置
+    quality: 85,
 
     // 格式优先级（浏览器支持时自动选择最优格式）
     format: ['webp', 'avif'],
@@ -132,7 +145,7 @@ export default defineNuxtConfig({
         }
       : {
           // 生产环境支持更多像素密度
-          densities: [1, 2, 3]
+          densities: [1, 2]
         })
   },
 
