@@ -346,6 +346,94 @@
     margin: -0.5rem;
   }
   
+  /* Callout 告示框样式 */
+  .callout {
+    @apply rounded-lg border-l-4 p-4 my-6;
+    @apply transition-all duration-200;
+    @apply shadow-sm;
+  }
+
+  .callout-info {
+    @apply border-blue-500 bg-blue-50 dark:bg-blue-950;
+  }
+
+  .callout-info::before {
+    content: 'ℹ️';
+    @apply inline-block mr-2;
+  }
+
+  .callout-warning {
+    @apply border-yellow-500 bg-yellow-50 dark:bg-yellow-950;
+  }
+
+  .callout-warning::before {
+    content: '⚠️';
+    @apply inline-block mr-2;
+  }
+
+  .callout-error {
+    @apply border-red-500 bg-red-50 dark:bg-red-950;
+  }
+
+  .callout-error::before {
+    content: '❌';
+    @apply inline-block mr-2;
+  }
+
+  .callout-success {
+    @apply border-green-500 bg-green-50 dark:bg-green-950;
+  }
+
+  .callout-success::before {
+    content: '✅';
+    @apply inline-block mr-2;
+  }
+
+  .callout-tip {
+    @apply border-purple-500 bg-purple-50 dark:bg-purple-950;
+  }
+
+  .callout-tip::before {
+    content: '💡';
+    @apply inline-block mr-2;
+  }
+
+  .callout:hover {
+    @apply shadow-md;
+  }
+
+  /* 视频容器响应式 */
+  .video-container {
+    @apply relative w-full overflow-hidden rounded-lg my-6;
+    padding-bottom: 56.25%; /* 16:9 比例 */
+  }
+
+  .video-container iframe,
+  .video-container video {
+    @apply absolute top-0 left-0 w-full h-full;
+  }
+
+  /* 图片网格布局 */
+  .image-grid {
+    @apply grid gap-4 my-6;
+  }
+
+  .image-grid-2 {
+    @apply grid-cols-1 sm:grid-cols-2;
+  }
+
+  .image-grid-3 {
+    @apply grid-cols-1 sm:grid-cols-2 md:grid-cols-3;
+  }
+
+  .image-grid-4 {
+    @apply grid-cols-2 sm:grid-cols-3 md:grid-cols-4;
+  }
+
+  .image-grid img {
+    @apply w-full h-full object-cover rounded-lg;
+  }
+  
   /* 移动端安全区域适配（iPhone X 等） */
   .safe-area-top {
     padding-top: env(safe-area-inset-top);
@@ -381,12 +469,38 @@
       line-height: 1.5rem;
     }
     
-    /* 优化表格在小屏幕的显示 */
-    table {
-      font-size: 0.875rem;
+    /* 优化表格在小屏幕的显示 - 响应式表格容器 */
+    .prose table,
+    .ProseMirror table {
       display: block;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
+      /* 添加滚动指示器 */
+      background: linear-gradient(90deg, white 0%, transparent 5%, transparent 95%, white 100%);
+      background-attachment: local, scroll;
+    }
+
+    .dark .prose table,
+    .dark .ProseMirror table {
+      background: linear-gradient(90deg, rgb(17 24 39) 0%, transparent 5%, transparent 95%, rgb(17 24 39) 100%);
+    }
+
+    /* 表格滚动提示 */
+    table {
+      position: relative;
+    }
+
+    table::after {
+      content: '← 滑动查看更多 →';
+      position: absolute;
+      bottom: -1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.75rem;
+      color: rgb(156 163 175);
+      opacity: 0.7;
+      white-space: nowrap;
     }
     
     /* 优化代码块在小屏幕的显示 */
@@ -394,6 +508,12 @@
       font-size: 0.75rem;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+    }
+
+    /* 优化图片网格在小屏幕 */
+    .image-grid-3,
+    .image-grid-4 {
+      grid-template-columns: 1fr;
     }
   }
   

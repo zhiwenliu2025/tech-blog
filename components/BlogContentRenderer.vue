@@ -508,24 +508,31 @@ onBeforeUnmount(() => {
 /* 确保编辑器内容样式正确 */
 :deep(.ProseMirror) {
   outline: none;
+  font-size: 1.0625rem;
+  line-height: 1.75;
 }
 
 /* 代码块样式增强 - 使用深色主题 */
 :deep(.ProseMirror pre),
 :deep(.ProseMirror pre.code-block),
 :deep(.ProseMirror pre.hljs) {
-  border-radius: 0.5rem;
-  padding: 1rem;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
   overflow-x: auto;
   position: relative;
-  margin: 1.5rem 0;
+  margin: 2rem 0;
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.7;
   border: 1px solid rgb(55 65 75);
-  transition: opacity 0.2s;
+  transition: all 0.2s;
   /* 深色主题背景色 */
   background-color: rgb(13 17 23) !important;
   color: rgb(201 209 217) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+}
+
+:deep(.ProseMirror pre:hover) {
+  box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.4);
 }
 
 :deep(.dark .ProseMirror pre),
@@ -548,29 +555,33 @@ onBeforeUnmount(() => {
     'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace !important;
 }
 
-/* 复制按钮样式 */
+/* 复制按钮样式 - 优化版 */
 :deep(.ProseMirror pre .copy-button) {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 0.875rem;
+  right: 0.875rem;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.375rem 0.625rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: rgb(107 114 128);
-  background-color: rgb(255 255 255);
-  border: 1px solid rgb(229 231 235);
-  border-radius: 0.375rem;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(156 163 175);
+  background-color: rgba(31, 41, 55, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgb(55 65 75);
+  border-radius: 0.5rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
+  transform: translateY(-4px);
   z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 :deep(.ProseMirror pre:hover .copy-button) {
   opacity: 1;
+  transform: translateY(0);
 }
 
 :deep(.dark .ProseMirror pre .copy-button) {
@@ -580,25 +591,36 @@ onBeforeUnmount(() => {
 }
 
 :deep(.ProseMirror pre .copy-button:hover) {
-  background-color: rgb(243 244 246);
-  border-color: rgb(209 213 219);
-  color: rgb(55 65 81);
+  background-color: rgba(55, 65, 75, 0.9);
+  border-color: rgb(75 85 99);
+  color: rgb(229 231 235);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.3);
+}
+
+:deep(.dark .ProseMirror pre .copy-button) {
+  color: rgb(156 163 175);
+  background-color: rgba(31, 41, 55, 0.8);
+  border-color: rgb(55 65 75);
 }
 
 :deep(.dark .ProseMirror pre .copy-button:hover) {
-  background-color: rgb(55 65 75);
+  background-color: rgba(55, 65, 75, 0.9);
   border-color: rgb(75 85 99);
-  color: rgb(209 213 219);
+  color: rgb(229 231 235);
 }
 
 :deep(.ProseMirror pre .copy-button.copied) {
   color: rgb(34 197 94);
   border-color: rgb(34 197 94);
+  background-color: rgba(20, 83, 45, 0.8);
+  transform: scale(1.05);
 }
 
 :deep(.dark .ProseMirror pre .copy-button.copied) {
   color: rgb(74 222 128);
   border-color: rgb(74 222 128);
+  background-color: rgba(20, 83, 45, 0.8);
 }
 
 :deep(.ProseMirror pre .copy-button svg) {
@@ -617,22 +639,28 @@ onBeforeUnmount(() => {
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
-/* 代码块语言标签（可选） */
+/* 代码块语言标签 - 优化版 */
 :deep(.ProseMirror pre.code-block::before),
 :deep(.ProseMirror pre.hljs::before) {
   content: attr(data-lang);
   position: absolute;
-  top: 0.5rem;
-  right: 0.75rem;
+  top: 0.875rem;
+  left: 1rem;
   font-size: 0.75rem;
-  color: rgb(107 114 128);
+  color: rgb(156 163 175);
   text-transform: uppercase;
-  font-weight: 500;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.5rem;
+  background-color: rgba(55, 65, 75, 0.5);
+  border-radius: 0.25rem;
+  line-height: 1;
 }
 
 :deep(.dark .ProseMirror pre.code-block::before),
 :deep(.dark .ProseMirror pre.hljs::before) {
   color: rgb(156 163 175);
+  background-color: rgba(55, 65, 75, 0.5);
 }
 
 /* 代码块滚动条样式 */
@@ -663,35 +691,88 @@ onBeforeUnmount(() => {
   background: rgb(107 114 128);
 }
 
-/* 行内代码样式 */
+/* 行内代码样式 - 优化版 */
 :deep(.ProseMirror code) {
-  background-color: rgb(243 244 246);
-  padding: 0.125rem 0.25rem;
+  background-color: rgb(254 242 242);
+  color: rgb(220 38 38);
+  padding: 0.2em 0.4em;
   border-radius: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 0.9em;
+  font-weight: 600;
+  border: 1px solid rgb(254 226 226);
 }
 
 :deep(.dark .ProseMirror code) {
-  background-color: rgb(31 41 55);
+  background-color: rgb(69 26 26);
+  color: rgb(252 165 165);
+  border-color: rgb(127 29 29);
 }
 
-/* 图片样式 */
+/* 图片样式 - 优化版 */
 :deep(.ProseMirror img) {
   max-width: 100%;
   height: auto;
-  border-radius: 0.5rem;
-  margin: 1rem 0;
+  border-radius: 0.75rem;
+  margin: 2rem auto;
+  display: block;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-/* 链接样式 */
+:deep(.ProseMirror img:hover) {
+  transform: scale(1.02);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* 图片标题样式 */
+:deep(.ProseMirror figure) {
+  margin: 2rem 0;
+}
+
+:deep(.ProseMirror figure img) {
+  margin: 0;
+}
+
+:deep(.ProseMirror figcaption) {
+  color: rgb(107 114 128);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-top: 0.75rem;
+  text-align: center;
+  font-style: italic;
+}
+
+:deep(.dark .ProseMirror figcaption) {
+  color: rgb(156 163 175);
+}
+
+/* 链接样式 - 优化版 */
 :deep(.ProseMirror a) {
   color: rgb(59 130 246);
-  text-decoration: underline;
-  transition: color 0.2s;
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 :deep(.ProseMirror a:hover) {
-  color: rgb(37 99 235);
+  color: rgb(29 78 216);
+  border-bottom-color: rgb(29 78 216);
+}
+
+/* 外部链接图标 */
+:deep(.ProseMirror a[href^='http']::after) {
+  content: '↗';
+  margin-left: 0.2em;
+  font-size: 0.85em;
+  opacity: 0.6;
 }
 
 :deep(.dark .ProseMirror a) {
@@ -700,100 +781,260 @@ onBeforeUnmount(() => {
 
 :deep(.dark .ProseMirror a:hover) {
   color: rgb(147 197 253);
+  border-bottom-color: rgb(147 197 253);
 }
 
-/* 引用样式 */
+/* 引用样式 - 优化版 */
 :deep(.ProseMirror blockquote) {
-  border-left: 4px solid rgb(209 213 219);
-  padding-left: 1rem;
-  margin: 1rem 0;
-  font-style: italic;
-  color: rgb(107 114 128);
+  border-left: 4px solid rgb(59 130 246);
+  padding: 1em 1.5em;
+  margin: 2rem 0;
+  font-style: normal;
+  color: rgb(75 85 99);
+  background-color: rgb(239 246 255);
+  border-radius: 0 0.5rem 0.5rem 0;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+}
+
+:deep(.ProseMirror blockquote::before) {
+  content: '"';
+  font-size: 3em;
+  color: rgb(59 130 246);
+  opacity: 0.2;
+  position: absolute;
+  top: -0.1em;
+  left: 0.3em;
+  line-height: 1;
+  font-family: Georgia, serif;
+}
+
+:deep(.ProseMirror blockquote p) {
+  margin: 0.75em 0;
+}
+
+:deep(.ProseMirror blockquote p:first-child) {
+  margin-top: 0;
+}
+
+:deep(.ProseMirror blockquote p:last-child) {
+  margin-bottom: 0;
 }
 
 :deep(.dark .ProseMirror blockquote) {
-  border-left-color: rgb(75 85 99);
+  border-left-color: rgb(96 165 250);
   color: rgb(156 163 175);
+  background-color: rgb(30 41 59);
+  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.1);
 }
 
-/* 列表样式 */
+:deep(.dark .ProseMirror blockquote::before) {
+  color: rgb(96 165 250);
+}
+
+/* 列表样式 - 优化版 */
 :deep(.ProseMirror ul),
 :deep(.ProseMirror ol) {
-  padding-left: 1.5rem;
-  margin: 1rem 0;
+  padding-left: 1.75rem;
+  margin: 1.25rem 0;
+}
+
+:deep(.ProseMirror ul) {
+  list-style-type: disc;
+}
+
+:deep(.ProseMirror ul ul) {
+  list-style-type: circle;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+:deep(.ProseMirror ul ul ul) {
+  list-style-type: square;
 }
 
 :deep(.ProseMirror li) {
-  margin: 0.5rem 0;
-}
-
-/* 标题样式 */
-:deep(.ProseMirror h1) {
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
-
-:deep(.ProseMirror h2) {
-  font-size: 1.875rem;
-  font-weight: 600;
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  line-height: 1.3;
-}
-
-:deep(.ProseMirror h3) {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-top: 1.25rem;
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-}
-
-/* 段落样式 */
-:deep(.ProseMirror p) {
-  margin: 1rem 0;
+  margin: 0.75rem 0;
+  padding-left: 0.5rem;
   line-height: 1.75;
 }
 
-/* 表格样式 */
+:deep(.ProseMirror ul > li::marker) {
+  color: rgb(59 130 246);
+  font-size: 1.2em;
+}
+
+:deep(.ProseMirror ol > li::marker) {
+  color: rgb(59 130 246);
+  font-weight: 700;
+}
+
+:deep(.dark .ProseMirror ul > li::marker),
+:deep(.dark .ProseMirror ol > li::marker) {
+  color: rgb(96 165 250);
+}
+
+/* 标题样式 - 优化版 */
+:deep(.ProseMirror h1) {
+  font-size: clamp(1.875rem, 5vw, 2.5rem);
+  font-weight: 800;
+  margin-top: 0;
+  margin-bottom: 1em;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  color: rgb(17 24 39);
+}
+
+:deep(.ProseMirror h2) {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  margin-top: 2em;
+  margin-bottom: 0.75em;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgb(229 231 235);
+  color: rgb(17 24 39);
+}
+
+:deep(.ProseMirror h3) {
+  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  font-weight: 600;
+  margin-top: 1.75em;
+  margin-bottom: 0.5em;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: rgb(17 24 39);
+}
+
+:deep(.ProseMirror h4) {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.5;
+  color: rgb(17 24 39);
+}
+
+:deep(.dark .ProseMirror h1),
+:deep(.dark .ProseMirror h2),
+:deep(.dark .ProseMirror h3),
+:deep(.dark .ProseMirror h4) {
+  color: rgb(243 244 246);
+}
+
+:deep(.dark .ProseMirror h2) {
+  border-bottom-color: rgb(55 65 81);
+}
+
+/* 段落样式 - 优化版 */
+:deep(.ProseMirror p) {
+  margin: 1.5em 0;
+  line-height: 1.8;
+  color: rgb(55 65 81);
+}
+
+:deep(.ProseMirror p:first-of-type) {
+  margin-top: 0;
+}
+
+:deep(.dark .ProseMirror p) {
+  color: rgb(209 213 219);
+}
+
+/* 表格样式 - 优化版 */
 :deep(.ProseMirror table) {
   width: 100%;
   border-collapse: collapse;
-  margin: 1rem 0;
+  margin: 2rem 0;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid rgb(229 231 235);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 :deep(.ProseMirror table th),
 :deep(.ProseMirror table td) {
   border: 1px solid rgb(229 231 235);
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
   text-align: left;
+}
+
+:deep(.ProseMirror table thead) {
+  background-color: rgb(249 250 251);
+  font-weight: 700;
+}
+
+:deep(.ProseMirror table th) {
+  background-color: rgb(249 250 251);
+  font-weight: 700;
+  color: rgb(17 24 39);
+  border-bottom: 2px solid rgb(209 213 219);
+}
+
+:deep(.ProseMirror table tbody tr) {
+  transition: background-color 0.2s ease;
+}
+
+:deep(.ProseMirror table tbody tr:nth-child(even)) {
+  background-color: rgb(249 250 251);
+}
+
+:deep(.ProseMirror table tbody tr:hover) {
+  background-color: rgb(243 244 246);
+}
+
+:deep(.dark .ProseMirror table) {
+  border-color: rgb(55 65 81);
 }
 
 :deep(.dark .ProseMirror table th),
 :deep(.dark .ProseMirror table td) {
-  border-color: rgb(75 85 99);
+  border-color: rgb(55 65 81);
 }
 
-:deep(.ProseMirror table th) {
-  background-color: rgb(243 244 246);
-  font-weight: 600;
-}
-
+:deep(.dark .ProseMirror table thead),
 :deep(.dark .ProseMirror table th) {
   background-color: rgb(31 41 55);
+  color: rgb(243 244 246);
+  border-bottom-color: rgb(55 65 81);
 }
 
-/* 水平分割线 */
+:deep(.dark .ProseMirror table tbody tr:nth-child(even)) {
+  background-color: rgb(30 41 59);
+}
+
+:deep(.dark .ProseMirror table tbody tr:hover) {
+  background-color: rgb(39 50 66);
+}
+
+/* 水平分割线 - 优化版 */
 :deep(.ProseMirror hr) {
   border: none;
-  border-top: 1px solid rgb(229 231 235);
-  margin: 2rem 0;
+  border-top: 2px solid rgb(229 231 235);
+  margin: 3rem 0;
+  position: relative;
+}
+
+:deep(.ProseMirror hr::after) {
+  content: '✦';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 0 1rem;
+  color: rgb(156 163 175);
+  font-size: 0.875rem;
 }
 
 :deep(.dark .ProseMirror hr) {
-  border-top-color: rgb(75 85 99);
+  border-top-color: rgb(55 65 81);
+}
+
+:deep(.dark .ProseMirror hr::after) {
+  background-color: rgb(17 24 39);
+  color: rgb(107 114 128);
 }
 </style>

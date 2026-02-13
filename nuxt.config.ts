@@ -310,7 +310,14 @@ export default defineNuxtConfig({
         { rel: 'dns-prefetch', href: 'https://fonts.gstatic.com' },
         // 预连接关键资源
         { rel: 'preconnect', href: 'https://fonts.googleapis.com', crossorigin: 'anonymous' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' }
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' },
+        // 预加载关键字体（优化性能，减少字体闪烁）
+        {
+          rel: 'preload',
+          href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap',
+          as: 'style',
+          onload: "this.onload=null;this.rel='stylesheet'"
+        }
       ]
     }
   },

@@ -379,6 +379,8 @@ NUXT_PUBLIC_ANALYTICS_ENABLED=false
 - [草稿自动保存](./doc/DRAFT_AUTOSAVE.md) - 草稿自动保存功能说明
 - [热门文章功能](./doc/HOT_POSTS.md) - 热门文章实现和使用指南
 - [缓存系统](./doc/CACHE.md) - 应用层缓存完整文档
+- [Markdown 样式优化](./doc/MARKDOWN_STYLE_OPTIMIZATION.md) - Markdown 渲染样式全面优化文档 ⭐ NEW
+- [Markdown 样式示例](./doc/MARKDOWN_EXAMPLES.md) - 快速预览所有样式效果 ⭐ NEW
 
 ### 部署和配置
 
