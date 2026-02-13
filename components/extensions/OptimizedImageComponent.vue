@@ -8,7 +8,8 @@
       preset="article"
       loading="lazy"
       :placeholder="[20, 11, 75, 5]"
-      class="mx-auto my-4 block h-auto max-w-full rounded-lg"
+      class="mx-auto my-4 block h-auto max-w-full cursor-zoom-in rounded-lg transition-transform hover:scale-[1.02]"
+      @click="openLightbox"
       @error="handleImageError"
     />
     <div v-else class="image-placeholder">
@@ -21,7 +22,6 @@
 <script setup lang="ts">
 import { NodeViewWrapper } from '@tiptap/vue-3'
 
-// 从 TipTap 接收的 props
 interface Props {
   node: {
     attrs: {
@@ -36,10 +36,16 @@ interface Props {
 
 const props = defineProps<Props>()
 
-// 处理图片加载错误
+const { show } = useImageLightbox()
+
+const openLightbox = () => {
+  if (props.node.attrs.src) {
+    show(props.node.attrs.src, props.node.attrs.alt, props.node.attrs.title)
+  }
+}
+
 const handleImageError = (event: Event) => {
   console.warn(`[OptimizedImage] 图片加载失败: ${props.node.attrs.src}`)
-  // 可以在这里添加错误处理逻辑，比如显示占位图
 }
 </script>
 
@@ -64,7 +70,6 @@ const handleImageError = (event: Event) => {
   background-color: rgb(31 41 55);
 }
 
-/* 确保图片样式与原有样式一致 */
 :deep(img) {
   max-width: 100%;
   height: auto;
@@ -73,8 +78,9 @@ const handleImageError = (event: Event) => {
   display: block;
 }
 
-/* 图片加载时的过渡效果 */
 :deep(img) {
-  transition: opacity 0.3s ease-in-out;
+  transition:
+    opacity 0.3s ease-in-out,
+    transform 0.2s ease-in-out;
 }
 </style>

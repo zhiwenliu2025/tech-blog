@@ -1,15 +1,13 @@
 <template>
   <div>
     <NuxtRouteAnnouncer />
-    <!-- 离线/在线状态提示 -->
     <OfflineIndicator />
-    <!-- PWA 安装提示（仅在生产环境显示） -->
     <InstallPrompt v-if="isProduction" />
-    <!-- 返回顶部按钮 -->
     <BackToTop />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
+    <ImageLightbox />
   </div>
 </template>
 
