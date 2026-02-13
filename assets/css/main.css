@@ -566,11 +566,6 @@
       min-height: 3.5rem;
     }
   }
-  }
-  
-  .safe-area-right {
-    padding-right: env(safe-area-inset-right);
-  }
   
   /* 移动端滚动优化 */
   .mobile-scroll {
