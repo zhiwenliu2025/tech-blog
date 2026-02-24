@@ -98,7 +98,7 @@
             <button
               v-if="post?.author_id"
               type="button"
-              class="touch-optimized inline-flex items-center justify-center space-x-1.5 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:bg-blue-500 dark:hover:bg-blue-600"
+              class="touch-optimized inline-flex items-center justify-center space-x-1.5 rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-600 dark:hover:bg-primary-700"
               @click="navigateTo(`/authors/${post.author_id}`)"
             >
               <span>查看作者</span>
@@ -243,7 +243,7 @@
               <button
                 type="submit"
                 :disabled="commentLoading || !newComment.trim()"
-                class="rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
+                class="rounded-md bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-primary-600 dark:hover:bg-primary-700"
               >
                 <span v-if="commentLoading">发表中...</span>
                 <span v-else>发表评论</span>
@@ -258,7 +258,7 @@
         >
           <p class="mb-4 text-gray-600 dark:text-gray-400">登录后才能发表评论</p>
           <button
-            class="rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600"
+            class="rounded-md bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-primary-600 dark:hover:bg-primary-700"
             @click="navigateTo('/auth/login')"
           >
             登录

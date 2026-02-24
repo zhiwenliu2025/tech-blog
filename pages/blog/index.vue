@@ -235,7 +235,7 @@
               :class="[
                 'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
                 currentPage === page
-                  ? 'bg-blue-600 text-white shadow-md'
+                  ? 'bg-primary-600 text-white shadow-md'
                   : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
               ]"
               @click="goToPage(page)"

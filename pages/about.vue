@@ -1,176 +1,319 @@
 <template>
   <div>
-    <main class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-      <div class="overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800">
-        <div class="relative h-64 md:h-80">
-          <img
+    <main class="mx-auto max-w-5xl px-3 py-8 sm:px-4 sm:py-10 md:px-6 md:py-12">
+      <div
+        class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      >
+        <div class="relative h-48 overflow-hidden sm:h-56 md:h-64 lg:h-80">
+          <NuxtImg
             src="https://picsum.photos/seed/about-hero/1200/400.jpg"
             alt="关于我"
+            preset="cover"
+            :sizes="'(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px'"
             class="absolute inset-0 h-full w-full object-cover"
           />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-          <div class="absolute bottom-0 left-0 right-0 p-8">
-            <h1 class="text-3xl font-bold text-white md:text-4xl">关于我</h1>
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"
+          />
+          <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8">
+            <h1 class="text-2xl font-bold text-white sm:text-3xl md:text-4xl">关于我</h1>
           </div>
         </div>
 
-        <div class="p-8">
-          <div class="prose prose-lg max-w-none dark:prose-invert">
-            <p class="lead mb-8 text-xl text-gray-600 dark:text-gray-300">
+        <div class="p-4 sm:p-6 md:p-8">
+          <div class="prose prose-base max-w-none dark:prose-invert sm:prose-lg">
+            <p
+              class="lead mb-6 text-lg leading-relaxed text-gray-600 dark:text-gray-300 sm:mb-8 sm:text-xl"
+            >
               欢迎来到我的技术博客！我是一名全栈工程师和系统架构师，拥有丰富的全栈开发经验和大型系统架构设计能力。
               我专注于构建高性能、可扩展的Web应用，从前端用户体验到后端服务架构，从数据库设计到DevOps实践，致力于打造完整的技术解决方案。
             </p>
 
-            <h2 class="mb-4 mt-8 text-2xl font-bold text-gray-900 dark:text-white">核心技能</h2>
+            <h2 class="mb-4 mt-8 text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
+              核心技能
+            </h2>
 
-            <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+            <div class="mb-6 grid grid-cols-1 gap-4 sm:mb-8 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                class="rounded-xl border border-gray-100 bg-gray-50 p-4 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 sm:p-5"
+              >
                 <div class="mb-3 flex items-center">
-                  <Icon name="heroicons:code-bracket" class="mr-2 h-6 w-6 text-blue-500" />
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">前端技术</h3>
+                  <div
+                    class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30"
+                  >
+                    <Icon
+                      name="heroicons:code-bracket"
+                      class="h-5 w-5 text-blue-600 dark:text-blue-400"
+                    />
+                  </div>
+                  <h3 class="ml-3 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                    前端技术
+                  </h3>
                 </div>
-                <ul class="space-y-2">
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                <ul class="space-y-1.5 sm:space-y-2">
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Vue.js / Nuxt.js / React / Next.js
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     TypeScript / JavaScript (ES6+)
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Tailwind CSS / SCSS
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Webpack / Vite / 微前端架构
                   </li>
                 </ul>
               </div>
 
-              <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+              <div
+                class="rounded-xl border border-gray-100 bg-gray-50 p-4 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 sm:p-5"
+              >
                 <div class="mb-3 flex items-center">
-                  <Icon name="heroicons:server" class="mr-2 h-6 w-6 text-green-500" />
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">后端技术</h3>
+                  <div
+                    class="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30"
+                  >
+                    <Icon
+                      name="heroicons:server"
+                      class="h-5 w-5 text-green-600 dark:text-green-400"
+                    />
+                  </div>
+                  <h3 class="ml-3 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                    后端技术
+                  </h3>
                 </div>
-                <ul class="space-y-2">
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                <ul class="space-y-1.5 sm:space-y-2">
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Node.js / Express / Koa
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Python / Django / FastAPI
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Java / Spring Boot
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     RESTful API / GraphQL / gRPC
                   </li>
                 </ul>
               </div>
 
-              <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+              <div
+                class="rounded-xl border border-gray-100 bg-gray-50 p-4 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 sm:p-5"
+              >
                 <div class="mb-3 flex items-center">
-                  <Icon name="heroicons:circle-stack" class="mr-2 h-6 w-6 text-purple-500" />
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">数据库</h3>
+                  <div
+                    class="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30"
+                  >
+                    <Icon
+                      name="heroicons:circle-stack"
+                      class="h-5 w-5 text-purple-600 dark:text-purple-400"
+                    />
+                  </div>
+                  <h3 class="ml-3 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                    数据库
+                  </h3>
                 </div>
-                <ul class="space-y-2">
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                <ul class="space-y-1.5 sm:space-y-2">
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     PostgreSQL / MySQL
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     MongoDB / Redis
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Elasticsearch / 全文搜索
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     数据库设计与优化
                   </li>
                 </ul>
               </div>
 
-              <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+              <div
+                class="rounded-xl border border-gray-100 bg-gray-50 p-4 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 sm:p-5"
+              >
                 <div class="mb-3 flex items-center">
-                  <Icon name="heroicons:cube" class="mr-2 h-6 w-6 text-orange-500" />
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">架构设计</h3>
+                  <div
+                    class="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30"
+                  >
+                    <Icon
+                      name="heroicons:cube"
+                      class="h-5 w-5 text-orange-600 dark:text-orange-400"
+                    />
+                  </div>
+                  <h3 class="ml-3 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                    架构设计
+                  </h3>
                 </div>
-                <ul class="space-y-2">
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                <ul class="space-y-1.5 sm:space-y-2">
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     微服务架构 / 分布式系统
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     系统设计 / 高并发架构
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     消息队列 / 事件驱动架构
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     性能优化 / 可扩展性设计
                   </li>
                 </ul>
               </div>
 
-              <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+              <div
+                class="rounded-xl border border-gray-100 bg-gray-50 p-4 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 sm:p-5"
+              >
                 <div class="mb-3 flex items-center">
-                  <Icon name="heroicons:cloud" class="mr-2 h-6 w-6 text-cyan-500" />
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                  <div
+                    class="flex h-9 w-9 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/30"
+                  >
+                    <Icon name="heroicons:cloud" class="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <h3 class="ml-3 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
                     云服务 & DevOps
                   </h3>
                 </div>
-                <ul class="space-y-2">
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                <ul class="space-y-1.5 sm:space-y-2">
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     AWS / Azure / 阿里云
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Docker / Kubernetes
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     CI/CD / GitLab / GitHub Actions
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Terraform / 基础设施即代码
                   </li>
                 </ul>
               </div>
 
-              <div class="rounded-lg bg-gray-50 p-6 dark:bg-gray-700">
+              <div
+                class="rounded-xl border border-gray-100 bg-gray-50 p-4 transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 sm:p-5"
+              >
                 <div class="mb-3 flex items-center">
-                  <Icon name="heroicons:wrench-screwdriver" class="mr-2 h-6 w-6 text-red-500" />
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">工具 & 其他</h3>
+                  <div
+                    class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30"
+                  >
+                    <Icon
+                      name="heroicons:wrench-screwdriver"
+                      class="h-5 w-5 text-red-600 dark:text-red-400"
+                    />
+                  </div>
+                  <h3 class="ml-3 text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
+                    工具 & 其他
+                  </h3>
                 </div>
-                <ul class="space-y-2">
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                <ul class="space-y-1.5 sm:space-y-2">
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Git / 版本控制
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     Supabase / Firebase
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     测试驱动开发 (TDD)
                   </li>
-                  <li class="flex items-center text-gray-700 dark:text-gray-300">
-                    <Icon name="heroicons:check-circle" class="mr-2 h-5 w-5 text-green-500" />
+                  <li class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <Icon
+                      name="heroicons:check-circle"
+                      class="mr-2 h-4 w-4 text-green-500 sm:h-5 sm:w-5"
+                    />
                     敏捷开发 / Scrum
                   </li>
                 </ul>
