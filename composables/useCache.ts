@@ -120,6 +120,8 @@ export const useCachedPostsList = () => {
       tag?: string
       published?: boolean
       authorId?: string
+      sortBy?: string
+      search?: string
     } = {}
   ) => {
     loading.value = true
@@ -133,7 +135,9 @@ export const useCachedPostsList = () => {
           category: options.category,
           tag: options.tag,
           published: options.published !== false,
-          authorId: options.authorId
+          authorId: options.authorId,
+          sortBy: options.sortBy || 'created_at',
+          search: options.search || undefined
         }
       })
 

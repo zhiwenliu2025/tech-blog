@@ -1,6 +1,6 @@
 <template>
   <div>
-    <main class="mx-auto max-w-4xl px-3 py-8 sm:px-4 sm:py-10 md:px-6 lg:px-8 lg:py-12">
+    <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
       <!-- Loading State -->
       <div v-if="loading" class="animate-pulse">
         <div class="mb-6 flex items-center gap-4">

@@ -1,51 +1,47 @@
 <template>
-  <div class="overflow-hidden rounded-lg bg-white shadow-md dark:bg-gray-800">
+  <div class="card overflow-hidden">
     <!-- 标题 -->
-    <div class="border-b border-gray-200 p-3 dark:border-gray-700 sm:p-4">
-      <div class="flex items-center justify-between">
-        <h3
-          class="flex items-center text-base font-semibold text-gray-900 dark:text-white sm:text-lg"
-        >
-          <Icon name="heroicons:fire" class="mr-1.5 h-5 w-5 text-orange-500 sm:mr-2" />
-          热门文章
-        </h3>
-        <NuxtLink
-          to="/blog?sort=hot"
-          class="text-xs text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 sm:text-sm"
-        >
-          更多 →
-        </NuxtLink>
-      </div>
+    <div class="sidebar-widget-header">
+      <h3 class="sidebar-widget-title">
+        <Icon name="heroicons:fire" class="h-4 w-4 text-orange-500" />
+        热门文章
+      </h3>
+      <NuxtLink
+        to="/blog?sort=hot"
+        class="text-xs font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+      >
+        更多
+      </NuxtLink>
     </div>
 
     <!-- 内容 -->
-    <div class="p-3 sm:p-4">
+    <div class="p-2">
       <!-- 加载状态 -->
-      <div v-if="loading" class="space-y-2.5 sm:space-y-3">
+      <div v-if="loading" class="space-y-1">
         <div
           v-for="i in limit"
           :key="i"
-          class="flex animate-pulse items-start space-x-2.5 rounded-lg p-2.5 sm:space-x-3 sm:p-3"
+          class="flex animate-pulse items-start gap-3 rounded-lg p-3"
         >
-          <div class="h-8 w-8 flex-shrink-0 rounded-full bg-gray-200 dark:bg-gray-700" />
+          <div class="h-7 w-7 flex-shrink-0 rounded-full bg-gray-100 dark:bg-gray-800" />
           <div class="flex-1 space-y-2">
-            <div class="h-3.5 w-3/4 rounded bg-gray-200 dark:bg-gray-700 sm:h-4" />
-            <div class="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
+            <div class="h-3.5 w-3/4 rounded-md bg-gray-100 dark:bg-gray-800" />
+            <div class="h-3 w-1/2 rounded-md bg-gray-100 dark:bg-gray-800" />
           </div>
         </div>
       </div>
 
       <!-- 热门文章列表 -->
-      <div v-else-if="hotPosts && hotPosts.length > 0" class="space-y-1.5 sm:space-y-2">
+      <div v-else-if="hotPosts && hotPosts.length > 0">
         <NuxtLink
           v-for="(post, index) in hotPosts"
           :key="post.id"
           :to="`/blog/${post.slug}`"
-          class="group flex items-start space-x-2.5 rounded-lg p-2.5 transition-all duration-200 hover:bg-gray-50 active:scale-[0.98] dark:hover:bg-gray-700 sm:space-x-3 sm:p-3"
+          class="group flex items-start gap-3 rounded-lg p-3 transition-all duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/80"
         >
           <!-- 排名徽章 -->
           <div
-            class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold transition-transform group-hover:scale-110 sm:h-8 sm:w-8 sm:text-sm"
+            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-xs font-bold"
             :class="getRankClass(index)"
           >
             {{ index + 1 }}
@@ -54,58 +50,34 @@
           <!-- 文章信息 -->
           <div class="min-w-0 flex-1">
             <h4
-              class="mb-1.5 line-clamp-2 text-sm font-medium leading-snug text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 sm:mb-2"
+              class="mb-1 line-clamp-2 text-xs font-medium leading-snug text-gray-800 transition-colors group-hover:text-primary-600 dark:text-gray-200 dark:group-hover:text-primary-400"
             >
               {{ post.title }}
             </h4>
-
-            <!-- 统计信息 -->
-            <div
-              class="flex items-center space-x-2.5 text-xs text-gray-500 dark:text-gray-400 sm:space-x-3"
-            >
-              <span class="flex items-center space-x-0.5 sm:space-x-1" title="阅读量">
-                <Icon name="heroicons:eye" class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span>{{ formatNumber(post.view_count || 0) }}</span>
+            <div class="flex items-center gap-2.5 text-xs text-gray-400 dark:text-gray-500">
+              <span class="flex items-center gap-0.5">
+                <Icon name="heroicons:eye" class="h-3 w-3" />
+                {{ formatNumber(post.view_count || 0) }}
               </span>
-              <span class="flex items-center space-x-0.5 sm:space-x-1" title="点赞数">
-                <Icon name="heroicons:heart" class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span>{{ formatNumber(post.likes_count || 0) }}</span>
-              </span>
-              <span class="flex items-center space-x-0.5 sm:space-x-1" title="评论数">
-                <Icon name="heroicons:chat-bubble-left-right" class="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span>{{ formatNumber(post.comments_count || 0) }}</span>
+              <span class="flex items-center gap-0.5">
+                <Icon name="heroicons:heart" class="h-3 w-3" />
+                {{ formatNumber(post.likes_count || 0) }}
               </span>
             </div>
-          </div>
-
-          <!-- 热度分数（可选显示，移动端隐藏） -->
-          <div
-            v-if="showScore && post.hot_score"
-            class="hidden flex-shrink-0 text-xs font-medium text-orange-600 dark:text-orange-400 sm:block"
-            :title="`热度分数: ${Math.round(post.hot_score)}`"
-          >
-            🔥{{ Math.round(post.hot_score) }}
           </div>
         </NuxtLink>
       </div>
 
       <!-- 空状态 -->
-      <div
-        v-else
-        class="flex flex-col items-center justify-center py-6 text-center text-gray-500 dark:text-gray-400 sm:py-8"
-      >
-        <Icon
-          name="heroicons:fire"
-          class="mb-2 h-10 w-10 text-gray-300 dark:text-gray-600 sm:h-12 sm:w-12"
-        />
-        <p class="text-xs sm:text-sm">暂无热门文章</p>
-        <p class="mt-1 text-xs">快去发布文章吧</p>
+      <div v-else class="flex flex-col items-center justify-center py-8 text-center">
+        <Icon name="heroicons:fire" class="mb-2 h-8 w-8 text-gray-200 dark:text-gray-700" />
+        <p class="text-xs text-gray-400">暂无热门文章</p>
       </div>
 
       <!-- 错误提示 -->
       <div
         v-if="error"
-        class="rounded-lg bg-red-50 p-2.5 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400 sm:p-3 sm:text-sm"
+        class="rounded-lg bg-red-50 p-3 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400"
       >
         {{ error }}
       </div>
@@ -139,12 +111,12 @@ onMounted(async () => {
 // 获取排名样式
 const getRankClass = (index: number): string => {
   const classes: Record<number, string> = {
-    0: 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-md',
-    1: 'bg-gradient-to-br from-gray-300 to-gray-500 text-white shadow-md',
-    2: 'bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md'
+    0: 'bg-yellow-400 text-white',
+    1: 'bg-gray-400 text-white',
+    2: 'bg-orange-400 text-white'
   }
 
-  return classes[index] || 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+  return classes[index] || 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
 }
 
 // 格式化数字（1000 -> 1k, 1000000 -> 1M）
@@ -157,32 +129,3 @@ const formatNumber = (num: number): string => {
   return num.toString()
 }
 </script>
-
-<style scoped>
-/* 平滑动画 */
-.group {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.group:hover {
-  transform: translateX(2px);
-}
-
-/* 金银铜牌渐变效果 */
-@keyframes shine {
-  0% {
-    background-position: -100%;
-  }
-  100% {
-    background-position: 200%;
-  }
-}
-
-.bg-gradient-to-br {
-  background-size: 200% auto;
-}
-
-.group:hover .bg-gradient-to-br {
-  animation: shine 2s linear infinite;
-}
-</style>

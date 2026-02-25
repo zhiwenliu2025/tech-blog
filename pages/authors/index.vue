@@ -1,6 +1,6 @@
 <template>
   <div>
-    <main class="mx-auto max-w-6xl px-3 py-8 sm:px-4 sm:py-10 md:px-6 lg:px-8 lg:py-12">
+    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
       <!-- Page Header -->
       <div class="mb-10 text-center sm:mb-12">
         <div

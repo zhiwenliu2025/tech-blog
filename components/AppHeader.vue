@@ -23,12 +23,12 @@
             v-for="item in navItems"
             :key="item.path"
             :to="item.path"
-            class="relative px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400"
+            class="group relative px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-300 dark:hover:text-primary-400"
             active-class="!text-primary-600 dark:!text-primary-400"
           >
             {{ item.name }}
             <span
-              class="absolute inset-x-3 -bottom-px h-0.5 scale-x-0 bg-primary-600 transition-transform duration-300 group-hover:scale-x-100 dark:bg-primary-400"
+              class="absolute inset-x-3 -bottom-px h-0.5 scale-x-0 rounded-full bg-primary-600 transition-transform duration-300 group-hover:scale-x-100 dark:bg-primary-400"
             />
           </NuxtLink>
         </nav>

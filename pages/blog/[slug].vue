@@ -1,7 +1,10 @@
 <template>
   <div>
+    <!-- 阅读进度条 -->
+    <div class="reading-progress" :style="{ width: `${readingProgress}%` }" />
+
     <!-- 文章内容 -->
-    <main class="mx-auto max-w-4xl px-3 py-4 sm:px-4 sm:py-6 md:px-6 lg:px-8 lg:py-8">
+    <main class="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <!-- Loading State -->
       <div v-if="loading" class="animate-pulse">
         <div class="mb-4 h-64 w-full rounded-xl bg-gray-200 dark:bg-gray-700 sm:h-80" />
@@ -446,6 +449,24 @@
 // 获取路由参数
 const route = useRoute()
 const slug = route.params.slug as string
+
+// 阅读进度
+const readingProgress = ref(0)
+
+const updateReadingProgress = () => {
+  const scrollTop = window.scrollY
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight
+  readingProgress.value = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0
+}
+
+onMounted(() => {
+  window.addEventListener('scroll', updateReadingProgress, { passive: true })
+  updateReadingProgress()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', updateReadingProgress)
+})
 
 // 获取认证状态
 const { user } = useSupabaseAuth()

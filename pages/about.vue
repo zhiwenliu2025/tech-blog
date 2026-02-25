@@ -1,9 +1,7 @@
 <template>
   <div>
-    <main class="mx-auto max-w-5xl px-3 py-8 sm:px-4 sm:py-10 md:px-6 md:py-12">
-      <div
-        class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
-      >
+    <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+      <div class="card overflow-hidden">
         <div class="relative h-48 overflow-hidden sm:h-56 md:h-64 lg:h-80">
           <NuxtImg
             src="https://picsum.photos/seed/about-hero/1200/400.jpg"

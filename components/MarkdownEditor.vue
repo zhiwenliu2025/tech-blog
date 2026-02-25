@@ -163,10 +163,16 @@
           <Icon name="i-heroicons-code-bracket-square" class="h-4 w-4" />
         </button>
         <!-- 代码块语言选择 -->
-        <div v-if="editor.isActive('codeBlock')" class="relative">
+        <div v-if="editor.isActive('codeBlock')" class="relative flex items-center">
+          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
+            <Icon
+              name="heroicons:code-bracket"
+              class="h-3.5 w-3.5 text-blue-500 dark:text-blue-400"
+            />
+          </div>
           <select
             :value="getCurrentCodeBlockLanguage()"
-            class="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            class="h-7 cursor-pointer appearance-none rounded-lg border border-gray-200 bg-gray-50 pl-6 pr-6 text-xs font-medium text-gray-700 transition-all hover:border-blue-300 hover:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-700/80 dark:text-gray-300 dark:hover:border-blue-500 dark:hover:bg-gray-700"
             title="选择代码语言"
             @change="setCodeBlockLanguage($event)"
           >
@@ -203,6 +209,12 @@
             <option value="nginx">Nginx</option>
             <option value="apache">Apache</option>
           </select>
+          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-1.5">
+            <Icon
+              name="heroicons:chevron-up-down"
+              class="h-3 w-3 text-gray-400 dark:text-gray-500"
+            />
+          </div>
         </div>
         <button
           type="button"

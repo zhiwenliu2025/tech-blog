@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-4 dark:bg-gray-900 sm:py-8">
-    <div class="container mx-auto px-3 sm:px-4">
-      <div class="mx-auto max-w-4xl">
+  <div class="py-6 sm:py-8">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div>
         <!-- Header -->
         <div class="mb-6 sm:mb-8">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

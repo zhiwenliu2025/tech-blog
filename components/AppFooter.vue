@@ -1,6 +1,6 @@
 <template>
   <footer
-    class="safe-area-bottom border-t border-gray-200 bg-white transition-colors duration-300 dark:border-gray-800 dark:bg-gray-900"
+    class="safe-area-bottom border-t border-gray-200 bg-white/80 backdrop-blur-sm transition-colors duration-300 dark:border-gray-800/80 dark:bg-gray-900/90"
   >
     <div class="container mx-auto px-3 py-8 sm:px-4 sm:py-10 md:px-6 md:py-12">
       <div class="grid grid-cols-1 gap-8 sm:gap-10 md:grid-cols-2 lg:grid-cols-4">

@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8 dark:bg-gray-900">
-    <div class="container mx-auto px-4">
-      <div class="mx-auto max-w-6xl">
+  <div class="py-8">
+    <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div>
         <div class="mb-8">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white">管理后台</h1>
           <p class="mt-2 text-gray-600 dark:text-gray-400">管理博客文章、用户和系统设置</p>

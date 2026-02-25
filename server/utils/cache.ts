@@ -17,7 +17,8 @@ export const CACHE_KEYS = {
   TAG_POSTS: 'tag:posts:',
   AUTHOR_POSTS: 'author:posts:',
   PROFILE: 'profile:',
-  PROFILES_LIST: 'profiles:list:'
+  PROFILES_LIST: 'profiles:list:',
+  POST_FILTERS: 'posts:filters'
 } as const
 
 // 缓存过期时间（毫秒）
@@ -30,7 +31,8 @@ export const CACHE_TTL = {
   PROFILES_LIST: 1000 * 60 * 10, // 10 分钟
   SHORT: 1000 * 60, // 1 分钟
   MEDIUM: 1000 * 60 * 5, // 5 分钟
-  LONG: 1000 * 60 * 15 // 15 分钟
+  LONG: 1000 * 60 * 15, // 15 分钟
+  POST_FILTERS: 1000 * 60 * 10 // 10 分钟
 } as const
 
 /**
@@ -145,6 +147,8 @@ export const cacheInvalidator = {
     serverCache.delete(CACHE_KEYS.HOT_POSTS)
     // 清除文章列表缓存
     serverCache.deleteByPrefix(CACHE_KEYS.POSTS_LIST)
+    // 清除筛选器缓存（分类/标签可能变化）
+    serverCache.delete(CACHE_KEYS.POST_FILTERS)
   },
 
   /**

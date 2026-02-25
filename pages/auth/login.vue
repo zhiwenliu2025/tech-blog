@@ -92,7 +92,7 @@
                 />
                 <button
                   type="button"
-                  class="absolute inset-y-0 right-0 flex items-center pr-4"
+                  class="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-4"
                   @click="showPassword = !showPassword"
                 >
                   <Icon
@@ -171,7 +171,7 @@
               {{ isLogin ? '还没有账户？' : '已有账户？' }}
               <button
                 type="button"
-                class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+                class="cursor-pointer font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
                 @click="toggleMode"
               >
                 {{ isLogin ? '立即注册' : '立即登录' }}
@@ -181,7 +181,7 @@
               v-if="isLogin"
               type="button"
               :disabled="resetLoading"
-              class="font-medium text-primary-600 hover:text-primary-500 disabled:opacity-50 dark:text-primary-400 dark:hover:text-primary-300"
+              class="cursor-pointer font-medium text-primary-600 hover:text-primary-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-primary-400 dark:hover:text-primary-300"
               @click="resetPassword"
             >
               {{ resetLoading ? '发送中...' : '忘记密码？' }}
