@@ -6,317 +6,481 @@
     >
       <!-- 点状网格背景 -->
       <div
-        class="absolute inset-0 opacity-40"
+        class="pointer-events-none absolute inset-0 opacity-[0.22]"
         style="
-          background-image: radial-gradient(circle, rgb(148 163 184 / 0.2) 1px, transparent 1px);
-          background-size: 28px 28px;
+          background-image: radial-gradient(circle, rgb(148 163 184 / 0.3) 1px, transparent 1px);
+          background-size: 30px 30px;
         "
       />
       <!-- 渐变光晕 -->
-      <div class="absolute inset-0 overflow-hidden">
-        <div class="absolute -right-32 top-0 h-96 w-96 rounded-full bg-primary-600/20 blur-3xl" />
-        <div class="absolute -left-32 bottom-0 h-96 w-96 rounded-full bg-indigo-600/20 blur-3xl" />
+      <div class="pointer-events-none absolute inset-0 overflow-hidden">
         <div
-          class="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-500/10 blur-3xl"
+          class="absolute -right-56 -top-28 h-[580px] w-[580px] rounded-full bg-primary-600/15 blur-3xl"
+        />
+        <div
+          class="absolute -left-56 bottom-0 h-[480px] w-[480px] rounded-full bg-indigo-600/15 blur-3xl"
+        />
+        <div
+          class="absolute left-1/2 top-1/3 h-80 w-80 -translate-x-1/2 rounded-full bg-violet-400/[0.07] blur-3xl"
         />
       </div>
+      <!-- 底部渐变淡出 -->
+      <div
+        class="pointer-events-none absolute bottom-0 left-0 right-0 h-36 bg-gradient-to-t from-slate-900/60 to-transparent"
+      />
 
-      <div class="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-        <div class="mx-auto max-w-3xl text-center">
-          <!-- 标语徽章 -->
-          <div
-            class="mb-6 inline-flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/10 px-4 py-1.5 text-sm font-medium text-primary-300 backdrop-blur-sm"
-          >
-            <span class="relative flex h-2 w-2">
+      <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <!-- 主 Hero 内容 -->
+        <div class="flex flex-col items-center py-20 sm:py-28 lg:flex-row lg:gap-16 lg:py-32">
+          <!-- 左侧文字区 -->
+          <div class="flex-1 text-center lg:text-left">
+            <!-- 标语徽章 -->
+            <div
+              class="mb-8 inline-flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/10 px-4 py-2 text-sm font-medium text-primary-300 backdrop-blur-sm"
+            >
+              <span class="relative flex h-2 w-2">
+                <span
+                  class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75"
+                />
+                <span class="relative inline-flex h-2 w-2 rounded-full bg-primary-400" />
+              </span>
+              持续更新中
+            </div>
+
+            <h1
+              class="mb-6 text-balance text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl"
+            >
               <span
-                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-400 opacity-75"
-              />
-              <span class="relative inline-flex h-2 w-2 rounded-full bg-primary-400" />
-            </span>
-            持续更新中
+                class="bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent"
+              >
+                探索技术世界
+              </span>
+            </h1>
+            <p
+              class="mx-auto mb-10 max-w-xl text-balance text-base leading-relaxed text-slate-300 sm:text-lg md:text-xl lg:mx-0"
+            >
+              分享前端开发、后端技术、云计算、架构设计等深度技术文章，让知识触手可及
+            </p>
+
+            <div
+              class="flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start"
+            >
+              <NuxtLink
+                to="/blog"
+                class="touch-optimized inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-primary-500/30 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-400 hover:shadow-xl hover:shadow-primary-500/40 active:translate-y-0"
+              >
+                <Icon name="i-heroicons-book-open" class="h-5 w-5" />
+                浏览文章
+              </NuxtLink>
+              <NuxtLink
+                to="/about"
+                class="touch-optimized inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-7 py-3.5 text-base font-semibold text-white/90 backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/15 active:translate-y-0"
+              >
+                <Icon name="i-heroicons-information-circle" class="h-5 w-5" />
+                了解更多
+              </NuxtLink>
+            </div>
+
+            <!-- 技术标签行 -->
+            <div
+              class="mt-10 flex flex-wrap items-center justify-center gap-2 text-xs lg:justify-start"
+            >
+              <span
+                v-for="tech in techTags"
+                :key="tech"
+                class="cursor-default rounded-lg border border-slate-700/50 bg-slate-800/50 px-3 py-1.5 font-mono text-slate-400 backdrop-blur-sm transition-colors duration-150 hover:border-primary-500/40 hover:bg-primary-900/20 hover:text-primary-300"
+              >
+                {{ tech }}
+              </span>
+            </div>
           </div>
 
-          <h1
-            class="mb-5 text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl"
-          >
-            <span
-              class="bg-gradient-to-br from-white via-slate-100 to-slate-300 bg-clip-text text-transparent"
+          <!-- 右侧装饰卡片 (仅桌面) -->
+          <div class="hidden lg:block lg:w-80 xl:w-96">
+            <div
+              class="relative rounded-2xl border border-slate-700/60 bg-slate-900/80 shadow-2xl shadow-black/40 backdrop-blur-sm"
             >
-              探索技术世界
-            </span>
-          </h1>
-          <p class="mb-8 text-base leading-relaxed text-slate-300 sm:text-lg md:text-xl">
-            分享前端开发、后端技术、云计算、架构设计等深度技术文章，让知识触手可及
-          </p>
-          <div class="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <NuxtLink
-              to="/blog"
-              class="touch-optimized inline-flex items-center justify-center gap-2 rounded-xl bg-primary-500 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-primary-500/30 transition-all hover:bg-primary-400 hover:shadow-xl hover:shadow-primary-500/40"
-            >
-              <Icon name="i-heroicons-book-open" class="h-5 w-5" />
-              浏览文章
-            </NuxtLink>
-            <NuxtLink
-              to="/about"
-              class="touch-optimized inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-6 py-3 text-base font-semibold text-white/90 backdrop-blur-sm transition-all hover:border-white/30 hover:bg-white/20"
-            >
-              <Icon name="i-heroicons-information-circle" class="h-5 w-5" />
-              了解更多
-            </NuxtLink>
+              <!-- 窗口标题栏 -->
+              <div
+                class="flex items-center gap-2 rounded-t-2xl border-b border-slate-700/60 bg-slate-800/60 px-4 py-3"
+              >
+                <div class="h-3 w-3 rounded-full bg-red-500/80" />
+                <div class="h-3 w-3 rounded-full bg-yellow-500/80" />
+                <div class="h-3 w-3 rounded-full bg-green-500/80" />
+                <span class="ml-2 font-mono text-xs text-slate-500">blog.config.ts</span>
+              </div>
+              <!-- 代码内容 -->
+              <div class="space-y-1 p-5 font-mono text-sm leading-relaxed">
+                <div>
+                  <span class="text-purple-400">const</span>
+                  <span class="text-blue-300"> blog</span>
+                  <span class="text-slate-300"> = {</span>
+                </div>
+                <div class="pl-4">
+                  <span class="text-emerald-400">framework</span>
+                  <span class="text-slate-300">: </span>
+                  <span class="text-amber-300">'Nuxt 3'</span>
+                  <span class="text-slate-300">,</span>
+                </div>
+                <div class="pl-4">
+                  <span class="text-emerald-400">database</span>
+                  <span class="text-slate-300">: </span>
+                  <span class="text-amber-300">'Supabase'</span>
+                  <span class="text-slate-300">,</span>
+                </div>
+                <div class="pl-4">
+                  <span class="text-emerald-400">language</span>
+                  <span class="text-slate-300">: </span>
+                  <span class="text-amber-300">'TypeScript'</span>
+                  <span class="text-slate-300">,</span>
+                </div>
+                <div class="pl-4">
+                  <span class="text-emerald-400">posts</span>
+                  <span class="text-slate-300">: </span>
+                  <span class="text-sky-300">
+                    <span v-if="loading">loading</span>
+                    <span v-else>{{ posts.length }}</span>
+                  </span>
+                  <span class="text-slate-300">,</span>
+                </div>
+                <div class="pl-4">
+                  <span class="text-emerald-400">categories</span>
+                  <span class="text-slate-300">: </span>
+                  <span class="text-sky-300">
+                    <span v-if="categoriesLoading">loading</span>
+                    <span v-else>{{ categories.length }}</span>
+                  </span>
+                  <span class="text-slate-300">,</span>
+                </div>
+                <div>
+                  <span class="text-slate-300">}</span>
+                </div>
+                <!-- 光标闪烁 -->
+                <div class="mt-2 flex items-center gap-1.5">
+                  <span class="text-slate-500">$</span>
+                  <span class="text-primary-400">nuxt dev</span>
+                  <span class="inline-block h-4 w-0.5 animate-pulse bg-primary-400 opacity-80" />
+                </div>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <!-- 技术标签行 -->
-          <div class="mt-10 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span
-              v-for="tech in techTags"
-              :key="tech"
-              class="rounded-md border border-slate-700/60 bg-slate-800/60 px-2.5 py-1 font-mono text-slate-400 backdrop-blur-sm"
-            >
-              {{ tech }}
-            </span>
+        <!-- Stats 统计条 -->
+        <div class="border-t border-white/[0.07]">
+          <div class="grid grid-cols-3 divide-x divide-white/[0.07]">
+            <div class="flex flex-col items-center py-5 sm:flex-row sm:justify-center sm:gap-3">
+              <span class="text-2xl font-bold text-white sm:text-3xl">
+                <span v-if="loading" class="animate-pulse text-slate-600">—</span>
+                <span v-else
+                  >{{ posts.length }}<span class="text-lg text-primary-400">+</span></span
+                >
+              </span>
+              <span class="text-xs text-slate-400 sm:text-sm">技术文章</span>
+            </div>
+            <div class="flex flex-col items-center py-5 sm:flex-row sm:justify-center sm:gap-3">
+              <span class="text-2xl font-bold text-white sm:text-3xl">
+                <span v-if="categoriesLoading" class="animate-pulse text-slate-600">—</span>
+                <span v-else
+                  >{{ categories.length }}<span class="text-lg text-primary-400">+</span></span
+                >
+              </span>
+              <span class="text-xs text-slate-400 sm:text-sm">技术分类</span>
+            </div>
+            <div class="flex flex-col items-center py-5 sm:flex-row sm:justify-center sm:gap-3">
+              <span class="text-2xl font-bold text-white sm:text-3xl">
+                <span v-if="tagsLoading" class="animate-pulse text-slate-600">—</span>
+                <span v-else>{{ tags.length }}<span class="text-lg text-primary-400">+</span></span>
+              </span>
+              <span class="text-xs text-slate-400 sm:text-sm">热门标签</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-      <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
-        <!-- 主内容区 -->
-        <div class="lg:col-span-3">
-          <div class="mb-5 flex items-center justify-between sm:mb-6">
-            <div class="flex items-center gap-3">
-              <div class="h-6 w-1 rounded-full bg-primary-500" />
-              <h2 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">最新文章</h2>
-            </div>
-            <NuxtLink
-              to="/blog"
-              class="group inline-flex items-center gap-1 text-sm font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-            >
-              查看全部
-              <Icon
-                name="i-heroicons-arrow-right"
-                class="h-4 w-4 transition-transform group-hover:translate-x-1"
-              />
-            </NuxtLink>
-          </div>
-
-          <div v-if="loading" class="space-y-4">
-            <BlogPostCardSkeleton v-for="i in 3" :key="i" />
-          </div>
-
-          <div
-            v-else-if="error"
-            class="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900"
-          >
-            <EmptyState
-              icon="i-heroicons-exclamation-triangle"
-              title="加载失败"
-              :description="error?.message || '加载文章失败'"
-              action-text="重试"
-              @action="refreshPosts"
-            />
-          </div>
-
-          <div v-else-if="posts && posts.length > 0" class="space-y-4">
-            <BlogPostCard
-              v-for="post in paginatedPosts"
-              :key="post.id"
-              :post="post"
-              :likes-count="post.likes_count || 0"
-              :comments-count="post.comments_count || 0"
-              :show-cover="false"
-            />
-
-            <!-- 分页组件 -->
-            <div
-              v-if="totalPages > 1"
-              class="mt-6 flex flex-col items-center justify-between gap-4 sm:mt-8 sm:flex-row"
-            >
-              <div class="text-sm text-gray-600 dark:text-gray-400">
-                <span class="font-semibold text-gray-900 dark:text-white">{{
-                  (currentPage - 1) * postsPerPage + 1
-                }}</span>
-                -
-                <span class="font-semibold text-gray-900 dark:text-white">{{
-                  Math.min(currentPage * postsPerPage, posts.length)
-                }}</span>
-                条，共
-                <span class="font-semibold text-gray-900 dark:text-white">{{ posts.length }}</span>
-                条
+    <!-- 主内容 -->
+    <main class="bg-gray-50/50 dark:bg-transparent">
+      <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
+          <!-- 主内容区 -->
+          <div class="lg:col-span-3">
+            <!-- 板块标题 -->
+            <div class="mb-6 flex items-end justify-between">
+              <div>
+                <p class="mb-1.5 text-xs font-semibold uppercase tracking-widest text-primary-500">
+                  Latest
+                </p>
+                <div class="flex items-center gap-3">
+                  <div class="h-6 w-1 rounded-full bg-primary-500" />
+                  <h2 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
+                    最新文章
+                  </h2>
+                </div>
               </div>
-              <nav
-                class="flex w-full items-center justify-center gap-1 overflow-x-auto pb-2 sm:w-auto sm:justify-start sm:pb-0"
+              <NuxtLink
+                to="/blog"
+                class="group mb-0.5 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-primary-600 transition-all duration-150 hover:bg-primary-50 hover:text-primary-700 dark:text-primary-400 dark:hover:bg-primary-900/20 dark:hover:text-primary-300"
               >
-                <button
-                  :disabled="currentPage === 1"
-                  class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
-                  @click="goToPage(currentPage - 1)"
+                查看全部
+                <Icon
+                  name="i-heroicons-arrow-right"
+                  class="h-4 w-4 transition-transform duration-150 group-hover:translate-x-1"
+                />
+              </NuxtLink>
+            </div>
+
+            <!-- 加载状态 -->
+            <div v-if="loading" class="space-y-4">
+              <BlogPostCardSkeleton v-for="i in 3" :key="i" />
+            </div>
+
+            <!-- 错误状态 -->
+            <div
+              v-else-if="error"
+              class="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            >
+              <EmptyState
+                icon="i-heroicons-exclamation-triangle"
+                title="加载失败"
+                :description="error || '加载文章失败'"
+                action-text="重试"
+                @action="refreshPosts"
+              />
+            </div>
+
+            <!-- 文章列表 -->
+            <div v-else-if="posts && posts.length > 0" class="space-y-4">
+              <BlogPostCard
+                v-for="post in paginatedPosts"
+                :key="post.id"
+                :post="post"
+                :likes-count="post.likes_count || 0"
+                :comments-count="post.comments_count || 0"
+                :show-cover="false"
+              />
+
+              <!-- 分页 -->
+              <div
+                v-if="totalPages > 1"
+                class="mt-6 flex flex-col items-center justify-between gap-4 sm:mt-8 sm:flex-row"
+              >
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  显示第
+                  <span class="font-semibold text-gray-900 dark:text-white">
+                    {{ (currentPage - 1) * postsPerPage + 1 }}
+                  </span>
+                  –
+                  <span class="font-semibold text-gray-900 dark:text-white">
+                    {{ Math.min(currentPage * postsPerPage, posts.length) }}
+                  </span>
+                  条，共
+                  <span class="font-semibold text-gray-900 dark:text-white">
+                    {{ posts.length }}
+                  </span>
+                  条
+                </div>
+                <nav
+                  class="flex w-full items-center justify-center gap-1 overflow-x-auto pb-2 sm:w-auto sm:justify-start sm:pb-0"
                 >
-                  <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
-                  <span class="hidden sm:inline">上一页</span>
-                </button>
-
-                <template v-if="totalPages <= 7">
                   <button
-                    v-for="page in totalPages"
-                    :key="page"
-                    :class="[
-                      'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
-                      currentPage === page
-                        ? 'bg-primary-600 text-white shadow-md'
-                        : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                    ]"
-                    @click="goToPage(page)"
+                    :disabled="currentPage === 1"
+                    class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                    @click="goToPage(currentPage - 1)"
                   >
-                    {{ page }}
-                  </button>
-                </template>
-                <template v-else>
-                  <button
-                    :class="[
-                      'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
-                      currentPage === 1
-                        ? 'bg-primary-600 text-white shadow-md'
-                        : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                    ]"
-                    @click="goToPage(1)"
-                  >
-                    1
+                    <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
+                    <span class="hidden sm:inline">上一页</span>
                   </button>
 
-                  <span v-if="currentPage > 3" class="px-2 text-gray-500">...</span>
-
-                  <template v-for="page in visiblePages" :key="page">
+                  <template v-if="totalPages <= 7">
                     <button
-                      v-if="page !== 1 && page !== totalPages"
+                      v-for="page in totalPages"
+                      :key="page"
                       :class="[
-                        'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
+                        'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 sm:min-w-[40px] sm:px-3',
                         currentPage === page
-                          ? 'bg-primary-600 text-white shadow-md'
-                          : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                          ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
+                          : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
                       ]"
                       @click="goToPage(page)"
                     >
                       {{ page }}
                     </button>
                   </template>
+                  <template v-else>
+                    <button
+                      :class="[
+                        'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 sm:min-w-[40px] sm:px-3',
+                        currentPage === 1
+                          ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
+                          : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                      ]"
+                      @click="goToPage(1)"
+                    >
+                      1
+                    </button>
 
-                  <span v-if="currentPage < totalPages - 2" class="px-2 text-gray-500">...</span>
+                    <span
+                      v-if="currentPage > 3"
+                      class="select-none px-1 text-gray-400 dark:text-gray-600"
+                      >···</span
+                    >
+
+                    <template v-for="page in visiblePages" :key="page">
+                      <button
+                        v-if="page !== 1 && page !== totalPages"
+                        :class="[
+                          'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 sm:min-w-[40px] sm:px-3',
+                          currentPage === page
+                            ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
+                            : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                        ]"
+                        @click="goToPage(page)"
+                      >
+                        {{ page }}
+                      </button>
+                    </template>
+
+                    <span
+                      v-if="currentPage < totalPages - 2"
+                      class="select-none px-1 text-gray-400 dark:text-gray-600"
+                      >···</span
+                    >
+
+                    <button
+                      :class="[
+                        'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 sm:min-w-[40px] sm:px-3',
+                        currentPage === totalPages
+                          ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
+                          : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                      ]"
+                      @click="goToPage(totalPages)"
+                    >
+                      {{ totalPages }}
+                    </button>
+                  </template>
 
                   <button
-                    :class="[
-                      'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3',
-                      currentPage === totalPages
-                        ? 'bg-primary-600 text-white shadow-md'
-                        : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
-                    ]"
-                    @click="goToPage(totalPages)"
+                    :disabled="currentPage === totalPages"
+                    class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                    @click="goToPage(currentPage + 1)"
                   >
-                    {{ totalPages }}
+                    <span class="hidden sm:inline">下一页</span>
+                    <Icon name="i-heroicons-chevron-right" class="h-4 w-4" />
                   </button>
-                </template>
+                </nav>
+              </div>
+            </div>
 
-                <button
-                  :disabled="currentPage === totalPages"
-                  class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3"
-                  @click="goToPage(currentPage + 1)"
+            <!-- 空状态 -->
+            <div
+              v-else
+              class="rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900"
+            >
+              <EmptyState
+                icon="i-heroicons-document-text"
+                title="暂无文章"
+                description="还没有发布任何文章"
+              />
+            </div>
+          </div>
+
+          <!-- 侧边栏 -->
+          <div class="lg:col-span-1">
+            <div class="sticky top-20 space-y-4">
+              <!-- 热门文章组件 -->
+              <HotPosts :limit="5" :days="30" :use-decay="true" :show-score="false" />
+
+              <!-- 关于博客 -->
+              <div class="card overflow-hidden">
+                <div
+                  class="relative overflow-hidden bg-gradient-to-br from-primary-600 to-primary-700 px-4 py-3.5"
                 >
-                  <span class="hidden sm:inline">下一页</span>
-                  <Icon name="i-heroicons-chevron-right" class="h-4 w-4" />
-                </button>
-              </nav>
-            </div>
-          </div>
-
-          <div
-            v-else
-            class="rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm dark:border-gray-800 dark:bg-gray-900"
-          >
-            <EmptyState
-              icon="i-heroicons-document-text"
-              title="暂无文章"
-              description="还没有发布任何文章"
-            />
-          </div>
-        </div>
-
-        <!-- 侧边栏 -->
-        <div class="lg:col-span-1">
-          <div class="sticky top-20 space-y-4">
-            <!-- 热门文章组件 -->
-            <HotPosts :limit="5" :days="30" :use-decay="true" :show-score="false" />
-
-            <!-- 关于博客 -->
-            <div class="card p-4">
-              <h3
-                class="mb-2.5 flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white"
-              >
-                <Icon name="i-heroicons-information-circle" class="h-4 w-4 text-primary-500" />
-                关于博客
-              </h3>
-              <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-                基于 Nuxt 3 + Supabase 构建的技术博客，专注分享前端、后端、架构设计等深度内容。
-              </p>
-            </div>
-
-            <!-- 文章分类 -->
-            <div class="card overflow-hidden">
-              <div class="sidebar-widget-header">
-                <h3 class="sidebar-widget-title">
-                  <Icon name="i-heroicons-folder" class="h-4 w-4 text-primary-500" />
-                  文章分类
-                </h3>
-              </div>
-              <div class="p-2">
-                <div v-if="categoriesLoading" class="space-y-1.5 p-2">
                   <div
-                    v-for="i in 5"
-                    :key="i"
-                    class="h-8 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"
+                    class="pointer-events-none absolute inset-0 opacity-[0.12]"
+                    style="
+                      background-image: radial-gradient(circle, white 1px, transparent 1px);
+                      background-size: 14px 14px;
+                    "
                   />
+                  <h3 class="relative flex items-center gap-2 text-sm font-semibold text-white">
+                    <Icon name="i-heroicons-sparkles" class="h-4 w-4 text-primary-200" />
+                    关于博客
+                  </h3>
                 </div>
-                <div v-else-if="categories && categories.length > 0">
+                <div class="p-4">
+                  <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                    基于 Nuxt 3 + Supabase 构建的技术博客，专注分享前端、后端、架构设计等深度内容。
+                  </p>
                   <NuxtLink
-                    v-for="category in categories.slice(0, 6)"
-                    :key="category"
-                    :to="`/blog?category=${encodeURIComponent(category)}`"
-                    class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800/80 dark:hover:text-primary-400"
+                    to="/about"
+                    class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
                   >
-                    <span>{{ category }}</span>
-                    <Icon name="i-heroicons-chevron-right" class="h-3.5 w-3.5 text-gray-400" />
+                    了解更多
+                    <Icon name="i-heroicons-arrow-right" class="h-3 w-3" />
                   </NuxtLink>
                 </div>
-                <div v-else class="py-4 text-center text-sm text-gray-400">暂无分类</div>
               </div>
-            </div>
 
-            <!-- 热门标签 -->
-            <div class="card overflow-hidden">
-              <div class="sidebar-widget-header">
-                <h3 class="sidebar-widget-title">
-                  <Icon name="i-heroicons-tag" class="h-4 w-4 text-primary-500" />
-                  热门标签
-                </h3>
+              <!-- 文章分类 -->
+              <div class="card overflow-hidden">
+                <div class="sidebar-widget-header">
+                  <h3 class="sidebar-widget-title">
+                    <Icon name="i-heroicons-folder" class="h-4 w-4 text-primary-500" />
+                    文章分类
+                  </h3>
+                </div>
+                <div class="p-2">
+                  <div v-if="categoriesLoading" class="space-y-1.5 p-2">
+                    <div
+                      v-for="i in 5"
+                      :key="i"
+                      class="h-8 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"
+                    />
+                  </div>
+                  <div v-else-if="categories && categories.length > 0">
+                    <NuxtLink
+                      v-for="category in categories.slice(0, 6)"
+                      :key="category"
+                      :to="`/blog?category=${encodeURIComponent(category)}`"
+                      class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800/80 dark:hover:text-primary-400"
+                    >
+                      <span>{{ category }}</span>
+                      <Icon name="i-heroicons-chevron-right" class="h-3.5 w-3.5 text-gray-400" />
+                    </NuxtLink>
+                  </div>
+                  <div v-else class="py-4 text-center text-sm text-gray-400">暂无分类</div>
+                </div>
               </div>
-              <div class="p-4">
-                <div v-if="tagsLoading" class="flex flex-wrap gap-2">
-                  <div
-                    v-for="i in 8"
-                    :key="i"
-                    class="h-6 w-14 animate-pulse rounded-md bg-gray-100 dark:bg-gray-800"
-                  />
+
+              <!-- 热门标签 -->
+              <div class="card overflow-hidden">
+                <div class="sidebar-widget-header">
+                  <h3 class="sidebar-widget-title">
+                    <Icon name="i-heroicons-tag" class="h-4 w-4 text-primary-500" />
+                    热门标签
+                  </h3>
                 </div>
-                <div v-else-if="tags && tags.length > 0" class="flex flex-wrap gap-1.5">
-                  <NuxtLink
-                    v-for="tag in tags.slice(0, 12)"
-                    :key="tag"
-                    :to="`/blog?tag=${encodeURIComponent(tag)}`"
-                    class="tag text-xs"
-                  >
-                    #{{ tag }}
-                  </NuxtLink>
+                <div class="p-4">
+                  <div v-if="tagsLoading" class="flex flex-wrap gap-2">
+                    <div
+                      v-for="i in 8"
+                      :key="i"
+                      class="h-6 w-14 animate-pulse rounded-md bg-gray-100 dark:bg-gray-800"
+                    />
+                  </div>
+                  <div v-else-if="tags && tags.length > 0" class="flex flex-wrap gap-1.5">
+                    <NuxtLink
+                      v-for="tag in tags.slice(0, 12)"
+                      :key="tag"
+                      :to="`/blog?tag=${encodeURIComponent(tag)}`"
+                      class="tag text-xs"
+                    >
+                      #{{ tag }}
+                    </NuxtLink>
+                  </div>
+                  <div v-else class="py-4 text-center text-sm text-gray-400">暂无标签</div>
                 </div>
-                <div v-else class="py-4 text-center text-sm text-gray-400">暂无标签</div>
               </div>
             </div>
           </div>
