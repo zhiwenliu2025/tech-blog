@@ -9,29 +9,31 @@
   >
     <div
       v-if="showPrompt"
-      class="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-800 md:bottom-4 md:left-auto md:right-4 md:max-w-sm md:rounded-lg md:border"
+      class="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white/95 p-4 shadow-xl backdrop-blur-sm dark:border-gray-700 dark:bg-gray-900/95 md:bottom-4 md:left-auto md:right-4 md:max-w-sm md:rounded-2xl md:border"
     >
-      <div class="flex items-start space-x-3">
-        <div class="flex-shrink-0">
+      <div class="flex items-start gap-3">
+        <div
+          class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-primary-100 dark:bg-primary-900/40"
+        >
           <Icon
             name="heroicons:device-phone-mobile"
-            class="h-6 w-6 text-primary-600 dark:text-primary-400"
+            class="h-5 w-5 text-primary-600 dark:text-primary-400"
           />
         </div>
-        <div class="flex-1">
+        <div class="min-w-0 flex-1">
           <h3 class="text-sm font-semibold text-gray-900 dark:text-white">安装应用</h3>
-          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             将此应用添加到主屏幕，获得更好的体验
           </p>
-          <div class="mt-3 flex space-x-2">
+          <div class="mt-3 flex gap-2">
             <button
-              class="flex-1 rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700"
+              class="flex-1 cursor-pointer rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-700 hover:shadow-md"
               @click="installApp"
             >
-              安装
+              立即安装
             </button>
             <button
-              class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              class="cursor-pointer rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               @click="dismissPrompt"
             >
               稍后
@@ -39,10 +41,10 @@
           </div>
         </div>
         <button
-          class="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          class="flex-shrink-0 cursor-pointer rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
           @click="dismissPrompt"
         >
-          <Icon name="heroicons:x-mark" class="h-5 w-5" />
+          <Icon name="heroicons:x-mark" class="h-4 w-4" />
         </button>
       </div>
     </div>

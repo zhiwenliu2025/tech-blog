@@ -1,19 +1,19 @@
 <template>
-  <div class="py-12 text-center">
+  <div class="flex flex-col items-center py-16 text-center">
     <div
-      class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800"
+      class="mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-gray-100 shadow-sm dark:bg-gray-800"
     >
-      <Icon :name="icon" class="h-8 w-8 text-gray-400 dark:text-gray-500" />
+      <Icon :name="icon" class="h-10 w-10 text-gray-400 dark:text-gray-500" />
     </div>
-    <h3 class="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+    <h3 class="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
       {{ title }}
     </h3>
-    <p class="mx-auto max-w-md text-gray-600 dark:text-gray-300">
+    <p class="mx-auto max-w-sm text-sm text-gray-500 dark:text-gray-400">
       {{ description }}
     </p>
     <button
       v-if="actionText && actionUrl"
-      class="mt-6 rounded-lg bg-primary-600 px-4 py-2 text-white transition-colors hover:bg-primary-700"
+      class="mt-6 flex cursor-pointer items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary-600/25 transition-all hover:bg-primary-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
       @click="handleAction"
     >
       {{ actionText }}

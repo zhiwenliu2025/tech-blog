@@ -2,7 +2,7 @@
   <div class="relative">
     <!-- 分享按钮 -->
     <button
-      class="touch-optimized flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600"
+      class="touch-optimized flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm active:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
       @click="toggleShareMenu"
     >
       <Icon name="heroicons:share" class="h-5 w-5" />
@@ -20,93 +20,81 @@
     >
       <div
         v-if="showMenu"
-        class="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+        class="absolute right-0 z-50 mt-2 w-60 origin-top-right overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl shadow-gray-200/60 dark:border-gray-700 dark:bg-gray-800 dark:shadow-gray-900/60"
       >
         <div class="p-2">
-          <!-- Web Share API（如果支持） -->
+          <!-- Web Share API -->
           <button
             v-if="isWebShareSupportedComputed"
-            class="touch-optimized flex w-full items-center space-x-3 rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700/60"
             @click="handleWebShare"
           >
-            <Icon name="heroicons:device-phone-mobile" class="h-5 w-5 text-primary-600" />
+            <Icon name="heroicons:device-phone-mobile" class="h-5 w-5 text-primary-500" />
             <span>使用系统分享</span>
           </button>
-
           <div
             v-if="isWebShareSupportedComputed"
-            class="my-2 border-t border-gray-200 dark:border-gray-700"
+            class="my-1.5 border-t border-gray-100 dark:border-gray-700/60"
           />
 
-          <!-- 社交媒体分享 -->
-          <div class="grid grid-cols-2 gap-2">
+          <!-- 社交媒体 grid -->
+          <div class="grid grid-cols-3 gap-1">
             <button
-              class="touch-optimized flex flex-col items-center space-y-1 rounded-md px-3 py-2 text-xs transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="flex cursor-pointer flex-col items-center gap-1.5 rounded-xl px-2 py-2.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/60"
               @click="handleShare('twitter')"
             >
-              <Icon name="simple-icons:twitter" class="h-6 w-6 text-[#1DA1F2]" />
-              <span class="text-gray-700 dark:text-gray-300">Twitter</span>
+              <Icon name="simple-icons:twitter" class="h-5 w-5 text-[#1DA1F2]" />
+              <span>Twitter</span>
             </button>
-
             <button
-              class="touch-optimized flex flex-col items-center space-y-1 rounded-md px-3 py-2 text-xs transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="flex cursor-pointer flex-col items-center gap-1.5 rounded-xl px-2 py-2.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/60"
               @click="handleShare('facebook')"
             >
-              <Icon name="simple-icons:facebook" class="h-6 w-6 text-[#1877F2]" />
-              <span class="text-gray-700 dark:text-gray-300">Facebook</span>
+              <Icon name="simple-icons:facebook" class="h-5 w-5 text-[#1877F2]" />
+              <span>Facebook</span>
             </button>
-
             <button
-              class="touch-optimized flex flex-col items-center space-y-1 rounded-md px-3 py-2 text-xs transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="flex cursor-pointer flex-col items-center gap-1.5 rounded-xl px-2 py-2.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/60"
               @click="handleShare('linkedin')"
             >
-              <Icon name="simple-icons:linkedin" class="h-6 w-6 text-[#0A66C2]" />
-              <span class="text-gray-700 dark:text-gray-300">LinkedIn</span>
+              <Icon name="simple-icons:linkedin" class="h-5 w-5 text-[#0A66C2]" />
+              <span>LinkedIn</span>
             </button>
-
             <button
-              class="touch-optimized flex flex-col items-center space-y-1 rounded-md px-3 py-2 text-xs transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="flex cursor-pointer flex-col items-center gap-1.5 rounded-xl px-2 py-2.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/60"
               @click="handleShare('weibo')"
             >
-              <!-- 微博图标：使用标准的微博 SVG 图标 -->
-              <svg
-                class="h-6 w-6 text-[#E6162D]"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
+              <svg class="h-5 w-5 text-[#E6162D]" viewBox="0 0 24 24" fill="currentColor">
                 <path
                   d="M9.517 24c-2.345-.011-4.69-.051-6.99-.169-1.8-.09-3.573-.225-4.9-1.672-.03-.033 0-.78.105-1.14.825-2.79 2.76-4.44 5.955-5.655.39-.15 1.155-.315 1.29-.36.06-.03.06-.36.06-.645 0-1.17.03-2.34.06-3.495.09-3.75.54-6.975 1.5-10.05.33-1.08.72-2.1 1.23-3.06.27-.51.555-.99.885-1.44.27-.36.27-.36.6-.36.18 0 .33.03.45.12.15.12.24.33.3.6.12.45.18.9.21 1.38.06.81.12 1.62.12 2.43 0 .81-.06 1.62-.12 2.4-.06.54-.12 1.08-.24 1.59-.06.3-.15.57-.27.84-.06.15-.12.27-.18.42 0 .06-.03.12-.03.18 0 .12.03.21.09.3.06.12.15.21.24.3.15.12.33.21.51.27.21.09.45.12.69.12.24 0 .48-.03.69-.12.18-.06.36-.15.51-.27.09-.09.18-.18.24-.3.06-.09.09-.18.09-.3 0-.06-.03-.12-.03-.18-.06-.15-.12-.27-.18-.42-.12-.27-.21-.54-.27-.84-.12-.51-.18-1.05-.24-1.59-.06-.78-.12-1.59-.12-2.4 0-.81.06-1.62.12-2.43.03-.48.09-.93.21-1.38.06-.27.15-.48.3-.6.12-.09.27-.12.45-.12.33 0 .33 0 .6.36.33.45.615.93.885 1.44.51.96.9 1.98 1.23 3.06.96 3.075 1.41 6.3 1.5 10.05.03 1.155.06 2.325.06 3.495 0 .285 0 .615.06.645.135.045.9.21 1.29.36 3.195 1.215 5.13 2.865 5.955 5.655.105.36.135 1.107.105 1.14-1.327 1.447-3.1 1.582-4.9 1.672-2.3.118-4.645.158-6.99.169z"
                 />
               </svg>
-              <span class="text-gray-700 dark:text-gray-300">微博</span>
+              <span>微博</span>
             </button>
-
             <button
-              class="touch-optimized flex flex-col items-center space-y-1 rounded-md px-3 py-2 text-xs transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="flex cursor-pointer flex-col items-center gap-1.5 rounded-xl px-2 py-2.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/60"
               @click="handleShare('reddit')"
             >
-              <Icon name="simple-icons:reddit" class="h-6 w-6 text-[#FF4500]" />
-              <span class="text-gray-700 dark:text-gray-300">Reddit</span>
+              <Icon name="simple-icons:reddit" class="h-5 w-5 text-[#FF4500]" />
+              <span>Reddit</span>
             </button>
-
             <button
-              class="touch-optimized flex flex-col items-center space-y-1 rounded-md px-3 py-2 text-xs transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+              class="flex cursor-pointer flex-col items-center gap-1.5 rounded-xl px-2 py-2.5 text-xs text-gray-600 transition-colors hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-700/60"
               @click="handleShare('wechat')"
             >
-              <Icon name="simple-icons:wechat" class="h-6 w-6 text-[#07C160]" />
-              <span class="text-gray-700 dark:text-gray-300">微信</span>
+              <Icon name="simple-icons:wechat" class="h-5 w-5 text-[#07C160]" />
+              <span>微信</span>
             </button>
           </div>
 
-          <div class="my-2 border-t border-gray-200 dark:border-gray-700" />
+          <div class="my-1.5 border-t border-gray-100 dark:border-gray-700/60" />
 
           <!-- 复制链接 -->
           <button
-            class="touch-optimized flex w-full items-center space-x-3 rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            class="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700/60"
             @click="handleShare('copy')"
           >
-            <Icon name="heroicons:link" class="h-5 w-5 text-gray-500" />
+            <Icon name="heroicons:link" class="h-4 w-4 text-gray-400" />
             <span>复制链接</span>
           </button>
         </div>
@@ -127,28 +115,40 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
         @click="showWeChatModal = false"
       >
-        <div class="max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800" @click.stop>
-          <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">微信分享</h3>
+        <div
+          class="w-72 overflow-hidden rounded-2xl border border-gray-200/60 bg-white shadow-2xl dark:border-gray-700/60 dark:bg-gray-800"
+          @click.stop
+        >
+          <div
+            class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-700/60"
+          >
+            <div class="flex items-center gap-2">
+              <Icon name="simple-icons:wechat" class="h-5 w-5 text-[#07C160]" />
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">微信分享</h3>
+            </div>
             <button
-              class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              class="cursor-pointer rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               @click="showWeChatModal = false"
             >
-              <Icon name="heroicons:x-mark" class="h-6 w-6" />
+              <Icon name="heroicons:x-mark" class="h-4 w-4" />
             </button>
           </div>
-          <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">使用微信扫描二维码分享</p>
-          <div class="mb-4 flex justify-center">
-            <img
-              v-if="weChatQrCode"
-              :src="weChatQrCode"
-              alt="微信分享二维码"
-              class="h-48 w-48 rounded border border-gray-200 dark:border-gray-700"
-            />
+          <div class="p-5 text-center">
+            <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">使用微信扫描二维码分享</p>
+            <div
+              class="mx-auto flex h-48 w-48 items-center justify-center rounded-xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-700/50"
+            >
+              <img
+                v-if="weChatQrCode"
+                :src="weChatQrCode"
+                alt="微信分享二维码"
+                class="h-full w-full rounded-xl object-contain"
+              />
+            </div>
+            <p class="mt-3 truncate text-[11px] text-gray-400 dark:text-gray-500">
+              {{ shareUrl }}
+            </p>
           </div>
-          <p class="text-center text-xs text-gray-500 dark:text-gray-400">
-            {{ shareUrl }}
-          </p>
         </div>
       </div>
     </Transition>

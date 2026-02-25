@@ -1,48 +1,49 @@
 <template>
   <Teleport to="body">
-    <div class="fixed bottom-4 right-4 z-50 space-y-2">
+    <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
       <Transition v-for="toast in toasts" :key="toast.id" name="toast" appear>
         <div
           v-if="toast.show"
-          class="flex w-80 items-start rounded-lg p-4 shadow-lg"
+          class="flex w-80 items-start gap-3 overflow-hidden rounded-xl border p-4 shadow-lg shadow-gray-900/10 backdrop-blur-sm"
           :class="toastClasses[toast.type]"
         >
-          <div class="flex-shrink-0">
+          <!-- 图标 -->
+          <div class="mt-0.5 flex-shrink-0">
             <Icon
               v-if="toast.type === ToastType.SUCCESS"
-              name="i-heroicons-check-circle"
-              class="h-6 w-6"
+              name="heroicons:check-circle"
+              class="h-5 w-5"
             />
             <Icon
               v-else-if="toast.type === ToastType.ERROR"
-              name="i-heroicons-x-circle"
-              class="h-6 w-6"
+              name="heroicons:x-circle"
+              class="h-5 w-5"
             />
             <Icon
               v-else-if="toast.type === ToastType.WARNING"
-              name="i-heroicons-exclamation-triangle"
-              class="h-6 w-6"
+              name="heroicons:exclamation-triangle"
+              class="h-5 w-5"
             />
-            <Icon v-else name="i-heroicons-information-circle" class="h-6 w-6" />
+            <Icon v-else name="heroicons:information-circle" class="h-5 w-5" />
           </div>
-          <div class="ml-3 flex-1">
-            <p class="text-sm font-medium">
+          <!-- 文本 -->
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-semibold leading-snug">
               {{ toast.title }}
             </p>
-            <p v-if="toast.description" class="mt-1 text-sm opacity-90">
+            <p v-if="toast.description" class="mt-0.5 text-xs leading-snug opacity-80">
               {{ toast.description }}
             </p>
           </div>
-          <div class="ml-4 flex-shrink-0">
-            <button
-              class="inline-flex rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
-              :class="focusClasses[toast.type]"
-              @click="removeToast(toast.id)"
-            >
-              <span class="sr-only">关闭</span>
-              <Icon name="i-heroicons-x-mark" class="h-5 w-5" />
-            </button>
-          </div>
+          <!-- 关闭按钮 -->
+          <button
+            class="flex-shrink-0 cursor-pointer rounded-lg p-0.5 opacity-60 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-1"
+            :class="focusClasses[toast.type]"
+            @click="removeToast(toast.id)"
+          >
+            <span class="sr-only">关闭</span>
+            <Icon name="heroicons:x-mark" class="h-4 w-4" />
+          </button>
         </div>
       </Transition>
     </div>
@@ -57,22 +58,22 @@ const { toasts, remove } = useToast()
 
 // Toast type classes
 const toastClasses = {
-  [ToastType.SUCCESS]: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-200',
-  [ToastType.ERROR]: 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-200',
-  [ToastType.WARNING]: 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-200',
-  [ToastType.INFO]: 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-200'
+  [ToastType.SUCCESS]:
+    'bg-white border-green-200 text-green-800 dark:bg-gray-900 dark:border-green-800/60 dark:text-green-300',
+  [ToastType.ERROR]:
+    'bg-white border-red-200 text-red-800 dark:bg-gray-900 dark:border-red-800/60 dark:text-red-300',
+  [ToastType.WARNING]:
+    'bg-white border-yellow-200 text-yellow-800 dark:bg-gray-900 dark:border-yellow-800/60 dark:text-yellow-300',
+  [ToastType.INFO]:
+    'bg-white border-blue-200 text-blue-800 dark:bg-gray-900 dark:border-blue-800/60 dark:text-blue-300'
 }
 
 // Focus ring classes for close button
 const focusClasses = {
-  [ToastType.SUCCESS]:
-    'focus:ring-green-500 focus:ring-offset-green-50 dark:focus:ring-offset-green-900/20',
-  [ToastType.ERROR]:
-    'focus:ring-red-500 focus:ring-offset-red-50 dark:focus:ring-offset-red-900/20',
-  [ToastType.WARNING]:
-    'focus:ring-yellow-500 focus:ring-offset-yellow-50 dark:focus:ring-offset-yellow-900/20',
-  [ToastType.INFO]:
-    'focus:ring-blue-500 focus:ring-offset-blue-50 dark:focus:ring-offset-blue-900/20'
+  [ToastType.SUCCESS]: 'focus:ring-green-500',
+  [ToastType.ERROR]: 'focus:ring-red-500',
+  [ToastType.WARNING]: 'focus:ring-yellow-500',
+  [ToastType.INFO]: 'focus:ring-blue-500'
 }
 
 // Remove toast

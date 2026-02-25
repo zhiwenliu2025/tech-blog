@@ -8,117 +8,181 @@
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div v-if="isOpen" class="fixed inset-0 z-50 overflow-y-auto" @click.self="close">
+      <div v-if="isOpen" class="fixed inset-0 z-50 px-4 pt-16 sm:pt-24" @click.self="close">
         <!-- 背景遮罩 -->
-        <div class="fixed inset-0 bg-black bg-opacity-50" @click="close" />
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="close" />
 
         <!-- 搜索模态框 -->
-        <div class="relative mx-auto mt-20 max-w-2xl transform transition-all" @click.stop>
-          <div class="overflow-hidden rounded-lg bg-white shadow-xl dark:bg-gray-800">
+        <div class="relative mx-auto max-w-2xl" @click.stop>
+          <div
+            class="overflow-hidden rounded-2xl border border-gray-200/60 bg-white shadow-2xl shadow-gray-900/20 dark:border-gray-700/60 dark:bg-gray-900"
+          >
             <!-- 搜索输入框 -->
-            <div class="border-b border-gray-200 p-4 dark:border-gray-700">
-              <div class="relative">
-                <div class="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Icon name="i-heroicons-magnifying-glass" class="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  ref="searchInput"
-                  v-model="searchQuery"
-                  type="text"
-                  placeholder="搜索文章..."
-                  class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 pl-10 pr-10 text-gray-900 shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400"
-                  @keydown.esc="close"
-                  @keydown.enter.prevent="handleSearch"
-                />
-                <button
-                  v-if="searchQuery"
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  @click="clearSearch"
-                >
-                  <Icon name="i-heroicons-x-mark" class="h-5 w-5" />
-                </button>
-              </div>
+            <div
+              class="flex items-center gap-3 border-b border-gray-100 px-4 py-3.5 dark:border-gray-800"
+            >
+              <Icon
+                name="heroicons:magnifying-glass"
+                class="h-5 w-5 flex-shrink-0 text-gray-400 dark:text-gray-500"
+              />
+              <input
+                ref="searchInput"
+                v-model="searchQuery"
+                type="text"
+                placeholder="搜索文章标题、摘要..."
+                class="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-400 focus:outline-none dark:text-white dark:placeholder-gray-500"
+                @keydown.esc="close"
+                @keydown.enter.prevent="handleSearch"
+              />
+              <button
+                v-if="searchQuery"
+                class="flex cursor-pointer items-center justify-center rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                @click="clearSearch"
+              >
+                <Icon name="heroicons:x-mark" class="h-4 w-4" />
+              </button>
+              <kbd
+                v-else
+                class="hidden rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 font-mono text-[11px] text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500 sm:inline-flex"
+                >ESC</kbd
+              >
             </div>
 
             <!-- 搜索结果 -->
-            <div class="max-h-96 overflow-y-auto">
+            <div class="max-h-[26rem] overflow-y-auto">
               <!-- 加载状态 -->
-              <div v-if="loading" class="p-8 text-center">
-                <Icon
-                  name="i-heroicons-arrow-path"
-                  class="mx-auto h-8 w-8 animate-spin text-gray-400"
-                />
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">搜索中...</p>
+              <div v-if="loading" class="flex flex-col items-center gap-3 py-12">
+                <div
+                  class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 dark:bg-primary-900/30"
+                >
+                  <Icon name="heroicons:arrow-path" class="h-6 w-6 animate-spin text-primary-500" />
+                </div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">搜索中...</p>
               </div>
 
               <!-- 错误状态 -->
-              <div v-else-if="error" class="p-8 text-center text-sm text-red-600 dark:text-red-400">
-                {{ error }}
+              <div v-else-if="error" class="px-4 py-6">
+                <div
+                  class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800/50 dark:bg-red-900/20"
+                >
+                  <Icon
+                    name="heroicons:exclamation-triangle"
+                    class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500"
+                  />
+                  <p class="text-sm text-red-600 dark:text-red-400">
+                    {{ error }}
+                  </p>
+                </div>
               </div>
 
-              <!-- 空状态 -->
+              <!-- 初始提示 -->
               <div
                 v-else-if="!searchQuery"
-                class="p-8 text-center text-sm text-gray-500 dark:text-gray-400"
+                class="flex flex-col items-center gap-3 py-12 text-center"
               >
-                输入关键词开始搜索
+                <div
+                  class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800"
+                >
+                  <Icon
+                    name="heroicons:magnifying-glass"
+                    class="h-6 w-6 text-gray-400 dark:text-gray-500"
+                  />
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300">开始搜索</p>
+                  <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                    输入关键词搜索文章标题或摘要
+                  </p>
+                </div>
               </div>
 
               <!-- 无结果 -->
               <div
-                v-else-if="searchQuery && results.length === 0 && !loading"
-                class="p-8 text-center"
+                v-else-if="results.length === 0"
+                class="flex flex-col items-center gap-3 py-12 text-center"
               >
-                <Icon name="i-heroicons-magnifying-glass" class="mx-auto h-12 w-12 text-gray-400" />
-                <p class="mt-2 text-sm font-medium text-gray-900 dark:text-white">未找到相关文章</p>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">请尝试其他关键词</p>
+                <div
+                  class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800"
+                >
+                  <Icon
+                    name="heroicons:face-frown"
+                    class="h-6 w-6 text-gray-400 dark:text-gray-500"
+                  />
+                </div>
+                <div>
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300">未找到相关文章</p>
+                  <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">试试其他关键词？</p>
+                </div>
               </div>
 
               <!-- 搜索结果列表 -->
-              <div
-                v-else-if="results.length > 0"
-                class="divide-y divide-gray-200 dark:divide-gray-700"
-              >
+              <div v-else class="divide-y divide-gray-100 dark:divide-gray-800">
                 <NuxtLink
                   v-for="post in results"
                   :key="post.id"
                   :to="`/blog/${post.slug}`"
-                  class="block px-4 py-3 transition-colors hover:bg-gray-50 dark:hover:bg-gray-700"
+                  class="flex items-start gap-3 px-4 py-3.5 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/60"
                   @click="close"
                 >
-                  <div class="flex items-start justify-between">
-                    <div class="flex-1">
-                      <h3 class="text-sm font-medium text-gray-900 dark:text-white">
-                        {{ post.title }}
-                      </h3>
-                      <p
-                        v-if="post.excerpt"
-                        class="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400"
-                      >
-                        {{ post.excerpt }}
-                      </p>
-                      <div class="mt-2 flex items-center gap-4 text-xs text-gray-400">
-                        <span v-if="post.category">{{ post.category }}</span>
-                        <span v-if="post.published_at">
-                          {{ new Date(post.published_at).toLocaleDateString('zh-CN') }}
-                        </span>
-                      </div>
-                    </div>
+                  <div
+                    class="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/30"
+                  >
                     <Icon
-                      name="i-heroicons-chevron-right"
-                      class="ml-4 h-5 w-5 flex-shrink-0 text-gray-400"
+                      name="heroicons:document-text"
+                      class="h-4 w-4 text-primary-500 dark:text-primary-400"
                     />
                   </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
+                      {{ post.title }}
+                    </p>
+                    <p
+                      v-if="post.excerpt"
+                      class="mt-0.5 line-clamp-1 text-xs text-gray-500 dark:text-gray-400"
+                    >
+                      {{ post.excerpt }}
+                    </p>
+                    <div class="mt-1.5 flex items-center gap-3">
+                      <span
+                        v-if="post.category"
+                        class="inline-flex items-center rounded-full bg-primary-50 px-2 py-0.5 text-[10px] font-medium text-primary-600 dark:bg-primary-900/30 dark:text-primary-400"
+                      >
+                        {{ post.category }}
+                      </span>
+                      <span
+                        v-if="post.published_at"
+                        class="text-[10px] text-gray-400 dark:text-gray-500"
+                      >
+                        {{ new Date(post.published_at).toLocaleDateString('zh-CN') }}
+                      </span>
+                    </div>
+                  </div>
+                  <Icon
+                    name="heroicons:chevron-right"
+                    class="mt-1 h-4 w-4 flex-shrink-0 text-gray-300 dark:text-gray-600"
+                  />
                 </NuxtLink>
               </div>
             </div>
 
             <!-- 底部提示 -->
             <div
-              v-if="searchQuery && results.length > 0"
-              class="border-t border-gray-200 px-4 py-2 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400"
+              v-if="results.length > 0"
+              class="flex items-center justify-between border-t border-gray-100 px-4 py-2.5 dark:border-gray-800"
             >
-              找到 {{ results.length }} 篇文章，按 Enter 查看更多结果
+              <p class="text-xs text-gray-400 dark:text-gray-500">
+                找到
+                <span class="font-medium text-primary-600 dark:text-primary-400">{{
+                  results.length
+                }}</span>
+                篇文章
+              </p>
+              <button
+                class="cursor-pointer text-xs text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                @click="handleSearch"
+              >
+                查看全部结果 →
+              </button>
             </div>
           </div>
         </div>
