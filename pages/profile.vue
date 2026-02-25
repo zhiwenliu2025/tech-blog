@@ -1,372 +1,455 @@
 <template>
-  <div class="py-8">
-    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-      <div>
-        <div class="mb-8">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">个人资料</h1>
-          <p class="mt-2 text-gray-600 dark:text-gray-400">管理您的个人信息和账户设置</p>
-        </div>
+  <div class="min-h-screen bg-gray-50 py-8 dark:bg-gray-950">
+    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <!-- 页面标题 -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">个人资料</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">管理您的个人信息和账户设置</p>
+      </div>
 
-        <div class="grid gap-6 md:grid-cols-3">
-          <!-- 左侧个人信息卡片 -->
-          <div class="md:col-span-1">
-            <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-              <div class="h-24 bg-gradient-to-r from-blue-500 to-purple-600" />
-              <div class="relative px-6 pb-6">
-                <div class="absolute -top-12">
-                  <div
-                    class="relative h-24 w-24 overflow-hidden rounded-full border-4 border-white bg-gray-200 shadow-lg dark:border-gray-800 dark:bg-gray-700"
-                  >
-                    <img
-                      v-if="profile?.avatar_url"
-                      :src="profile.avatar_url"
-                      alt="头像"
-                      class="h-full w-full object-cover"
-                    />
-                    <div v-else class="flex h-full w-full items-center justify-center">
-                      <Icon name="i-heroicons-user" class="h-12 w-12 text-gray-400" />
-                    </div>
-                  </div>
-                </div>
-                <div class="pt-14 text-center">
-                  <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    {{ profile?.full_name || nuxtUser?.email }}
-                  </h2>
-                  <p class="text-gray-600 dark:text-gray-400">
-                    {{ profile?.username || '@' + (nuxtUser?.email?.split('@')[0] || 'user') }}
-                  </p>
-                  <div class="mt-4 flex justify-center space-x-2">
-                    <span
-                      v-if="profile?.website"
-                      class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    >
-                      <Icon name="i-heroicons-globe-alt" class="mr-1 h-3 w-3" />
-                      网站
-                    </span>
-                    <span
-                      class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-200"
-                    >
-                      <Icon name="i-heroicons-check-circle" class="mr-1 h-3 w-3" />
-                      已验证
-                    </span>
+      <div class="grid gap-6 md:grid-cols-3">
+        <!-- 左侧个人信息卡片 -->
+        <div class="space-y-5 md:col-span-1">
+          <!-- 个人信息卡片 -->
+          <div
+            class="overflow-hidden rounded-xl bg-white ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800"
+          >
+            <!-- Banner 渐变 -->
+            <div class="relative h-28 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+              <div
+                class="bg-[url('data:image/svg+xml,%3Csvg width=\'30\' height=\'30\' viewBox=\'0 0 30 30\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Ccircle cx=\'15\' cy=\'15\' r=\'1\' fill=\'white\' fill-opacity=\'0.15\'/%3E%3C/svg%3E')] absolute inset-0 opacity-60"
+              />
+            </div>
+            <!-- 头像 & 信息 -->
+            <div class="relative px-5 pb-5">
+              <div class="absolute -top-11 left-5">
+                <div
+                  class="relative h-20 w-20 overflow-hidden rounded-full border-4 border-white bg-gray-100 shadow-lg dark:border-gray-900 dark:bg-gray-800"
+                >
+                  <img
+                    v-if="profile?.avatar_url"
+                    :src="profile.avatar_url"
+                    alt="头像"
+                    class="h-full w-full object-cover"
+                  />
+                  <div v-else class="flex h-full w-full items-center justify-center">
+                    <Icon name="i-heroicons-user" class="h-10 w-10 text-gray-400" />
                   </div>
                 </div>
               </div>
-            </div>
-
-            <!-- 快速统计 -->
-            <div class="mt-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-              <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">活动统计</h3>
-                <div class="mt-4 space-y-4">
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">发布文章</span>
-                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{
-                      stats.postsCount
-                    }}</span>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">评论</span>
-                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{
-                      stats.commentsCount
-                    }}</span>
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">获赞</span>
-                    <span class="text-sm font-medium text-gray-900 dark:text-white">{{
-                      stats.likesCount
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 管理后台入口 -->
-            <div
-              v-if="profile?.is_admin"
-              class="mt-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800"
-            >
-              <div class="p-6">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">管理功能</h3>
-                <div class="mt-4">
-                  <NuxtLink
-                    to="/admin"
-                    class="flex w-full items-center justify-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:bg-purple-700 dark:hover:bg-purple-800"
+              <div class="pt-12">
+                <h2 class="text-base font-semibold text-gray-900 dark:text-white">
+                  {{ profile?.full_name || nuxtUser?.email }}
+                </h2>
+                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                  {{
+                    profile?.username
+                      ? '@' + profile.username
+                      : '@' + (nuxtUser?.email?.split('@')[0] || 'user')
+                  }}
+                </p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <a
+                    v-if="profile?.website"
+                    :href="profile.website"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex cursor-pointer items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200 transition-colors duration-150 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-300 dark:ring-indigo-800 dark:hover:bg-indigo-900/50"
                   >
-                    <Icon name="i-heroicons-cog-6-tooth" class="mr-2 h-4 w-4" />
-                    进入管理后台
-                  </NuxtLink>
+                    <Icon name="i-heroicons-globe-alt" class="h-3 w-3" />
+                    网站
+                  </a>
+                  <span
+                    class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-800"
+                  >
+                    <Icon name="i-heroicons-check-circle" class="h-3 w-3" />
+                    已验证
+                  </span>
                 </div>
+                <p
+                  v-if="profile?.bio"
+                  class="mt-3 text-xs leading-relaxed text-gray-500 dark:text-gray-400"
+                >
+                  {{ profile.bio }}
+                </p>
               </div>
             </div>
           </div>
 
-          <!-- 右侧表单 -->
-          <div class="md:col-span-2">
-            <div class="overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-              <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">编辑个人资料</h3>
+          <!-- 活动统计 -->
+          <div class="rounded-xl bg-white ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800">
+            <div class="border-b border-gray-100 px-5 py-3.5 dark:border-gray-800">
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">活动统计</h3>
+            </div>
+            <div class="grid grid-cols-3 divide-x divide-gray-100 dark:divide-gray-800">
+              <div class="flex flex-col items-center py-4">
+                <span class="text-xl font-bold text-gray-900 dark:text-white">{{
+                  stats.postsCount
+                }}</span>
+                <span class="mt-1 text-xs text-gray-500 dark:text-gray-400">文章</span>
               </div>
-              <form class="p-6" @submit.prevent="updateProfile">
-                <div class="grid gap-6">
-                  <!-- 头像上传 -->
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >头像</label
-                    >
-                    <div class="mt-2">
-                      <AvatarUploader
-                        :avatar-url="profile?.avatar_url"
-                        @uploaded="handleAvatarUploaded"
-                        @error="handleAvatarError"
-                      />
-                      <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        支持 JPG、PNG、GIF、WebP，最大 2MB。支持拖拽上传。
-                      </p>
-                    </div>
-                  </div>
+              <div class="flex flex-col items-center py-4">
+                <span class="text-xl font-bold text-gray-900 dark:text-white">{{
+                  stats.commentsCount
+                }}</span>
+                <span class="mt-1 text-xs text-gray-500 dark:text-gray-400">评论</span>
+              </div>
+              <div class="flex flex-col items-center py-4">
+                <span class="text-xl font-bold text-gray-900 dark:text-white">{{
+                  stats.likesCount
+                }}</span>
+                <span class="mt-1 text-xs text-gray-500 dark:text-gray-400">获赞</span>
+              </div>
+            </div>
+          </div>
 
-                  <!-- 用户名 -->
+          <!-- 管理后台入口 -->
+          <div
+            v-if="profile?.is_admin"
+            class="rounded-xl bg-white ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800"
+          >
+            <div class="p-5">
+              <div class="mb-3 flex items-center gap-2">
+                <div
+                  class="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30"
+                >
+                  <Icon
+                    name="i-heroicons-cog-6-tooth"
+                    class="h-4 w-4 text-purple-600 dark:text-purple-400"
+                  />
+                </div>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">管理功能</h3>
+              </div>
+              <NuxtLink
+                to="/admin"
+                class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:bg-purple-700 dark:hover:bg-purple-600"
+              >
+                <Icon name="i-heroicons-arrow-right-circle" class="h-4 w-4" />
+                进入管理后台
+              </NuxtLink>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右侧表单区域 -->
+        <div class="space-y-5 md:col-span-2">
+          <!-- 编辑个人资料 -->
+          <div
+            class="overflow-hidden rounded-xl bg-white ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800"
+          >
+            <div
+              class="flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-800"
+            >
+              <div
+                class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30"
+              >
+                <Icon
+                  name="i-heroicons-user-circle"
+                  class="h-4 w-4 text-blue-600 dark:text-blue-400"
+                />
+              </div>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">编辑个人资料</h3>
+            </div>
+            <form class="p-6" @submit.prevent="updateProfile">
+              <div class="grid gap-5">
+                <!-- 头像上传 -->
+                <div>
+                  <label
+                    class="block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                  >
+                    头像
+                  </label>
+                  <div class="mt-2">
+                    <AvatarUploader
+                      :avatar-url="profile?.avatar_url"
+                      @uploaded="handleAvatarUploaded"
+                      @error="handleAvatarError"
+                    />
+                    <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">
+                      支持 JPG、PNG、GIF、WebP，最大 2MB。支持拖拽上传。
+                    </p>
+                  </div>
+                </div>
+
+                <!-- 用户名 & 全名 -->
+                <div class="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label
                       for="username"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >用户名</label
+                      class="block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
                     >
-                    <div class="mt-1">
+                      用户名
+                    </label>
+                    <div class="mt-1.5">
                       <input
                         id="username"
                         v-model="form.username"
                         type="text"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
-                        placeholder="用户名"
+                        class="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400"
+                        placeholder="your_username"
                       />
                     </div>
                   </div>
-
-                  <!-- 全名 -->
                   <div>
                     <label
                       for="full_name"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >全名</label
+                      class="block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
                     >
-                    <div class="mt-1">
+                      全名
+                    </label>
+                    <div class="mt-1.5">
                       <input
                         id="full_name"
                         v-model="form.full_name"
                         type="text"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+                        class="block w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400"
                         placeholder="您的全名"
                       />
                     </div>
                   </div>
+                </div>
 
-                  <!-- 网站 -->
-                  <div>
-                    <label
-                      for="website"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >网站</label
+                <!-- 网站 -->
+                <div>
+                  <label
+                    for="website"
+                    class="block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                  >
+                    网站
+                  </label>
+                  <div class="mt-1.5 flex rounded-lg shadow-none">
+                    <span
+                      class="inline-flex items-center rounded-l-lg border border-r-0 border-gray-200 bg-gray-50 px-3 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
                     >
-                    <div class="mt-1">
-                      <input
-                        id="website"
-                        v-model="form.website"
-                        type="url"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
-                        placeholder="https://example.com"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- 个人简介 -->
-                  <div>
-                    <label
-                      for="bio"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >个人简介</label
-                    >
-                    <div class="mt-1">
-                      <textarea
-                        id="bio"
-                        v-model="form.bio"
-                        rows="4"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
-                        placeholder="介绍一下您自己..."
-                      />
-                    </div>
-                  </div>
-
-                  <!-- 邮箱 -->
-                  <div>
-                    <label
-                      for="email"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                      >邮箱</label
-                    >
-                    <div class="mt-1">
-                      <input
-                        id="email"
-                        :value="nuxtUser?.email"
-                        type="email"
-                        disabled
-                        class="block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-300 sm:text-sm"
-                      />
-                    </div>
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      您的邮箱地址无法更改
-                    </p>
-                  </div>
-
-                  <!-- 提交按钮 -->
-                  <div class="flex justify-end space-x-3">
-                    <button
-                      type="button"
-                      class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                      @click="resetForm"
-                    >
-                      取消
-                    </button>
-                    <button
-                      type="submit"
-                      :disabled="loading"
-                      class="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-                    >
-                      <span v-if="loading" class="mr-2">
-                        <Icon name="i-heroicons-arrow-path" class="h-4 w-4 animate-spin" />
-                      </span>
-                      保存更改
-                    </button>
+                      <Icon name="i-heroicons-globe-alt" class="h-3.5 w-3.5" />
+                    </span>
+                    <input
+                      id="website"
+                      v-model="form.website"
+                      type="url"
+                      class="block w-full min-w-0 flex-1 rounded-r-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400"
+                      placeholder="https://example.com"
+                    />
                   </div>
                 </div>
-              </form>
-            </div>
 
-            <!-- 账户设置 -->
-            <div class="mt-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-              <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">账户设置</h3>
+                <!-- 个人简介 -->
+                <div>
+                  <label
+                    for="bio"
+                    class="block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                  >
+                    个人简介
+                  </label>
+                  <div class="mt-1.5">
+                    <textarea
+                      id="bio"
+                      v-model="form.bio"
+                      rows="3"
+                      class="block w-full resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition-colors duration-150 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-500 dark:focus:border-blue-400"
+                      placeholder="介绍一下您自己..."
+                    />
+                  </div>
+                </div>
+
+                <!-- 邮箱（只读） -->
+                <div>
+                  <label
+                    for="email"
+                    class="block text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                  >
+                    邮箱
+                  </label>
+                  <div class="mt-1.5">
+                    <input
+                      id="email"
+                      :value="nuxtUser?.email"
+                      type="email"
+                      disabled
+                      class="block w-full cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400"
+                    />
+                  </div>
+                  <p
+                    class="mt-1.5 flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"
+                  >
+                    <Icon name="i-heroicons-lock-closed" class="h-3 w-3" />
+                    邮箱地址无法更改
+                  </p>
+                </div>
+
+                <!-- 操作按钮 -->
+                <div
+                  class="flex items-center justify-end gap-3 border-t border-gray-100 pt-4 dark:border-gray-800"
+                >
+                  <button
+                    type="button"
+                    class="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+                    @click="resetForm"
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="submit"
+                    :disabled="loading"
+                    class="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-500"
+                  >
+                    <Icon
+                      v-if="loading"
+                      name="i-heroicons-arrow-path"
+                      class="h-4 w-4 animate-spin"
+                    />
+                    <Icon v-else name="i-heroicons-check" class="h-4 w-4" />
+                    保存更改
+                  </button>
+                </div>
               </div>
-              <div class="p-6">
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between">
+            </form>
+          </div>
+
+          <!-- 账户设置 -->
+          <div
+            class="overflow-hidden rounded-xl bg-white ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800"
+          >
+            <div
+              class="flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-800"
+            >
+              <div
+                class="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+              >
+                <Icon
+                  name="i-heroicons-shield-check"
+                  class="h-4 w-4 text-gray-600 dark:text-gray-400"
+                />
+              </div>
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white">账户设置</h3>
+            </div>
+            <div class="divide-y divide-gray-100 dark:divide-gray-800">
+              <!-- 修改密码 -->
+              <div class="flex items-center justify-between px-6 py-4">
+                <div>
+                  <h4 class="text-sm font-medium text-gray-900 dark:text-white">修改密码</h4>
+                  <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    定期更改密码以保护账户安全
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  @click="resetPassword"
+                >
+                  发送重置链接
+                </button>
+              </div>
+              <!-- 删除账户 -->
+              <div class="flex items-center justify-between px-6 py-4">
+                <div>
+                  <h4 class="text-sm font-medium text-red-600 dark:text-red-400">删除账户</h4>
+                  <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                    永久删除您的账户和所有相关数据
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  class="cursor-pointer rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition-colors duration-150 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-400 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+                  @click="confirmDeleteAccount"
+                >
+                  删除账户
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 关联账号 -->
+          <div
+            class="overflow-hidden rounded-xl bg-white ring-1 ring-gray-200 dark:bg-gray-900 dark:ring-gray-800"
+          >
+            <div
+              class="flex items-center gap-3 border-b border-gray-100 px-6 py-4 dark:border-gray-800"
+            >
+              <div
+                class="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+              >
+                <Icon name="i-heroicons-link" class="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              </div>
+              <div>
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-white">关联账号</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">绑定第三方账号以便快速登录</p>
+              </div>
+            </div>
+            <div class="space-y-4 p-6">
+              <!-- 已关联账号列表 -->
+              <div v-if="identities.length > 0" class="space-y-2.5">
+                <div
+                  v-for="identity in identities"
+                  :key="identity.id"
+                  class="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/50"
+                >
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="flex h-9 w-9 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-gray-200 dark:bg-gray-800 dark:ring-gray-700"
+                    >
+                      <Icon
+                        v-if="identity.provider === 'github'"
+                        name="i-simple-icons-github"
+                        class="h-5 w-5 text-gray-800 dark:text-gray-200"
+                      />
+                      <Icon
+                        v-else
+                        name="i-heroicons-globe-alt"
+                        class="h-5 w-5 text-gray-600 dark:text-gray-400"
+                      />
+                    </div>
                     <div>
-                      <h4 class="text-sm font-medium text-gray-900 dark:text-white">修改密码</h4>
-                      <p class="text-sm text-gray-500 dark:text-gray-400">
-                        定期更改密码以保护账户安全
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{ getProviderName(identity.provider) }}
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">
+                        {{ identity.identity_data?.email || '已关联' }}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                      @click="resetPassword"
-                    >
-                      修改密码
-                    </button>
                   </div>
-                  <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-                    <div class="flex items-center justify-between">
-                      <div>
-                        <h4 class="text-sm font-medium text-red-600 dark:text-red-400">删除账户</h4>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">
-                          永久删除您的账户和所有相关数据
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        class="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:border-red-600 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-red-900/20"
-                        @click="confirmDeleteAccount"
-                      >
-                        删除账户
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    v-if="identities.length > 1"
+                    type="button"
+                    :disabled="unlinking"
+                    class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-600 transition-colors duration-150 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/50 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                    @click="unlinkAccount(identity)"
+                  >
+                    <Icon
+                      v-if="unlinking"
+                      name="i-heroicons-arrow-path"
+                      class="h-3 w-3 animate-spin"
+                    />
+                    解除关联
+                  </button>
+                  <span
+                    v-else
+                    class="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-400 dark:bg-gray-700 dark:text-gray-500"
+                  >
+                    主登录方式
+                  </span>
                 </div>
               </div>
-            </div>
 
-            <!-- 关联账号 -->
-            <div class="mt-6 overflow-hidden rounded-lg bg-white shadow dark:bg-gray-800">
-              <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">关联账号</h3>
-              </div>
-              <div class="p-6">
-                <div class="space-y-4">
-                  <div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      您可以将其他账号（如 GitHub）与当前账户关联，以便使用这些账号登录。
-                    </p>
-                  </div>
-
-                  <!-- 已关联的账号 -->
-                  <div v-if="identities.length > 0" class="space-y-3">
-                    <div
-                      v-for="identity in identities"
-                      :key="identity.id"
-                      class="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700"
-                    >
-                      <div class="flex items-center space-x-3">
-                        <div
-                          class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
-                        >
-                          <Icon
-                            v-if="identity.provider === 'github'"
-                            name="i-simple-icons-github"
-                            class="h-6 w-6 text-gray-700 dark:text-gray-300"
-                          />
-                          <Icon
-                            v-else
-                            name="i-heroicons-globe-alt"
-                            class="h-6 w-6 text-gray-700 dark:text-gray-300"
-                          />
-                        </div>
-                        <div>
-                          <p class="text-sm font-medium text-gray-900 dark:text-white">
-                            {{ getProviderName(identity.provider) }}
-                          </p>
-                          <p class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ identity.identity_data?.email || '已关联' }}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        v-if="identities.length > 1"
-                        type="button"
-                        :disabled="unlinking"
-                        class="rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-700 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 dark:border-red-600 dark:bg-gray-700 dark:text-red-400 dark:hover:bg-red-900/20"
-                        @click="unlinkAccount(identity.id)"
-                      >
-                        <span v-if="unlinking" class="mr-1">
-                          <Icon name="i-heroicons-arrow-path" class="h-3 w-3 animate-spin" />
-                        </span>
-                        解除关联
-                      </button>
-                      <span v-else class="text-xs text-gray-400 dark:text-gray-500">
-                        至少保留一个登录方式
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- 可关联的账号 -->
-                  <div class="border-t border-gray-200 pt-4 dark:border-gray-700">
-                    <p class="mb-3 text-sm font-medium text-gray-900 dark:text-white">
-                      添加新的登录方式
-                    </p>
-                    <div class="flex flex-wrap gap-3">
-                      <button
-                        v-if="!isProviderLinked('github')"
-                        type="button"
-                        :disabled="linking"
-                        class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-                        @click="linkGitHub"
-                      >
-                        <Icon name="i-simple-icons-github" class="mr-2 h-5 w-5" />
-                        <span v-if="linking">关联中...</span>
-                        <span v-else>关联 GitHub</span>
-                      </button>
-                    </div>
-                  </div>
+              <!-- 添加新登录方式 -->
+              <div class="border-t border-gray-100 pt-4 dark:border-gray-800">
+                <p
+                  class="mb-3 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+                >
+                  添加登录方式
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    v-if="!isProviderLinked('github')"
+                    type="button"
+                    :disabled="linking"
+                    class="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors duration-150 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                    @click="linkGitHub"
+                  >
+                    <Icon name="i-simple-icons-github" class="h-4 w-4" />
+                    <span v-if="linking">关联中...</span>
+                    <span v-else>关联 GitHub</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -376,63 +459,80 @@
     </div>
 
     <!-- 确认删除账户对话框 -->
-    <div v-if="showDeleteDialog" class="fixed inset-0 z-50 overflow-y-auto">
-      <div
-        class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0"
-      >
+    <Transition
+      enter-active-class="duration-200 ease-out"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="duration-150 ease-in"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div v-if="showDeleteDialog" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- 背景遮罩 -->
         <div
-          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          class="absolute inset-0 bg-gray-950/60 backdrop-blur-sm"
           @click="showDeleteDialog = false"
         />
-        <span class="hidden sm:inline-block sm:h-screen sm:align-middle">&#8203;</span>
+        <!-- 对话框 -->
         <div
-          class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:align-middle"
+          class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl dark:bg-gray-900"
         >
-          <div class="bg-white px-4 pb-4 pt-5 dark:bg-gray-800 sm:p-6 sm:pb-4">
-            <div class="sm:flex sm:items-start">
+          <div class="p-6">
+            <div class="flex items-start gap-4">
               <div
-                class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20 sm:mx-0 sm:h-10 sm:w-10"
+                class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
               >
                 <Icon
                   name="i-heroicons-exclamation-triangle"
-                  class="h-6 w-6 text-red-600 dark:text-red-400"
+                  class="h-5 w-5 text-red-600 dark:text-red-400"
                 />
               </div>
-              <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">
-                  删除账户
-                </h3>
-                <div class="mt-2">
-                  <p class="text-sm text-gray-500 dark:text-gray-400">
-                    您确定要删除您的账户吗？此操作无法撤销，所有您的数据将被永久删除。
-                  </p>
-                </div>
+              <div>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white">确认删除账户</h3>
+                <p class="mt-2 text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+                  此操作将<strong class="font-medium text-gray-900 dark:text-white">永久删除</strong
+                  >您的账户及所有相关数据，且无法撤销。请确认您已备份所需数据。
+                </p>
               </div>
             </div>
           </div>
-          <div class="bg-gray-50 px-4 py-3 dark:bg-gray-700 sm:flex sm:flex-row-reverse sm:px-6">
+          <div
+            class="flex items-center justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-gray-800 dark:bg-gray-900/50"
+          >
             <button
               type="button"
-              class="inline-flex w-full justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm"
-              @click="deleteAccount"
-            >
-              删除
-            </button>
-            <button
-              type="button"
-              class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:ml-3 sm:mt-0 sm:w-auto sm:text-sm"
+              class="cursor-pointer rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-150 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
               @click="showDeleteDialog = false"
             >
               取消
             </button>
+            <button
+              type="button"
+              class="cursor-pointer rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors duration-150 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+              @click="deleteAccount"
+            >
+              确认删除
+            </button>
           </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
+import type { UserIdentity } from '@supabase/supabase-js'
+
+interface Profile {
+  id: string
+  username: string
+  full_name: string
+  website: string
+  bio: string
+  avatar_url?: string
+  is_admin?: boolean
+}
+
 // 页面元数据
 definePageMeta({
   title: '个人资料',
@@ -446,9 +546,9 @@ const supabase = useSupabaseClient()
 
 // 状态
 const loading = ref(false)
-const profile = ref(null)
+const profile = ref<Profile | null>(null)
 const showDeleteDialog = ref(false)
-const identities = ref([])
+const identities = ref<UserIdentity[]>([])
 const linking = ref(false)
 const unlinking = ref(false)
 
@@ -503,37 +603,42 @@ const fetchProfile = async () => {
     }
 
     console.log('获取到的用户资料:', data)
-    profile.value = data
+    profile.value = data as Profile
     // 填充表单
+    const formRef = form as Record<string, string>
+    const dataRef = data as Record<string, string>
     Object.keys(form).forEach(key => {
-      form[key] = data[key] || ''
+      formRef[key] = dataRef[key] || ''
     })
   } catch (error) {
     console.error('获取用户资料失败:', error)
     // 如果用户资料不存在，创建一个默认的
-    if (error.code === 'PGRST116') {
+    if ((error as { code?: string }).code === 'PGRST116') {
       // PGRST116 是 "No rows found" 的错误代码
       console.log('用户资料不存在，创建默认资料')
       try {
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
+
           .insert({
             id: nuxtUser.value.sub,
             username: nuxtUser.value.email?.split('@')[0] || 'user',
             full_name: '',
             website: '',
             bio: ''
-          })
+          } as any)
           .select()
           .single()
 
         if (createError) throw createError
 
         console.log('创建的用户资料:', newProfile)
-        profile.value = newProfile
+        profile.value = newProfile as Profile
         // 填充表单
+        const formRef2 = form as Record<string, string>
+        const newRef = newProfile as Record<string, string>
         Object.keys(form).forEach(key => {
-          form[key] = newProfile[key] || ''
+          formRef2[key] = newRef[key] || ''
         })
       } catch (createErr) {
         console.error('创建用户资料失败:', createErr)
@@ -600,7 +705,7 @@ const updateProfile = async () => {
   loading.value = true
   try {
     // 准备更新数据，只包含有值的字段
-    const updateData = {}
+    const updateData: Partial<Omit<Profile, 'id'>> = {}
 
     // 只添加有值的字段
     if (form.username !== undefined && form.username !== '') updateData.username = form.username
@@ -614,7 +719,7 @@ const updateProfile = async () => {
     // 使用update而不是upsert，因为我们已经确定用户存在
     const { data, error } = await supabase
       .from('profiles')
-      .update(updateData)
+      .update(updateData as never)
       .eq('id', nuxtUser.value.sub)
       .select()
 
@@ -634,7 +739,7 @@ const updateProfile = async () => {
   } catch (error) {
     console.error('更新个人资料失败:', error)
     const toast = useToast()
-    toast.error('错误', `更新个人资料失败: ${error.message || '未知错误'}`)
+    toast.error('错误', `更新个人资料失败: ${error instanceof Error ? error.message : '未知错误'}`)
   } finally {
     loading.value = false
   }
@@ -643,8 +748,10 @@ const updateProfile = async () => {
 // 重置表单
 const resetForm = () => {
   if (profile.value) {
+    const formRef = form as Record<string, string>
+    const profileRef = profile.value as unknown as Record<string, string>
     Object.keys(form).forEach(key => {
-      form[key] = profile.value[key] || ''
+      formRef[key] = profileRef[key] || ''
     })
   }
 }
@@ -758,7 +865,7 @@ const fetchIdentities = async () => {
     const {
       data: { user }
     } = await supabase.auth.getUser()
-    identities.value = user?.identities || []
+    identities.value = (user?.identities ?? []) as UserIdentity[]
   } catch (error) {
     console.error('获取关联账号失败:', error)
     identities.value = []
@@ -810,12 +917,10 @@ const linkGitHub = async () => {
 }
 
 // 解除关联账号
-const unlinkAccount = async (identityId: string) => {
+const unlinkAccount = async (identity: UserIdentity) => {
   unlinking.value = true
   try {
-    const { error: unlinkError } = await supabase.auth.unlinkIdentity({
-      identityId
-    })
+    const { error: unlinkError } = await supabase.auth.unlinkIdentity(identity)
 
     if (unlinkError) throw unlinkError
 
