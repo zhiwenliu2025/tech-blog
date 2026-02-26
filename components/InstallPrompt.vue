@@ -34,11 +34,11 @@
 
         <!-- 内容 -->
         <div class="flex items-start gap-3 p-4">
-          <div
-            class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-700 bg-slate-800"
-          >
-            <Icon name="heroicons:device-phone-mobile" class="h-5 w-5 text-primary-400" />
-          </div>
+          <img
+            src="/pwa-192x192.png"
+            alt="TechBlog"
+            class="h-12 w-12 flex-shrink-0 rounded-2xl shadow-md shadow-black/30"
+          />
           <div class="min-w-0 flex-1">
             <p class="font-mono text-xs text-primary-400">// app.install</p>
             <h3 class="mt-0.5 text-sm font-semibold text-white">安装应用</h3>
