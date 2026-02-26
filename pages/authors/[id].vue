@@ -1,218 +1,287 @@
 <template>
   <div>
-    <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-      <!-- Loading State -->
-      <div v-if="loading" class="animate-pulse">
-        <div class="mb-6 flex items-center gap-4">
-          <div class="h-16 w-16 rounded-full bg-gray-200 dark:bg-gray-700" />
-          <div class="flex-1">
-            <div class="mb-2 h-6 w-48 rounded bg-gray-200 dark:bg-gray-700" />
-            <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+    <!-- 加载状态 -->
+    <div v-if="loading" class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+      <div class="animate-pulse">
+        <!-- 头部骨架 -->
+        <div class="mb-8 rounded-xl border border-slate-200 p-6 dark:border-slate-800">
+          <div class="flex items-center gap-5">
+            <div class="h-20 w-20 rounded-xl bg-slate-200 dark:bg-slate-700" />
+            <div class="flex-1 space-y-3">
+              <div class="h-6 w-40 rounded-md bg-slate-200 dark:bg-slate-700" />
+              <div class="h-4 w-64 rounded-md bg-slate-200 dark:bg-slate-700" />
+              <div class="h-3 w-32 rounded-md bg-slate-200 dark:bg-slate-700" />
+            </div>
           </div>
         </div>
-        <div class="space-y-4">
+        <!-- 文章列表骨架 -->
+        <div class="space-y-3">
           <div
-            v-for="i in 3"
+            v-for="i in 4"
             :key="i"
-            class="rounded-xl border border-gray-200 p-5 dark:border-gray-700"
+            class="rounded-xl border border-slate-200 p-5 dark:border-slate-800"
           >
-            <div class="mb-3 h-6 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-            <div class="mb-3 h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
-            <div class="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
+            <div class="mb-3 h-3 w-1/4 rounded-md bg-slate-200 dark:bg-slate-700" />
+            <div class="mb-2 h-5 w-3/4 rounded-md bg-slate-200 dark:bg-slate-700" />
+            <div class="h-3 w-full rounded-md bg-slate-200 dark:bg-slate-700" />
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Error State -->
-      <div v-else-if="error" class="py-12 text-center sm:py-16">
-        <div
-          class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
-        >
-          <Icon name="heroicons:exclamation-triangle" class="h-8 w-8 text-red-500" />
-        </div>
-        <h2 class="mb-2 text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">加载失败</h2>
-        <p class="mx-auto mb-6 max-w-md text-sm text-gray-600 dark:text-gray-400">
-          {{ error }}
-        </p>
-        <button
-          class="touch-optimized inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-          @click="navigateTo('/')"
-        >
-          <Icon name="heroicons:arrow-left" class="h-4 w-4" />
-          返回首页
-        </button>
+    <!-- 错误状态 -->
+    <div v-else-if="error" class="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8">
+      <div
+        class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20"
+      >
+        <Icon name="heroicons:exclamation-triangle" class="h-7 w-7 text-red-500" />
       </div>
+      <h2 class="mb-2 text-lg font-semibold text-slate-900 dark:text-white">加载失败</h2>
+      <p class="mb-6 text-sm text-slate-500 dark:text-slate-400">
+        {{ error }}
+      </p>
+      <button
+        class="touch-optimized inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-all hover:border-primary-300 hover:bg-primary-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+        @click="navigateTo('/')"
+      >
+        <Icon name="heroicons:arrow-left" class="h-4 w-4" />
+        返回首页
+      </button>
+    </div>
 
-      <!-- Author Profile and Posts -->
-      <div v-else>
-        <!-- Author Profile -->
+    <!-- 主内容 -->
+    <div v-else>
+      <!-- 作者 Profile 英雄区（深色终端风格） -->
+      <div v-if="author" class="relative overflow-hidden bg-slate-900">
+        <!-- 点阵底纹 -->
         <div
-          v-if="author"
-          class="mb-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800/50 sm:p-6"
-        >
-          <div class="flex flex-col gap-5 sm:flex-row sm:items-start">
-            <div class="flex-shrink-0 self-center sm:self-start">
-              <img
-                v-if="author.avatar_url"
-                :src="author.avatar_url"
-                :alt="author.username || '作者'"
-                class="h-20 w-20 rounded-2xl object-cover ring-2 ring-gray-100 dark:ring-gray-700"
-              />
-              <div
-                v-else
-                class="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900 dark:to-primary-800"
-              >
-                <Icon
-                  name="heroicons:user"
-                  class="h-10 w-10 text-primary-600 dark:text-primary-400"
+          class="pointer-events-none absolute inset-0 opacity-[0.18]"
+          style="
+            background-image: radial-gradient(circle, rgb(148 163 184 / 0.3) 1px, transparent 1px);
+            background-size: 28px 28px;
+          "
+        />
+        <!-- 光晕 -->
+        <div
+          class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary-600/10 blur-3xl"
+        />
+        <div
+          class="bg-indigo-600/8 pointer-events-none absolute -left-16 bottom-0 h-48 w-48 rounded-full blur-3xl"
+        />
+        <!-- 底部过渡线 -->
+        <div
+          class="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent"
+        />
+
+        <div class="relative mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+          <!-- 面包屑 -->
+          <div class="mb-6 flex items-center gap-2 font-mono text-xs text-slate-500">
+            <NuxtLink to="/authors" class="transition-colors hover:text-slate-300">
+              authors
+            </NuxtLink>
+            <span>/</span>
+            <span class="text-slate-400">{{ author.username || 'profile' }}</span>
+          </div>
+
+          <!-- 作者信息 -->
+          <div class="flex flex-col gap-6 sm:flex-row sm:items-start">
+            <!-- 头像 -->
+            <div class="flex-shrink-0 self-start">
+              <div class="relative">
+                <img
+                  v-if="author.avatar_url"
+                  :src="author.avatar_url"
+                  :alt="author.username || '作者'"
+                  class="h-20 w-20 rounded-2xl object-cover ring-2 ring-primary-500/30 sm:h-24 sm:w-24"
+                />
+                <div
+                  v-else
+                  class="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 sm:h-24 sm:w-24"
+                >
+                  <Icon name="heroicons:user" class="h-10 w-10 text-white sm:h-12 sm:w-12" />
+                </div>
+                <!-- 在线指示器 -->
+                <span
+                  class="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-slate-900 bg-emerald-400"
                 />
               </div>
             </div>
-            <div class="flex-1">
-              <h1 class="mb-2 text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
+
+            <!-- 文字信息 -->
+            <div class="min-w-0 flex-1">
+              <h1 class="mb-1.5 text-2xl font-bold text-white sm:text-3xl">
                 {{ author.username || author.full_name || '匿名作者' }}
               </h1>
-              <p
-                v-if="author.bio"
-                class="mb-4 text-sm leading-relaxed text-gray-600 dark:text-gray-300"
-              >
+              <p v-if="author.bio" class="mb-4 max-w-lg text-sm leading-relaxed text-slate-400">
                 {{ author.bio }}
               </p>
-              <div
-                class="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400 sm:gap-4 sm:text-sm"
-              >
-                <div class="flex items-center gap-1.5">
-                  <Icon name="heroicons:document-text" class="h-4 w-4" />
-                  <span class="font-medium text-primary-600 dark:text-primary-400">{{
-                    totalPosts
-                  }}</span>
-                  篇文章
+
+              <!-- 统计 + 链接行 -->
+              <div class="flex flex-wrap items-center gap-4">
+                <!-- 文章数 -->
+                <div class="flex items-center gap-1.5 font-mono text-sm">
+                  <span class="text-2xl font-bold text-white">{{ totalPosts }}</span>
+                  <span class="text-slate-500">posts</span>
                 </div>
-                <div v-if="author.website" class="flex items-center gap-1.5">
-                  <Icon name="heroicons:globe-alt" class="h-4 w-4" />
-                  <a
-                    :href="author.website"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
-                  >
-                    个人网站
-                  </a>
+                <span class="text-slate-700">·</span>
+                <!-- 加入时间 -->
+                <div class="flex items-center gap-1.5 font-mono text-xs text-slate-500">
+                  <Icon name="heroicons:calendar" class="h-3.5 w-3.5" />
+                  joined {{ formatDateShort(author.created_at) }}
                 </div>
-                <div class="flex items-center gap-1.5">
-                  <Icon name="heroicons:calendar" class="h-4 w-4" />
-                  <span>{{ formatDate(author.created_at) }}</span>
-                </div>
+                <!-- 网站链接 -->
+                <a
+                  v-if="author.website"
+                  :href="author.website"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 font-mono text-xs text-slate-400 transition-all hover:border-primary-700/60 hover:text-primary-400"
+                >
+                  <Icon name="heroicons:globe-alt" class="h-3.5 w-3.5" />
+                  个人网站
+                  <Icon name="heroicons:arrow-top-right-on-square" class="h-3 w-3 opacity-60" />
+                </a>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Posts List -->
-        <div>
-          <div class="mb-6 flex items-center gap-3 sm:mb-8">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 dark:bg-primary-900/30"
-            >
-              <Icon
-                name="heroicons:document-text"
-                class="h-5 w-5 text-primary-600 dark:text-primary-400"
-              />
-            </div>
-            <h2 class="text-lg font-bold text-gray-900 dark:text-white sm:text-xl">文章列表</h2>
-          </div>
-
-          <div
-            v-if="posts.length === 0"
-            class="rounded-xl border border-gray-200 bg-gray-50 py-12 text-center dark:border-gray-700 dark:bg-gray-800/50 sm:py-16"
+      <!-- 文章列表区 -->
+      <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <!-- 区块标题 -->
+        <div class="mb-6 flex items-center gap-3">
+          <span class="font-mono text-xs text-slate-400 dark:text-slate-500">// posts</span>
+          <div class="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+          <span
+            v-if="totalPosts > 0"
+            class="rounded-full bg-slate-100 px-2.5 py-0.5 font-mono text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-400"
           >
+            {{ totalPosts }}
+          </span>
+        </div>
+
+        <!-- 空状态 -->
+        <div
+          v-if="posts.length === 0"
+          class="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center dark:border-slate-700/60 dark:bg-slate-800/20"
+        >
+          <Icon
+            name="heroicons:document-text"
+            class="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-600"
+          />
+          <p class="text-sm text-slate-400 dark:text-slate-500">该作者还没有发布任何文章</p>
+        </div>
+
+        <!-- 文章列表 -->
+        <div v-else class="space-y-3">
+          <article
+            v-for="post in posts"
+            :key="post.id"
+            class="group relative overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-200 hover:-translate-y-px hover:border-primary-200 hover:shadow-md hover:shadow-primary-500/5 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-primary-800/60"
+          >
+            <!-- 左侧悬停高亮条 -->
             <div
-              class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700"
-            >
-              <Icon name="heroicons:document-text" class="h-7 w-7 text-gray-400" />
-            </div>
-            <p class="text-gray-500 dark:text-gray-400">该作者还没有发布任何文章</p>
-          </div>
+              class="absolute left-0 top-0 h-full w-0.5 scale-y-0 rounded-r-full bg-gradient-to-b from-primary-400 to-primary-600 transition-transform duration-300 group-hover:scale-y-100"
+            />
 
-          <div v-else class="space-y-4 sm:space-y-5">
-            <article
-              v-for="post in posts"
-              :key="post.id"
-              class="touch-optimized group rounded-xl border border-gray-200 bg-white p-4 transition-all hover:border-primary-300 hover:shadow-lg dark:border-gray-700 dark:bg-gray-800/50 sm:p-5"
-            >
-              <NuxtLink :to="`/blog/${post.slug}`" class="block">
+            <NuxtLink :to="`/blog/${post.slug}`" class="block p-5">
+              <!-- 元信息行 -->
+              <div class="mb-3 flex flex-wrap items-center gap-2">
+                <span
+                  v-if="post.category"
+                  class="inline-flex items-center rounded-md bg-primary-50 px-2 py-0.5 font-mono text-xs font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
+                >
+                  {{ post.category }}
+                </span>
+                <span class="text-slate-300 dark:text-slate-700">/</span>
+                <time
+                  :datetime="post.published_at || post.created_at"
+                  class="flex items-center gap-1 font-mono text-xs text-slate-400 dark:text-slate-500"
+                >
+                  <Icon name="heroicons:calendar" class="h-3 w-3" />
+                  {{ formatDateShort(post.published_at || post.created_at) }}
+                </time>
+                <span class="text-slate-300 dark:text-slate-700">/</span>
+                <span
+                  class="flex items-center gap-1 font-mono text-xs text-slate-400 dark:text-slate-500"
+                >
+                  <Icon name="heroicons:clock" class="h-3 w-3" />
+                  {{ post.read_time || calculateReadTime(post.content) }} min
+                </span>
+              </div>
+
+              <!-- 标题 -->
+              <h3
+                class="mb-2 text-base font-semibold leading-snug text-slate-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 sm:text-[17px]"
+              >
+                {{ post.title }}
+              </h3>
+
+              <!-- 摘要 -->
+              <p
+                v-if="post.excerpt"
+                class="mb-4 line-clamp-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400"
+              >
+                {{ post.excerpt }}
+              </p>
+
+              <!-- 底部：统计 + 阅读 -->
+              <div
+                class="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800"
+              >
                 <div
-                  class="mb-3 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400 sm:gap-3"
+                  class="flex items-center gap-3 font-mono text-xs text-slate-400 dark:text-slate-500"
                 >
-                  <span
-                    v-if="post.category"
-                    class="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2.5 py-1 font-medium text-primary-700 dark:bg-primary-900/30 dark:text-primary-300"
-                  >
-                    <Icon name="heroicons:folder" class="h-3 w-3" />
-                    {{ post.category }}
-                  </span>
                   <span class="flex items-center gap-1">
-                    <Icon name="heroicons:calendar" class="h-3.5 w-3.5" />
-                    {{ formatDate(post.published_at || post.created_at) }}
-                  </span>
-                  <span class="flex items-center gap-1">
-                    <Icon name="heroicons:clock" class="h-3.5 w-3.5" />
-                    {{ post.read_time || calculateReadTime(post.content) }} 分钟
-                  </span>
-                </div>
-
-                <h3
-                  class="mb-2 text-base font-semibold leading-snug text-gray-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400 sm:text-lg"
-                >
-                  {{ post.title }}
-                </h3>
-
-                <p
-                  v-if="post.excerpt"
-                  class="mb-4 line-clamp-2 text-sm leading-relaxed text-gray-600 dark:text-gray-300"
-                >
-                  {{ post.excerpt }}
-                </p>
-
-                <div class="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                  <span class="flex items-center gap-1">
-                    <Icon name="heroicons:heart" class="h-4 w-4" />
+                    <Icon name="heroicons:heart" class="h-3.5 w-3.5 text-rose-400" />
                     {{ post.likes_count || 0 }}
                   </span>
                   <span class="flex items-center gap-1">
-                    <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4" />
+                    <Icon name="heroicons:chat-bubble-left-right" class="h-3.5 w-3.5" />
                     {{ post.comments_count || 0 }}
                   </span>
+                  <span class="flex items-center gap-1">
+                    <Icon name="heroicons:eye" class="h-3.5 w-3.5" />
+                    {{ post.view_count || 0 }}
+                  </span>
                 </div>
-              </NuxtLink>
-            </article>
-          </div>
-
-          <!-- Pagination -->
-          <div v-if="totalPages > 1" class="mt-8 flex justify-center">
-            <nav class="flex items-center gap-2">
-              <button
-                :disabled="currentPage === 1"
-                class="touch-optimized rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                @click="goToPage(currentPage - 1)"
-              >
-                <Icon name="heroicons:chevron-left" class="h-4 w-4" />
-              </button>
-              <span class="px-3 text-sm text-gray-600 dark:text-gray-400">
-                {{ currentPage }} / {{ totalPages }}
-              </span>
-              <button
-                :disabled="currentPage === totalPages"
-                class="touch-optimized rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-                @click="goToPage(currentPage + 1)"
-              >
-                <Icon name="heroicons:chevron-right" class="h-4 w-4" />
-              </button>
-            </nav>
-          </div>
+                <span
+                  class="group/read inline-flex items-center gap-1 font-mono text-xs font-semibold text-primary-600 transition-all group-hover:gap-1.5 dark:text-primary-400"
+                >
+                  阅读全文
+                  <Icon name="heroicons:arrow-right" class="h-3.5 w-3.5" />
+                </span>
+              </div>
+            </NuxtLink>
+          </article>
         </div>
-      </div>
-    </main>
+
+        <!-- 分页 -->
+        <div v-if="totalPages > 1" class="mt-8 flex items-center justify-center gap-2">
+          <button
+            :disabled="currentPage === 1"
+            class="touch-optimized flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700/60 dark:hover:text-primary-400"
+            @click="goToPage(currentPage - 1)"
+          >
+            <Icon name="heroicons:chevron-left" class="h-4 w-4" />
+            上一页
+          </button>
+          <span class="px-3 font-mono text-sm text-slate-400 dark:text-slate-500">
+            {{ currentPage }}<span class="mx-1 text-slate-300 dark:text-slate-700">/</span
+            >{{ totalPages }}
+          </span>
+          <button
+            :disabled="currentPage === totalPages"
+            class="touch-optimized flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700/60 dark:hover:text-primary-400"
+            @click="goToPage(currentPage + 1)"
+          >
+            下一页
+            <Icon name="heroicons:chevron-right" class="h-4 w-4" />
+          </button>
+        </div>
+      </main>
+    </div>
   </div>
 </template>
 
@@ -220,7 +289,6 @@
 const route = useRoute()
 const authorId = route.params.id as string
 
-// ✅ 使用缓存 API
 const { getProfile } = useProfileCache()
 const { getPostsByAuthor } = useBlogPosts()
 
@@ -234,25 +302,18 @@ const totalPosts = ref(0)
 
 const totalPages = computed(() => Math.ceil(totalPosts.value / pageSize))
 
-const formatDate = (dateString: string) => {
+const formatDateShort = (dateString: string) => {
   if (!dateString) return ''
   const date = new Date(dateString)
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return date.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit' })
 }
 
 const calculateReadTime = (content: string) => {
-  if (!content) return 0
-  const wordsPerMinute = 200
+  if (!content) return 1
   const text = content.replace(/<[^>]*>/g, '')
-  const wordCount = text.length
-  return Math.max(1, Math.ceil(wordCount / wordsPerMinute))
+  return Math.max(1, Math.ceil(text.length / 200))
 }
 
-// ✅ 使用缓存版本
 const loadAuthorProfile = async () => {
   const profile = await getProfile(authorId)
   if (!profile) {
@@ -265,12 +326,10 @@ const loadAuthorProfile = async () => {
 const loadPosts = async (page: number) => {
   loading.value = true
   error.value = null
-
   try {
     const postsData = await getPostsByAuthor(authorId, page, pageSize)
     posts.value = postsData
     currentPage.value = page
-
     if (page === 1) {
       totalPosts.value = postsData.length
     }
@@ -284,7 +343,7 @@ const loadPosts = async (page: number) => {
 const goToPage = (page: number) => {
   if (page < 1 || page > totalPages.value) return
   loadPosts(page)
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  if (process.client) window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 onMounted(async () => {
@@ -305,11 +364,6 @@ watch(
 
 useHead({
   title: author.value ? `${author.value.username || '作者'}的文章` : '作者文章',
-  meta: [
-    {
-      name: 'description',
-      content: author.value?.bio || '查看作者的所有博客文章'
-    }
-  ]
+  meta: [{ name: 'description', content: author.value?.bio || '查看作者的所有博客文章' }]
 })
 </script>
