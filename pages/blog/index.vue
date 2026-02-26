@@ -1,20 +1,32 @@
 <template>
   <div>
-    <!-- 页面标题区域 -->
-    <div class="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-      <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
-        <div class="flex items-end justify-between">
+    <!-- 深色标题区域 -->
+    <div class="relative overflow-hidden bg-slate-900">
+      <!-- 点阵底纹 -->
+      <div
+        class="pointer-events-none absolute inset-0 opacity-[0.18]"
+        style="
+          background-image: radial-gradient(circle, rgb(148 163 184 / 0.3) 1px, transparent 1px);
+          background-size: 28px 28px;
+        "
+      />
+      <!-- 右上角光晕 -->
+      <div
+        class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-primary-600/10 blur-3xl"
+      />
+      <!-- 底部渐变过渡 -->
+      <div
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent"
+      />
+      <div class="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div class="flex items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-3xl">
-              博客文章
-            </h1>
-            <p class="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
+            <div class="mb-2 font-mono text-xs text-primary-400">// blog.posts</div>
+            <h1 class="text-2xl font-bold tracking-tight text-white sm:text-3xl">博客文章</h1>
+            <p class="mt-1.5 font-mono text-sm text-slate-400">
               <template v-if="!loading && totalCount > 0">
-                共
-                <span class="font-semibold text-primary-600 dark:text-primary-400">{{
-                  totalCount
-                }}</span>
-                篇文章
+                共&nbsp;<span class="text-primary-400">{{ totalCount }}</span
+                >&nbsp;篇文章
               </template>
               <template v-else> 探索所有技术文章 </template>
             </p>
@@ -22,7 +34,7 @@
           <NuxtLink
             v-if="user"
             to="/blog/create"
-            class="touch-optimized hidden items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 sm:inline-flex"
+            class="touch-optimized hidden items-center gap-2 rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary-600/25 transition-all hover:bg-primary-500 hover:shadow-xl sm:inline-flex"
           >
             <Icon name="heroicons:plus" class="h-4 w-4" />
             写文章
@@ -222,92 +234,91 @@
       <!-- 分页 -->
       <div
         v-if="totalCount > postsPerPage"
-        class="mt-6 flex flex-col items-center justify-between gap-4 sm:mt-8 sm:flex-row md:mt-12"
+        class="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row md:mt-12"
       >
-        <div class="text-xs text-gray-600 dark:text-gray-400 sm:text-sm">
-          显示第
-          <span class="font-semibold text-gray-900 dark:text-white">{{
+        <!-- 计数提示 -->
+        <p class="font-mono text-xs text-gray-400 dark:text-slate-500">
+          第&nbsp;<span class="text-gray-700 dark:text-slate-300">{{
             (currentPage - 1) * postsPerPage + 1
-          }}</span>
-          -
-          <span class="font-semibold text-gray-900 dark:text-white">{{
+          }}</span
+          >–<span class="text-gray-700 dark:text-slate-300">{{
             Math.min(currentPage * postsPerPage, totalCount)
-          }}</span>
-          条， 共
-          <span class="font-semibold text-gray-900 dark:text-white">{{ totalCount }}</span>
-          条
-        </div>
-        <nav
-          class="flex w-full items-center justify-center gap-1 overflow-x-auto pb-2 sm:w-auto sm:justify-start sm:pb-0"
-        >
+          }}</span
+          >&nbsp;条 / 共&nbsp;<span class="text-gray-700 dark:text-slate-300">{{ totalCount }}</span
+          >&nbsp;条
+        </p>
+
+        <nav class="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+          <!-- 上一页 -->
           <button
             :disabled="currentPage === 1"
-            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3 sm:py-2"
+            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
             @click="goToPage(currentPage - 1)"
           >
             <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
             <span class="hidden sm:inline">上一页</span>
           </button>
 
-          <!-- 页码按钮 -->
+          <!-- 页码按钮 (≤7 页) -->
           <template v-if="totalPages <= 7">
             <button
               v-for="page in totalPages"
               :key="page"
               :class="[
-                'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
+                'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === page
-                  ? 'bg-primary-600 text-white shadow-md'
-                  : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
+                  : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
               ]"
               @click="goToPage(page)"
             >
               {{ page }}
             </button>
           </template>
+
+          <!-- 页码按钮 (>7 页，带省略号) -->
           <template v-else>
-            <!-- 第一页 -->
             <button
               :class="[
-                'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
+                'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === 1
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
+                  : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
               ]"
               @click="goToPage(1)"
             >
               1
             </button>
-
-            <!-- 省略号 -->
-            <span v-if="currentPage > 3" class="px-2 text-gray-500">...</span>
-
-            <!-- 当前页附近的页码 -->
+            <span
+              v-if="currentPage > 3"
+              class="px-1 font-mono text-xs text-gray-400 dark:text-slate-600"
+              >···</span
+            >
             <template v-for="page in visiblePages" :key="page">
               <button
                 v-if="page !== 1 && page !== totalPages"
                 :class="[
-                  'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
+                  'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                   currentPage === page
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                    ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
+                    : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
                 ]"
                 @click="goToPage(page)"
               >
                 {{ page }}
               </button>
             </template>
-
-            <!-- 省略号 -->
-            <span v-if="currentPage < totalPages - 2" class="px-2 text-gray-500">...</span>
-
-            <!-- 最后一页 -->
+            <span
+              v-if="currentPage < totalPages - 2"
+              class="px-1 font-mono text-xs text-gray-400 dark:text-slate-600"
+              >···</span
+            >
             <button
               :class="[
-                'touch-optimized min-w-[40px] rounded-lg px-2 py-2.5 text-sm font-medium transition-colors sm:min-w-[40px] sm:px-3 sm:py-2',
+                'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === totalPages
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
+                  : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
               ]"
               @click="goToPage(totalPages)"
             >
@@ -315,9 +326,10 @@
             </button>
           </template>
 
+          <!-- 下一页 -->
           <button
             :disabled="currentPage === totalPages"
-            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-2.5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:px-3 sm:py-2"
+            class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
             @click="goToPage(currentPage + 1)"
           >
             <span class="hidden sm:inline">下一页</span>
