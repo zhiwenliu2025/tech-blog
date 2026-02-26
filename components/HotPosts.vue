@@ -1,40 +1,39 @@
 <template>
   <div
-    class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
+    class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900"
   >
-    <!-- 标题栏 -->
+    <!-- macOS 标题栏 -->
     <div
-      class="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800"
+      class="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
     >
-      <h3 class="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
-        <span
-          class="flex h-5 w-5 items-center justify-center rounded-md bg-orange-100 dark:bg-orange-900/30"
-        >
-          <Icon name="heroicons:fire" class="h-3.5 w-3.5 text-orange-500" />
-        </span>
-        热门文章
-      </h3>
+      <div class="flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+        <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+        <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+        <span class="ml-1.5 font-mono text-[10px] text-slate-500">hot.posts</span>
+      </div>
       <NuxtLink
         to="/blog?sort=hot"
-        class="group inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500 transition-all duration-150 hover:bg-orange-50 hover:text-orange-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
+        class="group inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 font-mono text-[10px] text-slate-500 transition-all hover:bg-orange-50 hover:text-orange-600 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-orange-900/20 dark:hover:text-orange-400"
       >
-        查看更多
+        more
         <Icon
           name="heroicons:arrow-right"
-          class="h-3 w-3 transition-transform duration-150 group-hover:translate-x-0.5"
+          class="h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5"
         />
       </NuxtLink>
     </div>
 
-    <!-- 加载状态 -->
+    <!-- 加载骨架 -->
     <div v-if="loading" class="px-4 py-1">
       <div v-for="i in limit" :key="i" class="flex animate-pulse items-start gap-3 py-3">
         <div class="w-5 flex-shrink-0 pt-0.5">
-          <div class="h-4 w-4 rounded bg-gray-100 dark:bg-gray-800" />
+          <div class="h-3.5 w-3.5 rounded bg-slate-100 dark:bg-slate-800" />
         </div>
         <div class="flex-1 space-y-2">
-          <div class="h-3 w-4/5 rounded-md bg-gray-100 dark:bg-gray-800" />
-          <div class="h-2 w-1/3 rounded-md bg-gray-100 dark:bg-gray-800" />
+          <div class="h-3 w-4/5 rounded-full bg-slate-100 dark:bg-slate-800" />
+          <div class="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800" />
+          <div class="h-2 w-1/3 rounded-full bg-slate-100 dark:bg-slate-800" />
         </div>
       </div>
     </div>
@@ -45,9 +44,9 @@
         v-for="(post, index) in hotPosts"
         :key="post.id"
         :to="`/blog/${post.slug}`"
-        class="group relative flex items-start gap-3 px-4 py-3 transition-all duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+        class="group relative flex items-start gap-3 px-4 py-3 transition-all hover:bg-slate-50 dark:hover:bg-slate-800/40"
       >
-        <!-- 左侧 hover 彩条 -->
+        <!-- 左侧 hover 竖条 -->
         <span
           class="absolute left-0 top-1/2 h-0 w-0.5 -translate-y-1/2 rounded-r-full bg-orange-400 transition-all duration-200 group-hover:h-8"
         />
@@ -63,14 +62,14 @@
         <!-- 文章信息 -->
         <div class="min-w-0 flex-1">
           <h4
-            class="mb-1.5 line-clamp-2 text-xs font-medium leading-snug text-gray-800 transition-colors group-hover:text-primary-600 dark:text-gray-200 dark:group-hover:text-primary-400"
+            class="mb-1.5 line-clamp-2 text-xs font-medium leading-snug text-slate-700 transition-colors group-hover:text-primary-600 dark:text-slate-300 dark:group-hover:text-primary-400"
           >
             {{ post.title }}
           </h4>
 
           <!-- 热度条 -->
           <div
-            class="mb-1.5 h-0.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"
+            class="mb-1.5 h-0.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
           >
             <div
               class="h-full rounded-full transition-all duration-700"
@@ -80,13 +79,15 @@
           </div>
 
           <!-- 统计 -->
-          <div class="flex items-center gap-2.5 text-[10px] text-gray-400 dark:text-gray-500">
+          <div
+            class="flex items-center gap-2.5 font-mono text-[10px] text-slate-400 dark:text-slate-600"
+          >
             <span class="flex items-center gap-0.5">
               <Icon name="heroicons:eye" class="h-2.5 w-2.5" />
               {{ formatNumber(post.view_count || 0) }}
             </span>
             <span class="flex items-center gap-0.5">
-              <Icon name="heroicons:heart" class="h-2.5 w-2.5 text-red-400" />
+              <Icon name="heroicons:heart" class="h-2.5 w-2.5 text-rose-400" />
               {{ formatNumber(post.likes_count || 0) }}
             </span>
           </div>
@@ -96,16 +97,16 @@
 
     <!-- 空状态 -->
     <div v-else class="flex flex-col items-center justify-center py-8">
-      <Icon name="heroicons:fire" class="mb-2 h-7 w-7 text-gray-200 dark:text-gray-700" />
-      <p class="text-xs text-gray-400">暂无热门文章</p>
+      <Icon name="heroicons:fire" class="mb-2 h-6 w-6 text-slate-200 dark:text-slate-700" />
+      <p class="font-mono text-[10px] text-slate-400 dark:text-slate-600">// no.hot.posts</p>
     </div>
 
     <!-- 错误提示 -->
     <div
       v-if="error"
-      class="mx-3 mb-3 rounded-lg bg-red-50 p-3 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400"
+      class="mx-3 mb-3 rounded-lg border border-rose-200 bg-rose-50 p-3 font-mono text-[10px] text-rose-600 dark:border-rose-800/40 dark:bg-rose-900/20 dark:text-rose-400"
     >
-      {{ error }}
+      error: {{ error }}
     </div>
   </div>
 </template>
@@ -136,7 +137,7 @@ const getRankTextClass = (index: number): string => {
   if (index === 0) return 'text-yellow-500'
   if (index === 1) return 'text-slate-400'
   if (index === 2) return 'text-orange-400'
-  return 'text-gray-300 dark:text-gray-600'
+  return 'text-slate-300 dark:text-slate-700'
 }
 
 // 热度条颜色

@@ -47,23 +47,21 @@
       <!-- 搜索框 -->
       <div class="mb-4">
         <div
-          class="group relative flex items-center rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 focus-within:border-primary-400 focus-within:shadow-md focus-within:shadow-primary-500/10 focus-within:ring-2 focus-within:ring-primary-500/15 dark:border-gray-700 dark:bg-gray-900 dark:focus-within:border-primary-500"
+          class="group relative flex items-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 focus-within:border-primary-400 focus-within:shadow-md focus-within:shadow-primary-500/10 focus-within:ring-2 focus-within:ring-primary-500/15 dark:border-slate-700/60 dark:bg-slate-900 dark:focus-within:border-primary-500"
         >
-          <!-- 搜索图标 -->
-          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-            <Icon
-              name="heroicons:magnifying-glass"
-              class="h-4 w-4 text-gray-400 transition-colors duration-200 group-focus-within:text-primary-500 dark:text-gray-500 dark:group-focus-within:text-primary-400"
-            />
-          </div>
+          <!-- $ 前缀 -->
+          <span
+            class="pointer-events-none flex items-center pl-4 font-mono text-sm text-slate-400 dark:text-slate-600"
+            >$</span
+          >
 
           <!-- 输入框 -->
           <input
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
-            placeholder="搜索文章标题、内容..."
-            class="w-full bg-transparent py-3 pl-11 pr-14 text-sm text-gray-900 placeholder-gray-400 focus:outline-none dark:text-white dark:placeholder-gray-500"
+            placeholder="search posts..."
+            class="w-full bg-transparent py-3 pl-2 pr-14 font-mono text-sm text-slate-900 placeholder-slate-400 focus:outline-none dark:text-white dark:placeholder-slate-600"
           />
 
           <!-- 快捷键提示（无内容时显示） -->
@@ -72,7 +70,7 @@
             class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4"
           >
             <kbd
-              class="hidden rounded-md border border-gray-200 bg-gray-50 px-1.5 py-0.5 font-mono text-[11px] text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500 sm:inline-flex"
+              class="hidden rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-[11px] text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500 sm:inline-flex"
               >/</kbd
             >
           </div>
@@ -84,7 +82,7 @@
             @click="searchQuery = ''"
           >
             <span
-              class="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-200"
+              class="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600 dark:hover:text-slate-200"
             >
               <Icon name="heroicons:x-mark" class="h-3 w-3" />
             </span>
@@ -94,39 +92,59 @@
 
       <!-- 筛选器 -->
       <div
-        class="mb-6 rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
+        class="mb-6 rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900"
       >
+        <!-- 筛选器标题栏（macOS 风格） -->
         <button
-          class="flex w-full items-center justify-between p-3 sm:p-4"
+          class="flex w-full items-center justify-between rounded-t-xl border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60 sm:hidden"
           @click="isFilterExpanded = !isFilterExpanded"
         >
           <div class="flex items-center gap-2">
-            <Icon name="heroicons:funnel" class="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">筛选条件</span>
-            <span
-              v-if="hasActiveFilters"
-              class="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600 dark:bg-primary-900/40 dark:text-primary-400"
-            >
-              !
-            </span>
+            <span class="h-2 w-2 rounded-full bg-red-400/70" />
+            <span class="h-2 w-2 rounded-full bg-amber-400/70" />
+            <span class="h-2 w-2 rounded-full bg-emerald-400/70" />
+            <span class="ml-1.5 font-mono text-[10px] text-slate-500">filter.options</span>
+            <span v-if="hasActiveFilters" class="ml-1 h-1.5 w-1.5 rounded-full bg-primary-400" />
           </div>
           <div class="flex items-center gap-2">
             <button
               v-if="hasActiveFilters"
-              class="rounded-md px-2.5 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30"
+              class="rounded-md px-2 py-0.5 font-mono text-[10px] text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30"
               @click.stop="resetFilters"
             >
-              清除筛选
+              clear
             </button>
             <Icon
               name="heroicons:chevron-down"
               :class="[
-                'h-4 w-4 text-gray-400 transition-transform duration-200',
+                'h-3.5 w-3.5 text-slate-400 transition-transform duration-200',
                 isFilterExpanded ? 'rotate-180' : ''
               ]"
             />
           </div>
         </button>
+
+        <!-- 桌面端标题栏（始终可见） -->
+        <div
+          class="hidden items-center justify-between rounded-t-xl border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60 sm:flex"
+        >
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 rounded-full bg-red-400/70" />
+            <span class="h-2 w-2 rounded-full bg-amber-400/70" />
+            <span class="h-2 w-2 rounded-full bg-emerald-400/70" />
+            <span class="ml-1.5 font-mono text-[10px] text-slate-500">filter.options</span>
+            <span v-if="hasActiveFilters" class="ml-1 h-1.5 w-1.5 rounded-full bg-primary-400" />
+          </div>
+          <button
+            v-if="hasActiveFilters"
+            class="rounded-md px-2.5 py-1 font-mono text-[10px] text-primary-600 transition-colors hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/30"
+            @click="resetFilters"
+          >
+            clear filters
+          </button>
+        </div>
+
+        <!-- 筛选内容（移动端可折叠，桌面端始终展开） -->
         <div
           :class="[
             'transition-all duration-300 ease-in-out',
@@ -136,13 +154,15 @@
             'sm:max-h-none sm:overflow-visible sm:opacity-100'
           ]"
         >
-          <div class="border-t border-gray-100 p-3 dark:border-gray-800 sm:p-4">
+          <div class="p-4">
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <!-- 分类筛选 -->
               <div>
-                <label class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400"
-                  >分类</label
+                <label
+                  class="mb-1.5 block font-mono text-[10px] text-slate-500 dark:text-slate-600"
                 >
+                  category:
+                </label>
                 <AppSelect
                   v-model="selectedCategory"
                   icon="heroicons:squares-2x2"
@@ -154,9 +174,11 @@
               </div>
               <!-- 标签筛选 -->
               <div>
-                <label class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400"
-                  >标签</label
+                <label
+                  class="mb-1.5 block font-mono text-[10px] text-slate-500 dark:text-slate-600"
                 >
+                  tag:
+                </label>
                 <AppSelect
                   v-model="selectedTag"
                   icon="heroicons:tag"
@@ -168,9 +190,11 @@
               </div>
               <!-- 排序方式 -->
               <div>
-                <label class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400"
-                  >排序</label
+                <label
+                  class="mb-1.5 block font-mono text-[10px] text-slate-500 dark:text-slate-600"
                 >
+                  sort_by:
+                </label>
                 <AppSelect
                   v-model="sortBy"
                   icon="heroicons:arrows-up-down"
@@ -194,16 +218,26 @@
       </div>
 
       <!-- 错误状态 -->
-      <div v-else-if="cachedError" class="flex flex-col items-center justify-center py-12">
-        <Icon name="heroicons:exclamation-triangle" class="mb-4 h-12 w-12 text-red-500" />
-        <h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">加载失败</h2>
-        <p class="mb-4 text-gray-600 dark:text-gray-400">
+      <div
+        v-else-if="cachedError"
+        class="flex flex-col items-center justify-center py-12 text-center"
+      >
+        <div
+          class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-900/20"
+        >
+          <Icon name="heroicons:exclamation-triangle" class="h-7 w-7 text-rose-500" />
+        </div>
+        <p class="mb-1 font-mono text-xs text-slate-400 dark:text-slate-600">
+          // error.loading.posts
+        </p>
+        <p class="mb-5 text-sm text-slate-500 dark:text-slate-400">
           {{ cachedError }}
         </p>
         <button
-          class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition-all hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-primary-700 dark:hover:text-primary-400"
           @click="loadPosts"
         >
+          <Icon name="heroicons:arrow-path" class="h-4 w-4" />
           重试
         </button>
       </div>
@@ -237,14 +271,16 @@
         class="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row md:mt-12"
       >
         <!-- 计数提示 -->
-        <p class="font-mono text-xs text-gray-400 dark:text-slate-500">
-          第&nbsp;<span class="text-gray-700 dark:text-slate-300">{{
+        <p class="font-mono text-xs text-slate-400 dark:text-slate-500">
+          第&nbsp;<span class="text-slate-700 dark:text-slate-300">{{
             (currentPage - 1) * postsPerPage + 1
           }}</span
-          >–<span class="text-gray-700 dark:text-slate-300">{{
+          >–<span class="text-slate-700 dark:text-slate-300">{{
             Math.min(currentPage * postsPerPage, totalCount)
           }}</span
-          >&nbsp;条 / 共&nbsp;<span class="text-gray-700 dark:text-slate-300">{{ totalCount }}</span
+          >&nbsp;条 / 共&nbsp;<span class="text-slate-700 dark:text-slate-300">{{
+            totalCount
+          }}</span
           >&nbsp;条
         </p>
 
@@ -268,7 +304,7 @@
                 'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === page
                   ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
-                  : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
               ]"
               @click="goToPage(page)"
             >
@@ -283,7 +319,7 @@
                 'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === 1
                   ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
-                  : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
               ]"
               @click="goToPage(1)"
             >
@@ -291,7 +327,7 @@
             </button>
             <span
               v-if="currentPage > 3"
-              class="px-1 font-mono text-xs text-gray-400 dark:text-slate-600"
+              class="px-1 font-mono text-xs text-slate-400 dark:text-slate-600"
               >···</span
             >
             <template v-for="page in visiblePages" :key="page">
@@ -301,7 +337,7 @@
                   'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                   currentPage === page
                     ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
-                    : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
+                    : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
                 ]"
                 @click="goToPage(page)"
               >
@@ -310,7 +346,7 @@
             </template>
             <span
               v-if="currentPage < totalPages - 2"
-              class="px-1 font-mono text-xs text-gray-400 dark:text-slate-600"
+              class="px-1 font-mono text-xs text-slate-400 dark:text-slate-600"
               >···</span
             >
             <button
@@ -318,7 +354,7 @@
                 'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === totalPages
                   ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
-                  : 'border border-gray-200 bg-white text-gray-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
+                  : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
               ]"
               @click="goToPage(totalPages)"
             >
