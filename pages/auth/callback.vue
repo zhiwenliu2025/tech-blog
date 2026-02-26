@@ -1,100 +1,121 @@
 <template>
   <div
-    class="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 py-8 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
+    class="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 px-4"
   >
-    <!-- 装饰背景 -->
-    <div class="absolute inset-0 overflow-hidden">
-      <div
-        class="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-primary-200/30 blur-3xl dark:bg-primary-900/20"
-      />
-      <div
-        class="absolute -bottom-40 -right-40 h-80 w-80 rounded-full bg-blue-200/30 blur-3xl dark:bg-blue-900/20"
-      />
-    </div>
+    <!-- 背景点阵 -->
+    <div
+      class="pointer-events-none absolute inset-0 opacity-[0.15]"
+      style="
+        background-image: radial-gradient(circle, rgb(148 163 184 / 0.4) 1px, transparent 1px);
+        background-size: 28px 28px;
+      "
+    />
+    <div
+      class="pointer-events-none absolute -left-32 -top-32 h-72 w-72 rounded-full bg-primary-600/15 blur-3xl"
+    />
+    <div
+      class="pointer-events-none absolute -bottom-32 -right-32 h-72 w-72 rounded-full bg-violet-600/10 blur-3xl"
+    />
 
-    <div class="relative w-full max-w-md">
+    <div class="relative w-full max-w-sm">
       <!-- Logo -->
       <div class="mb-8 text-center">
-        <NuxtLink
-          to="/"
-          class="mx-auto mb-6 inline-flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white"
-        >
+        <NuxtLink to="/" class="inline-flex items-center gap-2.5">
           <div
-            class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/30"
+            class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-600/30"
           >
-            <Icon name="heroicons:code-bracket" class="h-6 w-6 text-white" />
+            <Icon name="heroicons:code-bracket" class="h-5 w-5 text-white" />
           </div>
-          <span>TechBlog</span>
+          <span class="text-lg font-bold text-white">TechBlog</span>
         </NuxtLink>
       </div>
 
-      <!-- 内容卡片 -->
+      <!-- 状态卡片（终端风格） -->
       <div
-        class="rounded-2xl border border-gray-200/60 bg-white/80 px-6 py-10 shadow-xl backdrop-blur-sm dark:border-gray-700/60 dark:bg-gray-800/80 sm:px-8"
+        class="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900 shadow-2xl shadow-black/40"
       >
-        <!-- 加载中状态 -->
-        <div v-if="loading" class="flex flex-col items-center gap-6 text-center">
+        <!-- macOS 标题栏 -->
+        <div
+          class="flex items-center justify-between border-b border-slate-800 bg-slate-800/80 px-4 py-2.5"
+        >
+          <div class="flex items-center gap-2">
+            <span
+              class="h-2.5 w-2.5 rounded-full"
+              :class="error ? 'bg-red-400/70' : 'bg-red-400/70'"
+            />
+            <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+            <span
+              class="h-2.5 w-2.5 rounded-full"
+              :class="!error && !loading ? 'bg-emerald-500' : 'bg-emerald-400/70'"
+            />
+          </div>
+          <span class="font-mono text-[10px] text-slate-500">oauth.callback</span>
+          <div class="w-14" />
+        </div>
+
+        <!-- 加载中 -->
+        <div v-if="loading" class="flex flex-col items-center gap-5 px-6 py-10 text-center">
           <div class="relative">
             <div
-              class="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary-50 shadow-lg dark:bg-primary-900/30"
+              class="flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700 bg-slate-800"
             >
-              <Icon
-                name="heroicons:arrow-path"
-                class="h-10 w-10 animate-spin text-primary-600 dark:text-primary-400"
-              />
+              <Icon name="heroicons:arrow-path" class="h-8 w-8 animate-spin text-primary-500" />
             </div>
-            <div
-              class="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-400 shadow-sm"
+            <span
+              class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500"
             >
-              <div class="h-2 w-2 animate-pulse rounded-full bg-white" />
-            </div>
+              <span class="h-2 w-2 animate-pulse rounded-full bg-white" />
+            </span>
           </div>
           <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">正在登录...</h2>
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              请稍候，我们正在处理您的登录请求
-            </p>
+            <p class="font-mono text-xs text-primary-400">// processing.auth</p>
+            <h2 class="mt-1 text-lg font-bold text-white">正在登录...</h2>
+            <p class="mt-1 font-mono text-xs text-slate-500">请稍候，正在处理您的登录请求</p>
           </div>
           <!-- 进度条 -->
-          <div class="w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700">
+          <div class="w-full overflow-hidden rounded-full bg-slate-800">
             <div
-              class="h-1.5 animate-pulse rounded-full bg-gradient-to-r from-primary-500 to-primary-400"
+              class="h-1 animate-pulse rounded-full bg-gradient-to-r from-primary-600 to-primary-400"
               style="width: 70%"
             />
+          </div>
+          <!-- 终端输出风格 -->
+          <div class="w-full rounded-lg border border-slate-800 bg-slate-950 p-3 text-left">
+            <p class="font-mono text-[10px] text-slate-500">
+              <span class="text-emerald-500">✓</span> connecting to auth server...
+            </p>
+            <p class="font-mono text-[10px] text-slate-500">
+              <span class="text-primary-400">›</span> verifying session token...
+            </p>
+            <p class="animate-pulse font-mono text-[10px] text-slate-600">
+              <span class="text-amber-400">›</span> loading user profile<span class="animate-pulse"
+                >_</span
+              >
+            </p>
           </div>
         </div>
 
         <!-- 错误状态 -->
-        <div v-else-if="error" class="flex flex-col items-center gap-6 text-center">
+        <div v-else-if="error" class="flex flex-col items-center gap-5 px-6 py-10 text-center">
           <div
-            class="flex h-20 w-20 items-center justify-center rounded-2xl bg-red-50 shadow-lg dark:bg-red-900/30"
+            class="flex h-16 w-16 items-center justify-center rounded-2xl border border-rose-800/50 bg-rose-900/20"
           >
-            <Icon
-              name="heroicons:exclamation-triangle"
-              class="h-10 w-10 text-red-500 dark:text-red-400"
-            />
+            <Icon name="heroicons:exclamation-triangle" class="h-8 w-8 text-rose-400" />
           </div>
           <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">登录失败</h2>
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              登录过程中出现了问题，请重试
+            <p class="font-mono text-xs text-rose-400">// auth.error</p>
+            <h2 class="mt-1 text-lg font-bold text-white">登录失败</h2>
+            <p class="mt-1 font-mono text-xs text-slate-500">登录过程中出现了问题</p>
+          </div>
+          <!-- 错误信息 -->
+          <div class="w-full rounded-lg border border-rose-800/50 bg-slate-950 p-3 text-left">
+            <p class="mb-1 font-mono text-[10px] text-slate-500">stderr:</p>
+            <p class="font-mono text-[10px] text-rose-400">
+              {{ error }}
             </p>
           </div>
-          <div
-            class="w-full rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800/50 dark:bg-red-900/20"
-          >
-            <div class="flex items-start gap-3 text-left">
-              <Icon
-                name="heroicons:exclamation-circle"
-                class="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500"
-              />
-              <p class="text-sm text-red-600 dark:text-red-400">
-                {{ error }}
-              </p>
-            </div>
-          </div>
           <button
-            class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-600/25 transition-all hover:bg-primary-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-primary-500"
             @click="navigateTo('/auth/login')"
           >
             <Icon name="heroicons:arrow-left" class="h-4 w-4" />
@@ -103,11 +124,12 @@
         </div>
       </div>
 
-      <p class="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+      <!-- 底部提示 -->
+      <p class="mt-6 text-center font-mono text-[10px] text-slate-600">
         如遇登录问题，请
         <NuxtLink
           to="/contact"
-          class="text-primary-600 hover:text-primary-500 dark:text-primary-400"
+          class="text-slate-400 underline underline-offset-2 transition-colors hover:text-primary-400"
         >
           联系支持
         </NuxtLink>
@@ -130,21 +152,14 @@ const error = ref('')
 onMounted(async () => {
   try {
     const route = useRoute()
-
     const { error: oauthError, error_description } = route.query
-
-    if (oauthError) {
-      throw new Error(error_description || oauthError)
-    }
+    if (oauthError) throw new Error(error_description || oauthError)
 
     const { data, error: sessionError } = await supabase.auth.getSession()
-
-    if (sessionError) {
-      throw sessionError
-    }
+    if (sessionError) throw sessionError
 
     if (data.session) {
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await new Promise(resolve => setTimeout(resolve, 800))
       await navigateTo('/')
     } else {
       error.value = '登录失败，请重试'
