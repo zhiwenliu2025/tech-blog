@@ -1,434 +1,482 @@
 <template>
-  <div class="py-6 sm:py-8">
-    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-      <div>
-        <!-- Header -->
-        <div class="mb-6 sm:mb-8">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div class="flex-1">
-              <h1 class="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">导入文章</h1>
-              <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 sm:mt-2 sm:text-base">
-                从其他博客网站导入文章到本系统
-              </p>
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <!-- ═══════════ 顶部操作栏 ═══════════ -->
+    <div
+      class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/95"
+    >
+      <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div class="flex items-center gap-3">
+          <NuxtLink
+            to="/my-blogs"
+            class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-500 transition-all hover:border-slate-300 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:text-slate-300"
+          >
+            <Icon name="heroicons:arrow-left" class="h-3.5 w-3.5" />
+            返回
+          </NuxtLink>
+          <span class="text-slate-300 dark:text-slate-700">/</span>
+          <span class="font-mono text-xs text-slate-400 dark:text-slate-500">blog.import</span>
+        </div>
+        <!-- 步骤指示器（顶栏内） -->
+        <div class="hidden items-center gap-2 sm:flex">
+          <template v-for="(s, i) in steps" :key="s.id">
+            <div class="flex items-center gap-1.5">
+              <div
+                class="flex h-5 w-5 items-center justify-center rounded-full font-mono text-[10px] font-bold transition-all"
+                :class="getStepClass(s.id)"
+              >
+                <Icon v-if="isStepDone(s.id)" name="i-heroicons-check" class="h-3 w-3" />
+                <span v-else>{{ i + 1 }}</span>
+              </div>
+              <span
+                class="font-mono text-[10px] transition-colors"
+                :class="
+                  step === s.id
+                    ? 'text-slate-900 dark:text-white'
+                    : 'text-slate-400 dark:text-slate-600'
+                "
+                >{{ s.label }}</span
+              >
             </div>
-            <NuxtLink
-              to="/my-blogs"
-              class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            >
-              <Icon name="i-heroicons-arrow-left" class="mr-2 h-4 w-4" />
-              返回我的博客
-            </NuxtLink>
-          </div>
+            <div v-if="i < steps.length - 1" class="h-px w-6 bg-slate-200 dark:bg-slate-800" />
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 主内容 ═══════════ -->
+    <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <!-- ═══ Step 1：URL 输入 ═══ -->
+      <div v-if="step === 'input'" class="space-y-5">
+        <!-- 标题 -->
+        <div>
+          <div class="mb-1 font-mono text-xs text-primary-400">// import.article</div>
+          <h1 class="text-2xl font-bold text-slate-900 dark:text-white">导入文章</h1>
+          <p class="mt-1 font-mono text-sm text-slate-500 dark:text-slate-400">
+            从其他博客平台导入文章到本系统
+          </p>
         </div>
 
-        <!-- Step Indicator -->
-        <div class="mb-6 sm:mb-8">
-          <div class="flex items-center justify-center space-x-2 sm:space-x-4">
-            <div class="flex items-center">
-              <div
-                :class="[
-                  'flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium sm:h-8 sm:w-8 sm:text-sm',
-                  step === 'input' ? 'bg-blue-600 text-white' : 'bg-green-500 text-white'
-                ]"
-              >
-                <Icon
-                  v-if="step !== 'input'"
-                  name="i-heroicons-check"
-                  class="h-4 w-4 sm:h-5 sm:w-5"
-                />
-                <span v-else>1</span>
-              </div>
-              <span
-                class="ml-1.5 text-xs font-medium text-gray-900 dark:text-white sm:ml-2 sm:text-sm"
-              >
-                输入 URL
-              </span>
-            </div>
-            <div class="h-px w-8 bg-gray-300 dark:bg-gray-600 sm:w-12" />
-            <div class="flex items-center">
-              <div
-                :class="[
-                  'flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium sm:h-8 sm:w-8 sm:text-sm',
-                  step === 'preview'
-                    ? 'bg-blue-600 text-white'
-                    : step === 'saving'
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                ]"
-              >
-                <Icon
-                  v-if="step === 'saving'"
-                  name="i-heroicons-check"
-                  class="h-4 w-4 sm:h-5 sm:w-5"
-                />
-                <span v-else>2</span>
-              </div>
-              <span
-                :class="[
-                  'ml-1.5 text-xs font-medium sm:ml-2 sm:text-sm',
-                  step === 'input'
-                    ? 'text-gray-500 dark:text-gray-400'
-                    : 'text-gray-900 dark:text-white'
-                ]"
-              >
-                预览编辑
-              </span>
-            </div>
-            <div class="h-px w-8 bg-gray-300 dark:bg-gray-600 sm:w-12" />
-            <div class="flex items-center">
-              <div
-                :class="[
-                  'flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium sm:h-8 sm:w-8 sm:text-sm',
-                  step === 'saving'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                ]"
-              >
-                3
-              </div>
-              <span
-                :class="[
-                  'ml-1.5 text-xs font-medium sm:ml-2 sm:text-sm',
-                  step === 'saving'
-                    ? 'text-gray-900 dark:text-white'
-                    : 'text-gray-500 dark:text-gray-400'
-                ]"
-              >
-                保存
-              </span>
-            </div>
+        <!-- URL 输入框卡片 -->
+        <div
+          class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+        >
+          <!-- 终端标题栏 -->
+          <div
+            class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
+          >
+            <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+            <span class="ml-2 font-mono text-xs text-slate-500">fetch.article</span>
           </div>
-        </div>
 
-        <!-- Step 1: URL Input -->
-        <div v-if="step === 'input'" class="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6">
-          <h2 class="mb-3 text-base font-semibold text-gray-900 dark:text-white sm:mb-4 sm:text-lg">
-            输入文章 URL
-          </h2>
-          <form @submit.prevent="handleFetch">
-            <div class="flex flex-col gap-3 sm:flex-row sm:gap-4">
-              <div class="flex-1">
-                <input
-                  v-model="url"
-                  type="url"
-                  required
-                  placeholder="https://blog.csdn.net/xxx/article/details/xxx"
-                  class="block w-full rounded-md border-gray-300 px-3 py-2.5 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:py-2 sm:text-sm"
-                  :disabled="loading"
-                />
-              </div>
-              <button
-                type="submit"
-                :disabled="loading || !url"
-                class="inline-flex items-center justify-center rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2 sm:text-sm"
-              >
-                <Icon
-                  v-if="loading"
-                  name="i-heroicons-arrow-path"
-                  class="mr-2 h-4 w-4 animate-spin"
-                />
-                <Icon v-else name="i-heroicons-magnifying-glass" class="mr-2 h-4 w-4" />
-                {{ loading ? '解析中...' : '解析' }}
-              </button>
-            </div>
-
-            <!-- Error message -->
-            <div
-              v-if="importError"
-              class="mt-3 rounded-md bg-red-50 p-3 dark:bg-red-900/20 sm:mt-4 sm:p-4"
-            >
-              <div class="flex">
-                <Icon name="i-heroicons-x-circle" class="h-5 w-5 flex-shrink-0 text-red-400" />
-                <div class="ml-3">
-                  <p class="text-sm text-red-700 dark:text-red-400">
-                    {{ importError }}
-                  </p>
+          <div class="p-5">
+            <form @submit.prevent="handleFetch">
+              <!-- URL 输入行 -->
+              <div class="flex flex-col gap-3 sm:flex-row">
+                <div class="relative flex-1">
+                  <span
+                    class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 font-mono text-sm text-primary-500"
+                    >$</span
+                  >
+                  <input
+                    v-model="url"
+                    type="url"
+                    required
+                    placeholder="https://blog.csdn.net/xxx/article/..."
+                    class="block w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3.5 font-mono text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:bg-slate-800"
+                    :disabled="loading"
+                  />
                 </div>
-              </div>
-            </div>
-
-            <!-- Supported platforms hint -->
-            <div class="mt-3 text-sm text-gray-500 dark:text-gray-400 sm:mt-4">
-              <p class="font-medium">支持大多数博客网站文章导入，包括但不限于：</p>
-              <div class="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
-                <span
-                  v-for="platform in supportedPlatforms"
-                  :key="platform"
-                  class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300 sm:px-2.5"
-                >
-                  {{ platform }}
-                </span>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        <!-- Step 2: Preview & Edit -->
-        <div v-if="step === 'preview' && result" class="space-y-4 sm:space-y-6">
-          <!-- Success banner -->
-          <div class="rounded-md bg-green-50 p-3 dark:bg-green-900/20 sm:p-4">
-            <div class="flex items-start sm:items-center">
-              <Icon
-                name="i-heroicons-check-circle"
-                class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-400 sm:mt-0"
-              />
-              <div class="ml-3 flex-1">
-                <p class="text-sm font-medium text-green-800 dark:text-green-300">解析成功</p>
-                <p
-                  class="mt-0.5 text-xs text-green-600 dark:text-green-400 sm:ml-2 sm:mt-0 sm:inline sm:text-sm sm:font-normal"
-                >
-                  来源：{{ result.sourceSiteName }}
-                </p>
-              </div>
-              <div class="ml-auto flex-shrink-0">
                 <button
-                  type="button"
-                  class="text-xs font-medium text-green-600 hover:text-green-500 dark:text-green-400 sm:text-sm"
-                  @click="reset"
+                  type="submit"
+                  :disabled="loading || !url"
+                  class="group inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  重新导入
+                  <Icon v-if="loading" name="i-heroicons-arrow-path" class="h-4 w-4 animate-spin" />
+                  <Icon v-else name="i-heroicons-magnifying-glass" class="h-4 w-4" />
+                  {{ loading ? '解析中...' : '解析' }}
                 </button>
               </div>
+
+              <!-- 错误提示 -->
+              <div
+                v-if="importError"
+                class="mt-4 flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 dark:border-rose-800/50 dark:bg-rose-900/20"
+              >
+                <Icon
+                  name="i-heroicons-x-circle"
+                  class="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-500"
+                />
+                <p class="font-mono text-xs text-rose-700 dark:text-rose-400">
+                  {{ importError }}
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- 支持平台 -->
+        <div
+          class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div class="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
+            <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500"
+              >// supported.platforms</span
+            >
+          </div>
+          <div class="px-5 py-4">
+            <p class="mb-3 text-xs text-slate-500 dark:text-slate-400">
+              支持大多数博客网站文章导入，包括但不限于：
+            </p>
+            <div class="flex flex-wrap gap-2">
+              <span
+                v-for="platform in supportedPlatforms"
+                :key="platform"
+                class="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[10px] text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+              >
+                {{ platform }}
+              </span>
             </div>
           </div>
+        </div>
+      </div>
 
-          <!-- Metadata edit form -->
-          <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6">
-            <h3
-              class="mb-3 text-base font-semibold text-gray-900 dark:text-white sm:mb-4 sm:text-lg"
+      <!-- ═══ Step 2：预览与编辑 ═══ -->
+      <div v-if="step === 'preview' && result" class="space-y-5">
+        <!-- 解析成功横幅 -->
+        <div
+          class="flex items-center justify-between rounded-xl border border-emerald-200/60 bg-emerald-50/60 px-4 py-3 dark:border-emerald-800/40 dark:bg-emerald-900/15"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40"
             >
-              文章信息
-            </h3>
+              <Icon
+                name="i-heroicons-check-circle"
+                class="h-4 w-4 text-emerald-600 dark:text-emerald-400"
+              />
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-emerald-800 dark:text-emerald-300">解析成功</p>
+              <p class="font-mono text-[10px] text-emerald-600 dark:text-emerald-500">
+                来源：{{ result.sourceSiteName }}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 font-mono text-xs text-emerald-600 transition-all hover:bg-emerald-50 dark:border-emerald-800/50 dark:bg-slate-800 dark:text-emerald-400"
+            @click="reset"
+          >
+            重新导入
+          </button>
+        </div>
 
-            <div class="space-y-3 sm:space-y-4">
-              <!-- Title -->
+        <!-- 文章信息编辑 -->
+        <div
+          class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div
+            class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
+          >
+            <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+            <span class="ml-2 font-mono text-xs text-slate-500">post.metadata</span>
+          </div>
+          <div class="space-y-4 p-5">
+            <!-- 标题 -->
+            <div>
+              <label
+                class="mb-1.5 flex items-center gap-1.5 font-mono text-xs text-slate-400 dark:text-slate-500"
+              >
+                <span class="text-primary-500">title</span>
+                <span class="text-rose-400">*</span>
+              </label>
+              <input
+                v-model="editForm.title"
+                type="text"
+                required
+                class="block w-full rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:focus:bg-slate-800"
+              />
+            </div>
+            <!-- 分类 + 标签 -->
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  标题 <span class="text-red-500">*</span>
+                <label class="mb-1.5 block font-mono text-xs text-slate-400 dark:text-slate-500">
+                  <span class="text-primary-500">category</span>
                 </label>
-                <input
-                  v-model="editForm.title"
-                  type="text"
-                  required
-                  class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
-
-              <!-- Category & Tags row -->
-              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    分类
-                  </label>
+                <div class="relative">
+                  <Icon
+                    name="heroicons:folder"
+                    class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+                  />
                   <input
                     v-model="editForm.category"
                     type="text"
-                    placeholder="如：前端开发、后端开发"
-                    class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    placeholder="前端开发"
+                    class="block w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:focus:bg-slate-800"
                   />
                 </div>
-                <div>
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    标签
-                    <span class="text-xs text-gray-400">（逗号分隔）</span>
-                  </label>
+              </div>
+              <div>
+                <label
+                  class="mb-1.5 flex items-center gap-1.5 font-mono text-xs text-slate-400 dark:text-slate-500"
+                >
+                  <span class="text-primary-500">tags</span>
+                  <span class="text-slate-300 dark:text-slate-700">// 逗号分隔</span>
+                </label>
+                <div class="relative">
+                  <Icon
+                    name="heroicons:tag"
+                    class="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
+                  />
                   <input
                     v-model="tagsString"
                     type="text"
-                    placeholder="如：Vue3, TypeScript"
-                    class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    placeholder="Vue3, TypeScript"
+                    class="block w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3.5 font-mono text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:focus:bg-slate-800"
                   />
                 </div>
+                <!-- 标签预览 -->
+                <div v-if="tagsArray.length > 0" class="mt-2 flex flex-wrap gap-1.5">
+                  <span
+                    v-for="tag in tagsArray"
+                    :key="tag"
+                    class="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                    >#{{ tag }}</span
+                  >
+                </div>
               </div>
-
-              <!-- Excerpt -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  摘要
-                </label>
-                <textarea
-                  v-model="editForm.excerpt"
-                  rows="3"
-                  class="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                />
-              </div>
+            </div>
+            <!-- 摘要 -->
+            <div>
+              <label
+                class="mb-1.5 flex items-center gap-1.5 font-mono text-xs text-slate-400 dark:text-slate-500"
+              >
+                <span class="text-primary-500">excerpt</span>
+              </label>
+              <textarea
+                v-model="editForm.excerpt"
+                rows="2"
+                class="block w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-white dark:focus:bg-slate-800"
+              />
             </div>
           </div>
+        </div>
 
-          <!-- Image report -->
-          <div
-            v-if="result.images.total > 0"
-            class="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6"
-          >
-            <h3
-              class="mb-2 text-base font-semibold text-gray-900 dark:text-white sm:mb-3 sm:text-lg"
+        <!-- 图片导入报告 -->
+        <div
+          v-if="result.images.total > 0"
+          class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div class="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
+            <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500"
+              >// images.report</span
             >
-              图片导入
-            </h3>
-            <div class="flex flex-wrap items-center gap-3 text-xs sm:gap-4 sm:text-sm">
-              <span class="text-gray-600 dark:text-gray-400">
-                共 {{ result.images.total }} 张图片
-              </span>
-              <span class="text-green-600 dark:text-green-400">
-                {{ result.images.success }} 张成功
-              </span>
-              <span v-if="result.images.duplicates > 0" class="text-blue-600 dark:text-blue-400">
-                {{ result.images.duplicates }} 张去重
-              </span>
-              <span v-if="result.images.failed.length > 0" class="text-red-600 dark:text-red-400">
-                {{ result.images.failed.length }} 张失败
-              </span>
+          </div>
+          <div class="p-5">
+            <!-- 统计行 -->
+            <div class="mb-3 flex flex-wrap gap-4">
+              <div class="text-center">
+                <div class="text-lg font-bold text-slate-900 dark:text-white">
+                  {{ result.images.total }}
+                </div>
+                <div class="font-mono text-[10px] text-slate-400">total</div>
+              </div>
+              <div class="text-center">
+                <div class="text-lg font-bold text-emerald-500">
+                  {{ result.images.success }}
+                </div>
+                <div class="font-mono text-[10px] text-slate-400">success</div>
+              </div>
+              <div v-if="result.images.duplicates > 0" class="text-center">
+                <div class="text-lg font-bold text-primary-500">
+                  {{ result.images.duplicates }}
+                </div>
+                <div class="font-mono text-[10px] text-slate-400">dedupe</div>
+              </div>
+              <div v-if="result.images.failed.length > 0" class="text-center">
+                <div class="text-lg font-bold text-rose-500">
+                  {{ result.images.failed.length }}
+                </div>
+                <div class="font-mono text-[10px] text-slate-400">failed</div>
+              </div>
             </div>
-            <!-- Duplicate info -->
+            <!-- 去重提示 -->
             <div
               v-if="result.images.duplicates > 0"
-              class="mt-2 rounded-md bg-blue-50 p-2.5 dark:bg-blue-900/20 sm:mt-3 sm:p-3"
+              class="mb-2 flex items-start gap-2 rounded-lg border border-primary-200/50 bg-primary-50/50 px-3 py-2.5 dark:border-primary-800/30 dark:bg-primary-900/10"
             >
-              <p class="text-xs text-blue-800 dark:text-blue-300 sm:text-sm">
-                <Icon name="i-heroicons-information-circle" class="mr-1 inline h-4 w-4" />
+              <Icon
+                name="i-heroicons-information-circle"
+                class="mt-0.5 h-4 w-4 flex-shrink-0 text-primary-500"
+              />
+              <p class="font-mono text-[11px] text-primary-700 dark:text-primary-300">
                 检测到 {{ result.images.duplicates }} 张重复图片，已自动使用之前上传的版本。
               </p>
             </div>
-            <!-- Failed images -->
+            <!-- 失败图片 -->
             <div
               v-if="result.images.failed.length > 0"
-              class="mt-2 rounded-md bg-yellow-50 p-2.5 dark:bg-yellow-900/20 sm:mt-3 sm:p-3"
+              class="rounded-lg border border-amber-200/50 bg-amber-50/50 px-3 py-2.5 dark:border-amber-800/30 dark:bg-amber-900/10"
             >
               <p
-                class="mb-1.5 text-xs font-medium text-yellow-800 dark:text-yellow-300 sm:mb-2 sm:text-sm"
+                class="mb-2 font-mono text-[11px] font-semibold text-amber-700 dark:text-amber-400"
               >
                 以下图片下载失败，已保留原始链接：
               </p>
-              <ul class="max-h-32 space-y-1 overflow-y-auto">
+              <ul class="max-h-28 space-y-1 overflow-y-auto">
                 <li
                   v-for="failedUrl in result.images.failed"
                   :key="failedUrl"
-                  class="break-all text-xs text-yellow-700 dark:text-yellow-400"
+                  class="break-all font-mono text-[10px] text-amber-600 dark:text-amber-500"
                 >
                   {{ failedUrl }}
                 </li>
               </ul>
             </div>
           </div>
+        </div>
 
-          <!-- Content Preview -->
-          <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:p-6">
-            <div class="mb-3 flex items-center justify-between sm:mb-4">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
-                正文预览
-              </h3>
+        <!-- 正文预览 -->
+        <div
+          class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div
+            class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
+          >
+            <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+            <span class="ml-2 font-mono text-xs text-slate-500">post.content.md</span>
+            <div class="ml-auto">
               <button
                 type="button"
-                class="text-xs font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 sm:text-sm"
+                class="rounded-md border border-slate-200 bg-white px-2.5 py-1 font-mono text-[10px] text-slate-500 transition-all hover:border-primary-300 hover:text-primary-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
                 @click="showRawMarkdown = !showRawMarkdown"
               >
-                {{ showRawMarkdown ? '渲染预览' : '查看 Markdown' }}
+                {{ showRawMarkdown ? 'rendered' : 'raw.md' }}
               </button>
             </div>
-
-            <!-- Raw markdown view -->
-            <div v-if="showRawMarkdown" class="max-h-64 overflow-y-auto sm:max-h-96">
+          </div>
+          <div class="p-0">
+            <!-- Raw Markdown -->
+            <div v-if="showRawMarkdown" class="max-h-96 overflow-y-auto">
               <pre
-                class="whitespace-pre-wrap rounded-md bg-gray-50 p-3 text-xs text-gray-800 dark:bg-gray-900 dark:text-gray-200 sm:p-4 sm:text-sm"
+                class="whitespace-pre-wrap p-5 font-mono text-xs text-slate-700 dark:text-slate-300"
                 >{{ editForm.content }}</pre
               >
             </div>
-
-            <!-- Rendered preview -->
+            <!-- 渲染预览 -->
             <div
               v-else
-              class="prose prose-sm max-h-64 max-w-none overflow-y-auto rounded-md bg-gray-50 p-3 dark:prose-invert dark:bg-gray-900 sm:max-h-96 sm:p-4"
+              class="prose prose-sm max-h-96 max-w-none overflow-y-auto p-5 dark:prose-invert"
               v-html="renderedContent"
             />
           </div>
+        </div>
 
-          <!-- Source info -->
-          <div
-            v-if="result.author || result.sourceUrl"
-            class="rounded-md bg-blue-50 p-3 dark:bg-blue-900/20 sm:p-4"
-          >
-            <div class="space-y-1 text-xs text-blue-700 dark:text-blue-300 sm:text-sm">
-              <p v-if="result.author">
-                <span class="font-medium">原作者：</span>{{ result.author }}
-              </p>
-              <p v-if="result.publishedAt">
-                <span class="font-medium">发布时间：</span>{{ formatDate(result.publishedAt) }}
-              </p>
-              <p class="break-all">
-                <span class="font-medium">原文链接：</span>
-                <a
-                  :href="result.sourceUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="underline hover:text-blue-600"
-                >
-                  {{ result.sourceUrl }}
-                </a>
-              </p>
+        <!-- 原文信息 -->
+        <div
+          v-if="result.author || result.sourceUrl"
+          class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div class="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
+            <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500"
+              >// source.info</span
+            >
+          </div>
+          <div class="space-y-2 p-5">
+            <div v-if="result.author" class="flex items-center gap-2">
+              <span class="w-20 flex-shrink-0 font-mono text-[10px] text-slate-400">author</span>
+              <span class="text-sm text-slate-700 dark:text-slate-300">{{ result.author }}</span>
+            </div>
+            <div v-if="result.publishedAt" class="flex items-center gap-2">
+              <span class="w-20 flex-shrink-0 font-mono text-[10px] text-slate-400">published</span>
+              <span class="font-mono text-[11px] text-slate-500">{{
+                formatDate(result.publishedAt)
+              }}</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="w-20 flex-shrink-0 font-mono text-[10px] text-slate-400">source</span>
+              <a
+                :href="result.sourceUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="break-all font-mono text-[11px] text-primary-600 underline underline-offset-2 transition-colors hover:text-primary-800 dark:text-primary-400"
+                >{{ result.sourceUrl }}</a
+              >
             </div>
           </div>
+        </div>
 
-          <!-- Action buttons -->
-          <div class="flex flex-col gap-3">
-            <!-- 主要操作按钮 -->
-            <div class="flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                :disabled="loading || !editForm.title"
-                class="inline-flex flex-1 items-center justify-center rounded-md bg-green-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                @click="handleSave(true)"
-              >
-                <Icon
-                  v-if="loading"
-                  name="i-heroicons-arrow-path"
-                  class="mr-2 h-4 w-4 animate-spin"
-                />
-                <Icon v-else name="i-heroicons-rocket-launch" class="mr-2 h-4 w-4" />
-                {{ loading ? '发布中...' : '立即发布' }}
-              </button>
-              <button
-                type="button"
-                :disabled="loading || !editForm.title"
-                class="inline-flex flex-1 items-center justify-center rounded-md bg-blue-600 px-6 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                @click="handleSave(false)"
-              >
-                <Icon
-                  v-if="loading"
-                  name="i-heroicons-arrow-path"
-                  class="mr-2 h-4 w-4 animate-spin"
-                />
-                <Icon v-else name="i-heroicons-document" class="mr-2 h-4 w-4" />
-                {{ loading ? '保存中...' : '保存为草稿' }}
-              </button>
-            </div>
-            <!-- 次要操作按钮 -->
+        <!-- 操作按钮 -->
+        <div
+          class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div class="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
+            <span class="font-mono text-[10px] text-slate-400 dark:text-slate-500"
+              >// save.options</span
+            >
+          </div>
+          <div class="flex flex-col gap-3 p-5 sm:flex-row">
             <button
               type="button"
               :disabled="loading || !editForm.title"
-              class="inline-flex w-full items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              class="group flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-600/20 transition-all hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
+              @click="handleSave(true)"
+            >
+              <Icon v-if="loading" name="i-heroicons-arrow-path" class="h-4 w-4 animate-spin" />
+              <Icon
+                v-else
+                name="i-heroicons-rocket-launch"
+                class="h-4 w-4 transition-transform group-hover:-translate-y-0.5"
+              />
+              {{ loading ? '发布中...' : '立即发布' }}
+            </button>
+            <button
+              type="button"
+              :disabled="loading || !editForm.title"
+              class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+              @click="handleSave(false)"
+            >
+              <Icon v-if="loading" name="i-heroicons-arrow-path" class="h-4 w-4 animate-spin" />
+              <Icon v-else name="i-heroicons-document" class="h-4 w-4" />
+              {{ loading ? '保存中...' : '保存为草稿' }}
+            </button>
+            <button
+              type="button"
+              :disabled="loading || !editForm.title"
+              class="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               @click="handleOpenInEditor"
             >
-              <Icon name="i-heroicons-pencil-square" class="mr-2 h-4 w-4" />
+              <Icon name="i-heroicons-pencil-square" class="h-4 w-4" />
               在编辑器中编辑
             </button>
           </div>
         </div>
+      </div>
 
-        <!-- Loading overlay for saving -->
-        <div
-          v-if="step === 'saving' && loading"
-          class="rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800 sm:p-12"
-        >
+      <!-- ═══ Step 3：保存中 ═══ -->
+      <div
+        v-if="step === 'saving' && loading"
+        class="overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl"
+      >
+        <div class="flex items-center gap-2 border-b border-slate-800 bg-slate-800/80 px-4 py-2.5">
+          <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+          <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+          <span class="ml-2 font-mono text-xs text-slate-500">post.save</span>
+        </div>
+        <div class="py-14 text-center">
           <Icon
             name="i-heroicons-arrow-path"
-            class="mx-auto h-10 w-10 animate-spin text-blue-500 sm:h-12 sm:w-12"
+            class="mx-auto mb-4 h-10 w-10 animate-spin text-primary-500"
           />
-          <p class="mt-3 text-base font-medium text-gray-900 dark:text-white sm:mt-4 sm:text-lg">
-            正在保存文章...
-          </p>
-          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400 sm:mt-2 sm:text-sm">
-            请稍候，正在将文章保存到数据库
-          </p>
+          <p class="font-mono text-sm text-white">saving article...</p>
+          <p class="mt-1 font-mono text-xs text-slate-500">请稍候，正在将文章保存到数据库</p>
         </div>
       </div>
     </div>
@@ -457,7 +505,6 @@ const {
   reset: importReset
 } = useImport()
 
-// Form state
 const url = ref('')
 const showRawMarkdown = ref(false)
 
@@ -482,29 +529,40 @@ const supportedPlatforms = [
   '通用博客网站'
 ]
 
-// Markdown renderer for preview
-const md = new MarkdownIt({
-  html: true,
-  linkify: true,
-  typographer: true,
-  breaks: true
-})
+const steps = [
+  { id: 'input', label: 'input.url' },
+  { id: 'preview', label: 'preview' },
+  { id: 'saving', label: 'saving' }
+]
 
-// Computed rendered content
+const stepOrder = ['input', 'preview', 'saving']
+
+function getStepClass(id: string) {
+  const current = stepOrder.indexOf(step.value)
+  const target = stepOrder.indexOf(id)
+  if (target < current) return 'bg-emerald-500 text-white'
+  if (target === current) return 'bg-primary-600 text-white'
+  return 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+}
+
+function isStepDone(id: string) {
+  return stepOrder.indexOf(id) < stepOrder.indexOf(step.value)
+}
+
+const md = new MarkdownIt({ html: true, linkify: true, typographer: true, breaks: true })
+
 const renderedContent = computed(() => {
   if (!editForm.content) return ''
   return md.render(editForm.content)
 })
 
-// Computed tags array
-const tagsArray = computed(() => {
-  return tagsString.value
+const tagsArray = computed(() =>
+  tagsString.value
     .split(/[,，]/)
     .map(t => t.trim())
     .filter(t => t.length > 0)
-})
+)
 
-// Watch result and populate form
 watch(result, val => {
   if (val) {
     editForm.title = val.title
@@ -515,13 +573,11 @@ watch(result, val => {
   }
 })
 
-// Handle fetch
 async function handleFetch() {
   if (!url.value) return
   await fetchArticle(url.value)
 }
 
-// Handle save as draft
 async function handleSave(published: boolean) {
   const { slug, error } = await saveAsPost({
     title: editForm.title,
@@ -532,12 +588,10 @@ async function handleSave(published: boolean) {
     coverImage: result.value?.coverImage || null,
     published
   })
-
   if (error) {
     toast.error('保存失败', error)
     return
   }
-
   if (published && slug) {
     toast.success('保存成功', '文章已发布')
     await navigateTo(`/blog/${slug}`)
@@ -547,7 +601,6 @@ async function handleSave(published: boolean) {
   }
 }
 
-// Handle open in editor (save as draft first, then redirect to editor)
 async function handleOpenInEditor() {
   const { id, slug, error } = await saveAsPost({
     title: editForm.title,
@@ -558,26 +611,20 @@ async function handleOpenInEditor() {
     coverImage: result.value?.coverImage || null,
     published: false
   })
-
   console.log('[handleOpenInEditor] saveAsPost result:', { id, slug, error })
-
   if (error) {
     toast.error('保存失败', error)
     return
   }
-
   if (!id) {
     console.error('[handleOpenInEditor] No id returned from saveAsPost, slug:', slug)
     toast.error('保存失败', '无法获取文章ID')
     return
   }
-
   toast.success('已保存为草稿', '正在跳转到编辑器...')
-  console.log('[handleOpenInEditor] Navigating to:', `/blog/edit/${id}`)
   await navigateTo(`/blog/edit/${id}`)
 }
 
-// Reset everything
 function reset() {
   importReset()
   url.value = ''
@@ -589,11 +636,9 @@ function reset() {
   showRawMarkdown.value = false
 }
 
-// Format date helper
 function formatDate(dateStr: string): string {
   try {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('zh-CN', {
+    return new Date(dateStr).toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
