@@ -1,99 +1,211 @@
 <template>
   <div>
-    <!-- 阅读进度条 -->
-    <div class="reading-progress" :style="{ width: `${readingProgress}%` }" />
+    <!-- ── 阅读进度条（顶部固定细线）── -->
+    <div
+      class="reading-progress fixed left-0 top-0 z-50 h-0.5 bg-gradient-to-r from-primary-500 to-indigo-500 transition-all duration-150"
+      :style="{ width: `${readingProgress}%` }"
+    />
 
-    <!-- 文章内容 -->
+    <!-- ── 粘性顶部工具栏（滚动后显示） ── -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="-translate-y-full opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="-translate-y-full opacity-0"
+    >
+      <div
+        v-if="readingProgress > 5 && post"
+        class="fixed left-0 right-0 top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/90"
+      >
+        <div class="mx-auto flex h-12 max-w-4xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+          <button
+            class="flex-shrink-0 rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+            @click="navigateTo('/blog')"
+          >
+            <Icon name="heroicons:arrow-left" class="h-4 w-4" />
+          </button>
+          <p class="min-w-0 flex-1 truncate font-mono text-xs text-slate-600 dark:text-slate-400">
+            {{ post.title }}
+          </p>
+          <span class="flex-shrink-0 font-mono text-[10px] text-primary-500">
+            {{ Math.round(readingProgress) }}%
+          </span>
+        </div>
+        <!-- 进度条 -->
+        <div
+          class="h-0.5 bg-gradient-to-r from-primary-500 to-indigo-500"
+          :style="{ width: `${readingProgress}%` }"
+        />
+      </div>
+    </Transition>
+
+    <!-- ── 主内容 ── -->
     <main class="mx-auto max-w-4xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
-      <!-- Loading State -->
+      <!-- ── Loading State ── -->
       <div v-if="loading" class="animate-pulse">
-        <div class="mb-4 h-64 w-full rounded-xl bg-gray-200 dark:bg-gray-700 sm:h-80" />
-        <div class="mb-3 mt-6 h-8 w-3/4 rounded bg-gray-200 dark:bg-gray-700 sm:mb-4" />
-        <div class="mb-4 h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700 sm:mb-6" />
+        <!-- 封面骨架 -->
+        <div class="mb-6 h-52 w-full rounded-2xl bg-slate-200 dark:bg-slate-800 sm:h-72" />
+        <!-- 元信息骨架 -->
+        <div class="mb-4 flex gap-2">
+          <div class="h-5 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div class="h-5 w-24 rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div class="h-5 w-20 rounded-full bg-slate-200 dark:bg-slate-800" />
+        </div>
+        <!-- 标题骨架 -->
+        <div class="mb-3 h-8 w-5/6 rounded-lg bg-slate-200 dark:bg-slate-800 sm:h-10" />
+        <div class="mb-6 h-8 w-3/4 rounded-lg bg-slate-200 dark:bg-slate-800 sm:h-10" />
+        <!-- 摘要骨架 -->
+        <div class="mb-6 border-l-[3px] border-slate-200 pl-4 dark:border-slate-700">
+          <div class="mb-2 h-4 w-full rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div class="h-4 w-4/5 rounded-full bg-slate-200 dark:bg-slate-800" />
+        </div>
+        <!-- 作者卡骨架 -->
+        <div class="mb-6 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+          <div
+            class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
+          >
+            <div class="h-2 w-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+            <div class="h-2 w-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+            <div class="h-2 w-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+            <div class="ml-2 h-2 w-16 rounded-full bg-slate-200 dark:bg-slate-700" />
+          </div>
+          <div class="flex items-center gap-3 p-4">
+            <div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700" />
+            <div class="flex-1 space-y-2">
+              <div class="h-3 w-28 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div class="h-2.5 w-48 rounded-full bg-slate-200 dark:bg-slate-700" />
+            </div>
+          </div>
+        </div>
+        <!-- 内容骨架 -->
         <div class="space-y-3">
-          <div class="h-4 rounded bg-gray-200 dark:bg-gray-700" />
-          <div class="h-4 rounded bg-gray-200 dark:bg-gray-700" />
-          <div class="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700" />
+          <div class="h-4 rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div class="h-4 rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div class="h-4 w-5/6 rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div class="h-4 w-4/5 rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div class="mt-6 h-32 rounded-xl bg-slate-200 dark:bg-slate-800" />
+          <div class="h-4 rounded-full bg-slate-200 dark:bg-slate-800" />
+          <div class="h-4 w-3/4 rounded-full bg-slate-200 dark:bg-slate-800" />
         </div>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="error" class="py-12 text-center sm:py-16">
+      <!-- ── Error State ── -->
+      <div v-else-if="error" class="py-16 text-center">
         <div
-          class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30"
+          class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 dark:border-rose-800/40 dark:bg-rose-900/20"
         >
-          <Icon name="heroicons:exclamation-triangle" class="h-10 w-10 text-red-500" />
+          <Icon name="heroicons:exclamation-triangle" class="h-8 w-8 text-rose-500" />
         </div>
-        <h2 class="mb-2 text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">加载失败</h2>
-        <p class="mx-auto mb-6 max-w-md text-sm text-gray-600 dark:text-gray-400 sm:text-base">
+        <p class="mb-1 font-mono text-xs text-slate-400 dark:text-slate-600">
+          // error.loading.post
+        </p>
+        <h2 class="mb-2 text-xl font-bold text-slate-900 dark:text-white">加载失败</h2>
+        <p class="mx-auto mb-7 max-w-md text-sm text-slate-500 dark:text-slate-400">
           {{ error }}
         </p>
-        <button
-          class="touch-optimized inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-all hover:bg-gray-50 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-          @click="navigateTo('/')"
-        >
-          <Icon name="heroicons:arrow-left" class="h-4 w-4" />
-          返回首页
-        </button>
+        <div class="flex items-center justify-center gap-3">
+          <button
+            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-600"
+            @click="navigateTo('/blog')"
+          >
+            <Icon name="heroicons:arrow-left" class="h-4 w-4" />
+            回到列表
+          </button>
+          <button
+            class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-medium text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500"
+            @click="refreshPost"
+          >
+            <Icon name="heroicons:arrow-path" class="h-4 w-4" />
+            重试
+          </button>
+        </div>
       </div>
 
-      <!-- Blog Post -->
-      <article v-else-if="post" class="prose prose-base max-w-none dark:prose-invert sm:prose-lg">
-        <!-- 封面图片 -->
-        <div
-          v-if="post.cover_image"
-          class="relative -mx-3 mb-6 overflow-hidden rounded-2xl sm:-mx-4 sm:mb-8 md:-mx-6 lg:-mx-8"
+      <!-- ── Blog Post ── -->
+      <article v-else-if="post">
+        <!-- 顶部面包屑导航 -->
+        <nav
+          class="mb-6 flex items-center gap-2 font-mono text-xs text-slate-400 dark:text-slate-600"
         >
-          <div class="aspect-[21/9] sm:aspect-[2/1]">
-            <NuxtImg
-              :src="post.cover_image"
-              :alt="post.title"
-              preset="cover"
-              :sizes="'(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px'"
-              class="h-full w-full object-cover"
-            />
-          </div>
-          <div
-            class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"
-          />
-        </div>
+          <NuxtLink
+            to="/"
+            class="transition-colors hover:text-primary-600 dark:hover:text-primary-400"
+          >
+            ~
+          </NuxtLink>
+          <span>/</span>
+          <NuxtLink
+            to="/blog"
+            class="transition-colors hover:text-primary-600 dark:hover:text-primary-400"
+          >
+            blog
+          </NuxtLink>
+          <span>/</span>
+          <span class="truncate text-slate-500 dark:text-slate-500">{{ post.slug }}</span>
+        </nav>
 
-        <header class="mb-6 sm:mb-8">
-          <!-- 元信息行：分类 + 日期 + 时间 + 阅读量 -->
-          <div class="mb-5 flex flex-wrap items-center gap-2">
+        <!-- ══ 文章头部（not-prose，不受 Tailwind prose 污染）══ -->
+        <div class="not-prose mb-8">
+          <!-- 封面图片 -->
+          <div v-if="post.cover_image" class="relative mb-6 overflow-hidden rounded-2xl sm:mb-8">
+            <div class="aspect-[21/9] sm:aspect-[2/1]">
+              <NuxtImg
+                :src="post.cover_image"
+                :alt="post.title"
+                preset="cover"
+                :sizes="'(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px'"
+                class="h-full w-full object-cover"
+              />
+            </div>
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"
+            />
+            <!-- 封面上的分类标签 -->
+            <div v-if="post.category" class="absolute left-4 top-4">
+              <span
+                class="rounded-lg bg-slate-900/80 px-2.5 py-1 font-mono text-xs text-primary-300 backdrop-blur-sm"
+              >
+                {{ post.category }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 元信息行 -->
+          <div class="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
             <NuxtLink
+              v-if="post.category && !post.cover_image"
               :to="`/blog?category=${encodeURIComponent(post.category || '')}`"
-              class="touch-optimized inline-flex items-center gap-1 rounded-md bg-primary-50 px-2.5 py-1 font-mono text-xs font-semibold text-primary-700 transition-all hover:bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300 dark:hover:bg-primary-900/50"
+              class="inline-flex items-center gap-1 rounded-md bg-primary-50 px-2.5 py-1 font-mono text-xs font-semibold text-primary-700 transition-all hover:bg-primary-100 dark:bg-primary-900/30 dark:text-primary-300 dark:hover:bg-primary-900/50"
             >
               <Icon name="heroicons:folder" class="h-3 w-3" />
               {{ post.category }}
             </NuxtLink>
-            <span class="text-slate-300 dark:text-slate-700">/</span>
+
             <div
-              class="flex items-center gap-1 font-mono text-xs text-slate-400 dark:text-slate-500"
+              class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-slate-400 dark:text-slate-500"
             >
-              <Icon name="heroicons:calendar" class="h-3 w-3" />
-              <time :datetime="post.created_at">{{ formatDate(post.created_at) }}</time>
-            </div>
-            <span class="text-slate-300 dark:text-slate-700">/</span>
-            <div
-              class="flex items-center gap-1 font-mono text-xs text-slate-400 dark:text-slate-500"
-            >
-              <Icon name="heroicons:clock" class="h-3 w-3" />
-              {{ readTime }} min read
-            </div>
-            <span class="text-slate-300 dark:text-slate-700">/</span>
-            <div
-              class="flex items-center gap-1 font-mono text-xs text-slate-400 dark:text-slate-500"
-            >
-              <Icon name="heroicons:eye" class="h-3 w-3" />
-              {{ viewCount || 0 }} views
+              <time :datetime="post.created_at" class="flex items-center gap-1">
+                <Icon name="heroicons:calendar" class="h-3 w-3" />
+                {{ formatDate(post.created_at) }}
+              </time>
+              <span class="text-slate-300 dark:text-slate-700">·</span>
+              <span class="flex items-center gap-1">
+                <Icon name="heroicons:clock" class="h-3 w-3" />
+                {{ readTime }} min read
+              </span>
+              <span class="text-slate-300 dark:text-slate-700">·</span>
+              <span class="flex items-center gap-1">
+                <Icon name="heroicons:eye" class="h-3 w-3" />
+                {{ viewCount || 0 }} views
+              </span>
             </div>
           </div>
 
           <!-- 标题 -->
           <h1
-            class="mb-4 text-2xl font-bold leading-tight text-slate-900 dark:text-white sm:mb-5 sm:text-3xl md:text-4xl lg:text-[2.75rem] lg:leading-[1.2]"
+            class="mb-4 text-2xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-3xl md:text-4xl lg:text-[2.6rem] lg:leading-[1.2]"
           >
             {{ post.title }}
           </h1>
@@ -106,18 +218,18 @@
             {{ post.excerpt }}
           </p>
 
-          <!-- 作者信息卡片 (终端风格) -->
+          <!-- 作者信息卡片（终端窗口风格） -->
           <div
-            class="mb-6 rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40 sm:mb-8"
+            class="mb-6 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700/60 dark:bg-slate-800/40 sm:mb-7"
           >
-            <!-- 窗口标题栏 -->
+            <!-- macOS 标题栏 -->
             <div
-              class="flex items-center gap-2 rounded-t-xl border-b border-slate-200 bg-slate-100 px-4 py-2 dark:border-slate-700/60 dark:bg-slate-800"
+              class="flex items-center gap-2 border-b border-slate-200 bg-slate-100 px-4 py-2.5 dark:border-slate-700/60 dark:bg-slate-800"
             >
               <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
               <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
               <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
-              <span class="ml-2 font-mono text-xs text-slate-400">author.json</span>
+              <span class="ml-2 font-mono text-[10px] text-slate-500">author.json</span>
             </div>
             <div
               class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
@@ -128,11 +240,11 @@
                     v-if="author?.avatar_url"
                     :src="author.avatar_url"
                     :alt="author?.username || '作者'"
-                    class="h-11 w-11 rounded-full object-cover ring-2 ring-primary-200 dark:ring-primary-800"
+                    class="h-10 w-10 rounded-xl object-cover ring-2 ring-primary-200 dark:ring-primary-800"
                   />
                   <div
                     v-else
-                    class="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-700"
+                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700"
                   >
                     <Icon name="heroicons:user" class="h-5 w-5 text-white" />
                   </div>
@@ -141,7 +253,10 @@
                   <p class="font-semibold text-slate-900 dark:text-white">
                     {{ author?.username || '匿名作者' }}
                   </p>
-                  <p v-if="author?.bio" class="truncate text-sm text-slate-500 dark:text-slate-400">
+                  <p
+                    v-if="author?.bio"
+                    class="mt-0.5 truncate font-mono text-xs text-slate-500 dark:text-slate-400"
+                  >
                     {{ author.bio }}
                   </p>
                 </div>
@@ -149,7 +264,7 @@
               <button
                 v-if="post?.author_id"
                 type="button"
-                class="touch-optimized inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary-600/20 transition-all hover:bg-primary-500 hover:shadow-xl"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500 hover:shadow-lg"
                 @click="navigateTo(`/authors/${post.author_id}`)"
               >
                 查看主页
@@ -164,78 +279,97 @@
               v-for="tag in post.tags"
               :key="tag"
               :to="`/blog?tag=${encodeURIComponent(tag)}`"
-              class="touch-optimized inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 font-mono text-xs text-slate-500 transition-all hover:bg-primary-50 hover:text-primary-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"
+              class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 font-mono text-xs text-slate-500 transition-all hover:bg-primary-50 hover:text-primary-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-primary-900/30 dark:hover:text-primary-300"
             >
               #{{ tag }}
             </NuxtLink>
           </div>
-        </header>
+        </div>
 
-        <!-- 文章内容 -->
-        <ClientOnly>
-          <BlogContentRenderer :content="post.content" content-type="auto" />
-          <template #fallback>
-            <div class="prose prose-lg max-w-none dark:prose-invert">
-              <div class="animate-pulse space-y-4">
-                <div class="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-                <div class="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
-                <div class="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700" />
+        <!-- ══ 正文内容（prose 限定在此）══ -->
+        <div class="prose prose-base max-w-none dark:prose-invert sm:prose-lg">
+          <ClientOnly>
+            <BlogContentRenderer :content="post.content" content-type="auto" />
+            <template #fallback>
+              <div class="not-prose animate-pulse space-y-3">
+                <div class="h-4 rounded-full bg-slate-200 dark:bg-slate-800" />
+                <div class="h-4 rounded-full bg-slate-200 dark:bg-slate-800" />
+                <div class="h-4 w-5/6 rounded-full bg-slate-200 dark:bg-slate-800" />
+                <div class="mt-4 h-28 rounded-xl bg-slate-200 dark:bg-slate-800" />
+                <div class="h-4 rounded-full bg-slate-200 dark:bg-slate-800" />
+                <div class="h-4 w-3/4 rounded-full bg-slate-200 dark:bg-slate-800" />
               </div>
-            </div>
-          </template>
-        </ClientOnly>
+            </template>
+          </ClientOnly>
+        </div>
 
-        <!-- 文章底部 -->
-        <footer class="mt-10 border-t border-slate-200 pt-8 dark:border-slate-700/60 sm:mt-12">
-          <!-- 互动统计卡 -->
+        <!-- ══ 文章底部（not-prose）══ -->
+        <div
+          class="not-prose mt-10 border-t border-slate-200 pt-8 dark:border-slate-700/60 sm:mt-14"
+        >
+          <!-- 互动统计卡（macOS 窗口风格） -->
           <div class="mb-6 rounded-xl border border-slate-200 dark:border-slate-700/60 sm:mb-8">
-            <!-- 统计行 -->
+            <!-- 标题栏 -->
             <div
-              class="flex flex-wrap items-center justify-between gap-4 rounded-t-xl bg-slate-50 px-5 py-4 dark:bg-slate-800/40"
+              class="flex items-center justify-between rounded-t-xl border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
             >
-              <!-- 左侧：点赞 + 评论 -->
-              <div class="flex items-center gap-3">
-                <button
-                  :disabled="likeLoading || !user"
-                  class="touch-optimized group flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
-                  :class="
-                    isLiked
-                      ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-800/50 dark:bg-rose-900/20 dark:text-rose-400'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-rose-800/50 dark:hover:text-rose-400'
-                  "
-                  @click="toggleLike"
-                >
-                  <Icon
-                    :name="isLiked ? 'heroicons:heart-solid' : 'heroicons:heart'"
-                    class="h-4 w-4 transition-transform group-active:scale-125"
-                  />
-                  <span>{{ likesCount }}</span>
-                </button>
-                <div
-                  class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
-                >
-                  <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4" />
-                  <span>{{ commentsCount }}</span>
-                </div>
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-red-400/60" />
+                <span class="h-2 w-2 rounded-full bg-amber-400/60" />
+                <span class="h-2 w-2 rounded-full bg-emerald-400/60" />
+                <span class="ml-1.5 font-mono text-[10px] text-slate-500">post.stats</span>
               </div>
-              <!-- 右侧：阅读量 + 时间 -->
               <div
-                class="flex items-center gap-3 font-mono text-xs text-slate-400 dark:text-slate-500"
+                class="flex items-center gap-3 font-mono text-[10px] text-slate-400 dark:text-slate-600"
               >
                 <span class="flex items-center gap-1">
-                  <Icon name="heroicons:eye" class="h-3.5 w-3.5" />
+                  <Icon name="heroicons:eye" class="h-3 w-3" />
                   {{ viewCount || 0 }}
                 </span>
-                <span class="text-slate-300 dark:text-slate-700">·</span>
+                <span>·</span>
                 <span class="flex items-center gap-1">
-                  <Icon name="heroicons:clock" class="h-3.5 w-3.5" />
+                  <Icon name="heroicons:clock" class="h-3 w-3" />
                   {{ readTime }} min
                 </span>
               </div>
             </div>
 
-            <!-- 分享按钮行 -->
-            <div class="border-t border-slate-200 px-5 py-4 dark:border-slate-700/60">
+            <!-- 点赞 + 评论 计数行 -->
+            <div
+              class="flex items-center gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800"
+            >
+              <!-- 点赞按钮 -->
+              <button
+                :disabled="likeLoading || !user"
+                class="group flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                :class="
+                  isLiked
+                    ? 'border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-800/50 dark:bg-rose-900/20 dark:text-rose-400'
+                    : 'border-slate-200 bg-white text-slate-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-rose-800/50 dark:hover:text-rose-400'
+                "
+                @click="toggleLike"
+              >
+                <Icon
+                  :name="isLiked ? 'heroicons:heart-solid' : 'heroicons:heart'"
+                  class="h-4 w-4 transition-transform group-active:scale-125"
+                />
+                <span class="font-mono text-xs">{{ likesCount }}</span>
+              </button>
+              <!-- 评论数 -->
+              <div
+                class="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400"
+              >
+                <Icon name="heroicons:chat-bubble-left-right" class="h-4 w-4" />
+                <span class="font-mono text-xs">{{ commentsCount }}</span>
+              </div>
+              <!-- 未登录提示 -->
+              <span v-if="!user" class="font-mono text-[10px] text-slate-400 dark:text-slate-600">
+                // login to like
+              </span>
+            </div>
+
+            <!-- 分享行 -->
+            <div class="px-4 py-3">
               <ShareButton
                 :title="post.title"
                 :url="shareUrl"
@@ -247,45 +381,43 @@
 
           <!-- 上一篇 / 下一篇 -->
           <div class="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
-            <div
+            <NuxtLink
               v-if="prevPost"
-              class="touch-optimized group rounded-xl border border-slate-200 bg-slate-50 p-4 transition-all hover:border-primary-300 hover:shadow-md dark:border-slate-700/60 dark:bg-slate-800/30 dark:hover:border-primary-700"
+              :to="`/blog/${prevPost.slug}`"
+              class="group rounded-xl border border-slate-200 bg-slate-50 p-4 transition-all hover:border-primary-300 hover:shadow-md dark:border-slate-700/60 dark:bg-slate-800/30 dark:hover:border-primary-700"
             >
-              <NuxtLink :to="`/blog/${prevPost.slug}`" class="block">
-                <p
-                  class="mb-1.5 flex items-center gap-1 font-mono text-xs text-slate-400 group-hover:text-primary-600 dark:text-slate-500 dark:group-hover:text-primary-400"
-                >
-                  <Icon name="heroicons:arrow-left" class="h-3 w-3" />
-                  上一篇
-                </p>
-                <p
-                  class="line-clamp-2 text-sm font-semibold text-slate-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400"
-                >
-                  {{ prevPost.title }}
-                </p>
-              </NuxtLink>
-            </div>
+              <p
+                class="mb-1.5 flex items-center gap-1 font-mono text-[10px] text-slate-400 transition-colors group-hover:text-primary-600 dark:text-slate-500 dark:group-hover:text-primary-400"
+              >
+                <Icon name="heroicons:arrow-left" class="h-3 w-3" />
+                prev.post
+              </p>
+              <p
+                class="line-clamp-2 text-sm font-semibold text-slate-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400"
+              >
+                {{ prevPost.title }}
+              </p>
+            </NuxtLink>
 
-            <div
+            <NuxtLink
               v-if="nextPost"
-              class="touch-optimized group rounded-xl border border-slate-200 bg-slate-50 p-4 text-right transition-all hover:border-primary-300 hover:shadow-md dark:border-slate-700/60 dark:bg-slate-800/30 dark:hover:border-primary-700 md:text-left"
+              :to="`/blog/${nextPost.slug}`"
+              class="group rounded-xl border border-slate-200 bg-slate-50 p-4 text-right transition-all hover:border-primary-300 hover:shadow-md dark:border-slate-700/60 dark:bg-slate-800/30 dark:hover:border-primary-700 md:text-left"
             >
-              <NuxtLink :to="`/blog/${nextPost.slug}`" class="block">
-                <p
-                  class="mb-1.5 flex items-center justify-end gap-1 font-mono text-xs text-slate-400 group-hover:text-primary-600 dark:text-slate-500 dark:group-hover:text-primary-400 md:justify-start"
-                >
-                  下一篇
-                  <Icon name="heroicons:arrow-right" class="h-3 w-3" />
-                </p>
-                <p
-                  class="line-clamp-2 text-sm font-semibold text-slate-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400"
-                >
-                  {{ nextPost.title }}
-                </p>
-              </NuxtLink>
-            </div>
+              <p
+                class="mb-1.5 flex items-center justify-end gap-1 font-mono text-[10px] text-slate-400 transition-colors group-hover:text-primary-600 dark:text-slate-500 dark:group-hover:text-primary-400 md:justify-start"
+              >
+                next.post
+                <Icon name="heroicons:arrow-right" class="h-3 w-3" />
+              </p>
+              <p
+                class="line-clamp-2 text-sm font-semibold text-slate-900 transition-colors group-hover:text-primary-600 dark:text-white dark:group-hover:text-primary-400"
+              >
+                {{ nextPost.title }}
+              </p>
+            </NuxtLink>
           </div>
-        </footer>
+        </div>
       </article>
 
       <!-- ═══════════ 评论区 ═══════════ -->
