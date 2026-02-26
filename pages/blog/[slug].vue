@@ -288,147 +288,201 @@
         </footer>
       </article>
 
-      <!-- 评论区 -->
-      <section v-if="post" class="mt-12 sm:mt-16">
-        <!-- 标题行 -->
-        <div class="mb-6 flex items-center gap-3 sm:mb-8">
-          <div
-            class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-900/30"
-          >
-            <Icon
-              name="heroicons:chat-bubble-left-right"
-              class="h-4 w-4 text-primary-600 dark:text-primary-400"
-            />
+      <!-- ═══════════ 评论区 ═══════════ -->
+      <section v-if="post" class="mt-14 sm:mt-20">
+        <!-- 区块标题 -->
+        <div class="mb-6 flex items-center gap-3">
+          <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs text-slate-400 dark:text-slate-600">// comments</span>
+            <span
+              v-if="commentsCount > 0"
+              class="rounded-full bg-primary-50 px-2 py-0.5 font-mono text-[10px] text-primary-600 dark:bg-primary-900/30 dark:text-primary-400"
+            >
+              {{ commentsCount }}
+            </span>
           </div>
-          <h2 class="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">评论</h2>
-          <span
-            v-if="commentsCount > 0"
-            class="rounded-full bg-slate-100 px-2.5 py-0.5 font-mono text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-          >
-            {{ commentsCount }}
-          </span>
+          <div class="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
         </div>
 
-        <!-- 已登录：评论输入框 -->
+        <!-- ── 已登录：评论输入框 ── -->
         <div
           v-if="user"
-          class="mb-8 rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900"
+          class="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900"
         >
-          <!-- 输入框标题栏 -->
+          <!-- macOS 标题栏 -->
           <div
-            class="flex items-center gap-3 rounded-t-xl border-b border-slate-100 px-4 py-3 dark:border-slate-800"
+            class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
           >
-            <img
-              v-if="user.email"
-              :src="`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`"
-              alt="我的头像"
-              class="h-8 w-8 rounded-full"
-            />
-            <div>
-              <p class="text-sm font-medium text-slate-900 dark:text-white">发表评论</p>
-              <p class="font-mono text-xs text-slate-400 dark:text-slate-500">// 分享你的想法</p>
+            <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+            <span class="ml-2 font-mono text-[10px] text-slate-500">comment.new</span>
+            <!-- 用户信息 -->
+            <div class="ml-auto flex items-center gap-2">
+              <img
+                v-if="user.email"
+                :src="`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`"
+                alt="我的头像"
+                class="h-5 w-5 rounded-full"
+              />
+              <span class="font-mono text-[10px] text-slate-500">{{ user.email }}</span>
             </div>
           </div>
+
           <form class="p-4" @submit.prevent="submitComment">
             <textarea
               ref="commentInput"
               v-model="newComment"
               placeholder="写下你的评论..."
               rows="4"
-              class="mb-3 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-primary-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-primary-500 dark:focus:bg-slate-800/80"
+              class="mb-3 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-100 dark:placeholder-slate-600 dark:focus:bg-slate-800"
               @focus="keyboardInput.handleFocus"
               @blur="keyboardInput.handleBlur"
             />
             <div class="flex items-center justify-between">
-              <span class="font-mono text-xs text-slate-400 dark:text-slate-500"
-                >{{ newComment.length }} chars</span
-              >
+              <span class="font-mono text-[10px] text-slate-400 dark:text-slate-600">
+                {{ newComment.length }} chars
+              </span>
               <button
                 type="submit"
                 :disabled="commentLoading || !newComment.trim()"
-                class="touch-optimized inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                class="group inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Icon
                   v-if="commentLoading"
                   name="heroicons:arrow-path"
                   class="h-4 w-4 animate-spin"
                 />
-                <Icon v-else name="heroicons:paper-airplane" class="h-4 w-4" />
+                <Icon
+                  v-else
+                  name="heroicons:paper-airplane"
+                  class="h-4 w-4 transition-transform group-hover:-rotate-45"
+                />
                 发表评论
               </button>
             </div>
           </form>
         </div>
 
-        <!-- 未登录提示 -->
+        <!-- ── 未登录提示 ── -->
         <div
           v-else
-          class="mb-8 rounded-xl border border-slate-200 bg-slate-50 p-6 text-center dark:border-slate-700/60 dark:bg-slate-800/30"
+          class="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700/60 dark:bg-slate-900"
         >
           <div
-            class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700"
+            class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60"
           >
-            <Icon name="heroicons:user-circle" class="h-7 w-7 text-slate-400" />
+            <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+            <span class="ml-2 font-mono text-[10px] text-slate-500">comment.new</span>
           </div>
-          <p class="mb-4 text-sm text-slate-500 dark:text-slate-400">登录后才能发表评论</p>
-          <button
-            class="touch-optimized inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500 hover:shadow-lg"
-            @click="navigateTo('/auth/login')"
-          >
-            <Icon name="heroicons:arrow-right-on-rectangle" class="h-4 w-4" />
-            登录
-          </button>
+          <div class="flex flex-col items-center gap-4 py-10 text-center">
+            <div
+              class="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800"
+            >
+              <Icon
+                name="heroicons:lock-closed"
+                class="h-5 w-5 text-slate-400 dark:text-slate-500"
+              />
+            </div>
+            <div>
+              <p class="font-mono text-xs text-slate-400 dark:text-slate-600">// auth.required</p>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">登录后才能发表评论</p>
+            </div>
+            <button
+              class="inline-flex items-center gap-2 rounded-xl bg-primary-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-600/20 transition-all hover:bg-primary-500 hover:shadow-lg"
+              @click="navigateTo('/auth/login')"
+            >
+              <Icon name="heroicons:arrow-right-on-rectangle" class="h-4 w-4" />
+              立即登录
+            </button>
+          </div>
         </div>
 
-        <!-- 评论加载骨架 -->
+        <!-- ── 评论加载骨架 ── -->
         <div v-if="commentsLoading" class="space-y-3">
           <div
             v-for="i in 3"
             :key="i"
-            class="animate-pulse rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+            class="animate-pulse overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800"
           >
-            <div class="flex gap-3">
-              <div class="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-700" />
-              <div class="flex-1 space-y-2">
-                <div class="h-3 w-1/4 rounded-md bg-slate-200 dark:bg-slate-700" />
-                <div class="h-3 w-full rounded-md bg-slate-200 dark:bg-slate-700" />
-                <div class="h-3 w-3/4 rounded-md bg-slate-200 dark:bg-slate-700" />
+            <div
+              class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-2 dark:border-slate-800 dark:bg-slate-800/40"
+            >
+              <div class="h-2 w-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div class="h-2 w-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div class="h-2 w-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div class="ml-2 h-2 w-16 rounded bg-slate-200 dark:bg-slate-700" />
+            </div>
+            <div class="flex gap-3 p-4">
+              <div class="h-8 w-8 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div class="flex-1 space-y-2 pt-0.5">
+                <div class="h-2.5 w-1/4 rounded-full bg-slate-200 dark:bg-slate-700" />
+                <div class="h-2.5 w-full rounded-full bg-slate-200 dark:bg-slate-700" />
+                <div class="h-2.5 w-3/4 rounded-full bg-slate-200 dark:bg-slate-700" />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 评论列表 -->
+        <!-- ── 评论列表 ── -->
         <template v-else>
+          <!-- 空状态 -->
           <div
             v-if="!comments || comments.length === 0"
-            class="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center dark:border-slate-700/60 dark:bg-slate-800/20"
+            class="rounded-xl border border-dashed border-slate-200 bg-slate-50 py-14 text-center dark:border-slate-800 dark:bg-slate-900/30"
           >
             <Icon
               name="heroicons:chat-bubble-left-right"
-              class="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-600"
+              class="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-700"
             />
-            <p class="text-sm text-slate-400 dark:text-slate-500">暂无评论，来发表第一条评论吧！</p>
+            <p class="font-mono text-xs text-slate-400 dark:text-slate-600">// no.comments.yet</p>
+            <p class="mt-1 text-sm text-slate-400 dark:text-slate-500">来发表第一条评论吧！</p>
           </div>
 
+          <!-- 评论卡片列表 -->
           <div v-else class="space-y-3">
             <div
-              v-for="comment in comments"
+              v-for="(comment, idx) in comments"
               :key="comment.id"
-              class="group rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary-200 hover:shadow-sm dark:border-slate-700/60 dark:bg-slate-900 sm:p-5"
+              class="group overflow-hidden rounded-xl border border-slate-200 bg-white transition-all hover:border-slate-300 hover:shadow-sm dark:border-slate-700/60 dark:bg-slate-900 dark:hover:border-slate-600"
             >
-              <div class="flex gap-3 sm:gap-4">
+              <!-- 评论标题栏 -->
+              <div
+                class="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2 dark:border-slate-800 dark:bg-slate-800/50"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="h-2 w-2 rounded-full bg-red-400/50" />
+                  <span class="h-2 w-2 rounded-full bg-amber-400/50" />
+                  <span class="h-2 w-2 rounded-full bg-emerald-400/50" />
+                  <span class="ml-1.5 font-mono text-[10px] text-slate-400 dark:text-slate-600">
+                    comment.{{ String(idx + 1).padStart(2, '0') }}
+                  </span>
+                </div>
+                <!-- 时间 -->
+                <time
+                  :datetime="comment.created_at"
+                  class="font-mono text-[10px] text-slate-400 dark:text-slate-600"
+                >
+                  {{ formatDate(comment.created_at) }}
+                </time>
+              </div>
+
+              <!-- 评论内容区 -->
+              <div class="flex gap-3 p-4 sm:gap-4 sm:p-5">
                 <!-- 头像 -->
                 <div class="flex-shrink-0">
                   <img
                     v-if="comment.profiles?.avatar_url"
                     :src="comment.profiles.avatar_url"
                     :alt="comment.profiles?.username || '用户'"
-                    class="h-9 w-9 rounded-full object-cover ring-2 ring-slate-100 dark:ring-slate-700"
+                    class="h-9 w-9 rounded-xl object-cover ring-2 ring-slate-100 dark:ring-slate-700"
                   />
                   <div
                     v-else
-                    class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600"
+                    class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600"
                   >
                     <Icon
                       name="heroicons:user"
@@ -436,26 +490,18 @@
                     />
                   </div>
                 </div>
+
                 <!-- 内容 -->
                 <div class="min-w-0 flex-1">
                   <div class="mb-2 flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                      <p class="text-sm font-semibold text-slate-900 dark:text-white">
-                        {{
-                          comment.profiles?.username || comment.profiles?.full_name || '匿名用户'
-                        }}
-                      </p>
-                      <time
-                        :datetime="comment.created_at"
-                        class="font-mono text-xs text-slate-400 dark:text-slate-500"
-                      >
-                        {{ formatDate(comment.created_at) }}
-                      </time>
-                    </div>
+                    <p class="text-sm font-semibold text-slate-900 dark:text-white">
+                      {{ comment.profiles?.username || comment.profiles?.full_name || '匿名用户' }}
+                    </p>
+                    <!-- 删除按钮 -->
                     <button
                       v-if="canDeleteComment(comment)"
                       :disabled="deleteLoading === comment.id"
-                      class="touch-optimized flex items-center gap-1 rounded-md px-2 py-1 text-xs text-rose-500 transition-colors hover:bg-rose-50 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-rose-900/20 dark:hover:text-rose-400"
+                      class="flex items-center gap-1 rounded-md px-2 py-1 font-mono text-[10px] text-rose-500 opacity-0 transition-all hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50 group-hover:opacity-100 dark:hover:bg-rose-900/20 dark:hover:text-rose-400"
                       @click="handleDeleteComment(comment.id)"
                     >
                       <Icon

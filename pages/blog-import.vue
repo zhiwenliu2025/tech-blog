@@ -370,11 +370,13 @@
               >
             </div>
             <!-- 渲染预览 -->
+            <!-- eslint-disable vue/no-v-html -->
             <div
               v-else
               class="prose prose-sm max-h-96 max-w-none overflow-y-auto p-5 dark:prose-invert"
               v-html="renderedContent"
             />
+            <!-- eslint-enable vue/no-v-html -->
           </div>
         </div>
 
