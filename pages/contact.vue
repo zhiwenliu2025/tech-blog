@@ -1,316 +1,419 @@
 <template>
   <div>
-    <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
+    <!-- ═══════════════════════
+         深色英雄区
+    ══════════════════════════ -->
+    <div class="relative overflow-hidden bg-slate-900">
+      <!-- 点阵底纹 -->
       <div
-        class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"
-      >
-        <div class="relative h-48 overflow-hidden sm:h-56 md:h-64">
-          <NuxtImg
-            src="https://picsum.photos/seed/contact-hero/1200/400.jpg"
-            alt="联系我"
-            preset="cover"
-            :sizes="'(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px'"
-            class="absolute inset-0 h-full w-full object-cover"
-          />
-          <div
-            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"
-          />
-          <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8">
-            <h1 class="text-2xl font-bold text-white sm:text-3xl md:text-4xl">联系我</h1>
-          </div>
-        </div>
+        class="pointer-events-none absolute inset-0 opacity-[0.18]"
+        style="
+          background-image: radial-gradient(circle, rgb(148 163 184 / 0.3) 1px, transparent 1px);
+          background-size: 28px 28px;
+        "
+      />
+      <div
+        class="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary-600/10 blur-3xl"
+      />
+      <div
+        class="pointer-events-none absolute -left-12 bottom-0 h-48 w-48 rounded-full bg-indigo-600/10 blur-3xl"
+      />
+      <div
+        class="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-slate-700/60 to-transparent"
+      />
 
-        <div class="p-4 sm:p-6 md:p-8">
-          <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <!-- 联系表单 -->
-            <div>
-              <div class="mb-6 flex items-center gap-3 sm:mb-8">
+      <div class="relative mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div class="mb-0.5 font-mono text-xs text-primary-400">// contact.me</div>
+        <h1 class="mt-2 text-2xl font-bold tracking-tight text-white sm:text-3xl">联系我</h1>
+        <p class="mt-3 max-w-lg font-mono text-sm text-slate-400">
+          有技术问题、合作意向或只是想打个招呼？随时欢迎联系。
+        </p>
+        <!-- 响应时间提示 -->
+        <div
+          class="mt-5 inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-1.5"
+        >
+          <span class="relative flex h-2 w-2">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
+            />
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+          </span>
+          <span class="font-mono text-xs text-slate-400"
+            >通常在 <span class="text-emerald-400">24小时</span> 内回复</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════
+         主内容区
+    ══════════════════════════ -->
+    <main class="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+      <div class="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-10">
+        <!-- ── 左侧：联系表单（3列） ── -->
+        <div class="lg:col-span-3">
+          <!-- 终端风格表单卡片 -->
+          <div
+            class="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+          >
+            <!-- 标题栏 -->
+            <div
+              class="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/60"
+            >
+              <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+              <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+              <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+              <span class="ml-2 font-mono text-xs text-slate-500">// compose.message</span>
+            </div>
+
+            <div class="p-5 sm:p-6">
+              <!-- 成功提示 -->
+              <Transition
+                enter-active-class="transition ease-out duration-200"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition ease-in duration-150"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+              >
                 <div
-                  class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 dark:bg-primary-900/30"
+                  v-if="successMessage"
+                  class="mb-5 flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800/50 dark:bg-emerald-900/20"
                 >
                   <Icon
-                    name="heroicons:paper-airplane"
-                    class="h-5 w-5 text-primary-600 dark:text-primary-400"
+                    name="heroicons:check-circle"
+                    class="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500"
                   />
+                  <div>
+                    <p
+                      class="font-mono text-xs font-semibold text-emerald-800 dark:text-emerald-300"
+                    >
+                      message.sent = true
+                    </p>
+                    <p class="mt-0.5 text-sm text-emerald-700 dark:text-emerald-400">
+                      {{ successMessage }}
+                    </p>
+                  </div>
                 </div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
-                  发送消息
-                </h2>
-              </div>
+              </Transition>
 
-              <form class="space-y-5" @submit.prevent="submitForm">
+              <!-- 错误提示 -->
+              <Transition
+                enter-active-class="transition ease-out duration-200"
+                enter-from-class="opacity-0 -translate-y-2"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-active-class="transition ease-in duration-150"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+              >
+                <div
+                  v-if="errorMessage"
+                  class="mb-5 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800/50 dark:bg-red-900/20"
+                >
+                  <Icon
+                    name="heroicons:x-circle"
+                    class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500"
+                  />
+                  <div>
+                    <p class="font-mono text-xs font-semibold text-red-800 dark:text-red-300">
+                      error: send failed
+                    </p>
+                    <p class="mt-0.5 text-sm text-red-700 dark:text-red-400">
+                      {{ errorMessage }}
+                    </p>
+                  </div>
+                </div>
+              </Transition>
+
+              <form class="space-y-4" @submit.prevent="submitForm">
+                <!-- 姓名 -->
                 <div>
                   <label
                     for="name"
-                    class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    class="mb-1.5 flex items-center gap-1.5 font-mono text-xs text-slate-500 dark:text-slate-400"
                   >
-                    姓名 <span class="text-red-500">*</span>
+                    <span class="text-primary-500">name</span><span class="text-slate-400">:</span>
+                    <span class="text-[10px] text-rose-400">required</span>
                   </label>
                   <div class="relative">
-                    <div
-                      class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4"
-                    >
-                      <Icon name="heroicons:user" class="h-5 w-5 text-gray-400" />
-                    </div>
+                    <Icon
+                      name="heroicons:user"
+                      class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                    />
                     <input
                       id="name"
                       v-model="form.name"
                       type="text"
-                      required
-                      class="block w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-4 text-gray-900 transition-all focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800/50 dark:text-white"
-                      :class="{ 'border-red-500 bg-red-50 dark:bg-red-900/20': errors.name }"
+                      placeholder="你的名字"
+                      class="block w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all dark:text-white dark:placeholder-slate-500"
+                      :class="
+                        errors.name
+                          ? 'border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-400/20 dark:border-red-700 dark:bg-red-900/20'
+                          : 'border-slate-200 bg-slate-50 focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:focus:bg-slate-800'
+                      "
                     />
                   </div>
-                  <p v-if="errors.name" class="mt-1 text-sm text-red-500">
-                    {{ errors.name }}
+                  <p
+                    v-if="errors.name"
+                    class="mt-1 flex items-center gap-1 font-mono text-xs text-red-500"
+                  >
+                    <Icon name="heroicons:exclamation-circle" class="h-3 w-3" />{{ errors.name }}
                   </p>
                 </div>
 
+                <!-- 邮箱 -->
                 <div>
                   <label
                     for="email"
-                    class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    class="mb-1.5 flex items-center gap-1.5 font-mono text-xs text-slate-500 dark:text-slate-400"
                   >
-                    邮箱 <span class="text-red-500">*</span>
+                    <span class="text-primary-500">email</span><span class="text-slate-400">:</span>
+                    <span class="text-[10px] text-rose-400">required</span>
                   </label>
                   <div class="relative">
-                    <div
-                      class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4"
-                    >
-                      <Icon name="heroicons:envelope" class="h-5 w-5 text-gray-400" />
-                    </div>
+                    <Icon
+                      name="heroicons:envelope"
+                      class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                    />
                     <input
                       id="email"
                       v-model="form.email"
                       type="email"
-                      required
-                      class="block w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-4 text-gray-900 transition-all focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800/50 dark:text-white"
-                      :class="{ 'border-red-500 bg-red-50 dark:bg-red-900/20': errors.email }"
+                      placeholder="your@email.com"
+                      class="block w-full rounded-lg border py-2.5 pl-10 pr-4 font-mono text-sm text-slate-900 placeholder-slate-400 outline-none transition-all dark:text-white dark:placeholder-slate-500"
+                      :class="
+                        errors.email
+                          ? 'border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-400/20 dark:border-red-700 dark:bg-red-900/20'
+                          : 'border-slate-200 bg-slate-50 focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:focus:bg-slate-800'
+                      "
                     />
                   </div>
-                  <p v-if="errors.email" class="mt-1 text-sm text-red-500">
-                    {{ errors.email }}
+                  <p
+                    v-if="errors.email"
+                    class="mt-1 flex items-center gap-1 font-mono text-xs text-red-500"
+                  >
+                    <Icon name="heroicons:exclamation-circle" class="h-3 w-3" />{{ errors.email }}
                   </p>
                 </div>
 
+                <!-- 主题 -->
                 <div>
                   <label
                     for="subject"
-                    class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    class="mb-1.5 flex items-center gap-1.5 font-mono text-xs text-slate-500 dark:text-slate-400"
                   >
-                    主题 <span class="text-red-500">*</span>
+                    <span class="text-primary-500">subject</span
+                    ><span class="text-slate-400">:</span>
+                    <span class="text-[10px] text-rose-400">required</span>
                   </label>
                   <div class="relative">
-                    <div
-                      class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4"
-                    >
-                      <Icon name="heroicons:chat-bubble-left-right" class="h-5 w-5 text-gray-400" />
-                    </div>
+                    <Icon
+                      name="heroicons:tag"
+                      class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+                    />
                     <input
                       id="subject"
                       v-model="form.subject"
                       type="text"
-                      required
-                      class="block w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-12 pr-4 text-gray-900 transition-all focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800/50 dark:text-white"
-                      :class="{ 'border-red-500 bg-red-50 dark:bg-red-900/20': errors.subject }"
+                      placeholder="消息主题"
+                      class="block w-full rounded-lg border py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all dark:text-white dark:placeholder-slate-500"
+                      :class="
+                        errors.subject
+                          ? 'border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-400/20 dark:border-red-700 dark:bg-red-900/20'
+                          : 'border-slate-200 bg-slate-50 focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:focus:bg-slate-800'
+                      "
                     />
                   </div>
-                  <p v-if="errors.subject" class="mt-1 text-sm text-red-500">
-                    {{ errors.subject }}
+                  <p
+                    v-if="errors.subject"
+                    class="mt-1 flex items-center gap-1 font-mono text-xs text-red-500"
+                  >
+                    <Icon name="heroicons:exclamation-circle" class="h-3 w-3" />{{ errors.subject }}
                   </p>
                 </div>
 
+                <!-- 消息 -->
                 <div>
                   <label
                     for="message"
-                    class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    class="mb-1.5 flex items-center justify-between font-mono text-xs text-slate-500 dark:text-slate-400"
                   >
-                    消息 <span class="text-red-500">*</span>
+                    <span class="flex items-center gap-1.5">
+                      <span class="text-primary-500">message</span
+                      ><span class="text-slate-400">:</span>
+                      <span class="text-[10px] text-rose-400">required</span>
+                    </span>
+                    <span class="text-[10px] text-slate-400">{{ form.message.length }} chars</span>
                   </label>
                   <textarea
                     id="message"
                     v-model="form.message"
                     rows="5"
-                    required
-                    class="block w-full rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition-all focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:border-gray-600 dark:bg-gray-800/50 dark:text-white"
-                    :class="{ 'border-red-500 bg-red-50 dark:bg-red-900/20': errors.message }"
                     placeholder="写下你想说的话..."
+                    class="block w-full resize-none rounded-lg border p-3.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all dark:text-white dark:placeholder-slate-500"
+                    :class="
+                      errors.message
+                        ? 'border-red-300 bg-red-50 focus:border-red-400 focus:ring-2 focus:ring-red-400/20 dark:border-red-700 dark:bg-red-900/20'
+                        : 'border-slate-200 bg-slate-50 focus:border-primary-400 focus:bg-white focus:ring-2 focus:ring-primary-400/20 dark:border-slate-700 dark:bg-slate-800/50 dark:focus:bg-slate-800'
+                    "
                   />
-                  <p v-if="errors.message" class="mt-1 text-sm text-red-500">
-                    {{ errors.message }}
+                  <p
+                    v-if="errors.message"
+                    class="mt-1 flex items-center gap-1 font-mono text-xs text-red-500"
+                  >
+                    <Icon name="heroicons:exclamation-circle" class="h-3 w-3" />{{ errors.message }}
                   </p>
                 </div>
 
+                <!-- 提交按钮 -->
                 <button
                   type="submit"
                   :disabled="isSubmitting"
-                  class="touch-optimized flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-600/25 transition-all hover:bg-primary-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50 dark:bg-primary-600 dark:hover:bg-primary-700"
+                  class="touch-optimized group flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-600/20 transition-all hover:bg-primary-500 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Icon
                     v-if="isSubmitting"
                     name="heroicons:arrow-path"
-                    class="h-5 w-5 animate-spin"
+                    class="h-4 w-4 animate-spin"
                   />
-                  <Icon v-else name="heroicons:paper-airplane" class="h-5 w-5" />
+                  <Icon
+                    v-else
+                    name="heroicons:paper-airplane"
+                    class="h-4 w-4 transition-transform group-hover:-rotate-45"
+                  />
                   {{ isSubmitting ? '发送中...' : '发送消息' }}
                 </button>
               </form>
+            </div>
+          </div>
+        </div>
 
-              <!-- 成功消息 -->
+        <!-- ── 右侧：联系信息（2列） ── -->
+        <div class="space-y-5 lg:col-span-2">
+          <!-- 联系方式卡片（深色终端风格） -->
+          <div class="overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
+            <div
+              class="flex items-center gap-2 border-b border-slate-800 bg-slate-800/80 px-4 py-2.5"
+            >
+              <span class="h-2.5 w-2.5 rounded-full bg-red-400/70" />
+              <span class="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+              <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+              <span class="ml-2 font-mono text-xs text-slate-500">contact.json</span>
+            </div>
+            <div class="space-y-0 p-1">
+              <!-- 地点 -->
               <div
-                v-if="successMessage"
-                class="mt-5 rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-800/50 dark:bg-green-900/20"
+                class="flex items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-slate-800/50"
               >
-                <div class="flex items-start gap-3">
-                  <Icon
-                    name="heroicons:check-circle"
-                    class="h-5 w-5 flex-shrink-0 text-green-500"
-                  />
-                  <div>
-                    <h3 class="font-medium text-green-800 dark:text-green-200">消息发送成功</h3>
-                    <p class="mt-1 text-sm text-green-700 dark:text-green-300">
-                      {{ successMessage }}
-                    </p>
-                  </div>
+                <div
+                  class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-900/50"
+                >
+                  <Icon name="heroicons:map-pin" class="h-4 w-4 text-sky-400" />
+                </div>
+                <div>
+                  <p class="font-mono text-xs text-slate-500">location</p>
+                  <p class="text-sm font-medium text-slate-200">中国，上海</p>
                 </div>
               </div>
+              <div class="mx-4 border-t border-slate-800" />
 
-              <!-- 错误消息 -->
-              <div
-                v-if="errorMessage"
-                class="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800/50 dark:bg-red-900/20"
+              <!-- 邮件 -->
+              <a
+                href="mailto:contact@example.com"
+                class="flex items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-slate-800/50"
               >
-                <div class="flex items-start gap-3">
-                  <Icon name="heroicons:x-circle" class="h-5 w-5 flex-shrink-0 text-red-500" />
-                  <div>
-                    <h3 class="font-medium text-red-800 dark:text-red-200">发送失败</h3>
-                    <p class="mt-1 text-sm text-red-700 dark:text-red-300">
-                      {{ errorMessage }}
-                    </p>
-                  </div>
+                <div
+                  class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary-900/50"
+                >
+                  <Icon name="heroicons:envelope" class="h-4 w-4 text-primary-400" />
+                </div>
+                <div>
+                  <p class="font-mono text-xs text-slate-500">email</p>
+                  <p
+                    class="font-mono text-sm text-primary-400 transition-colors hover:text-primary-300"
+                  >
+                    contact@example.com
+                  </p>
+                </div>
+              </a>
+              <div class="mx-4 border-t border-slate-800" />
+
+              <!-- 微信 -->
+              <div
+                class="flex items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-slate-800/50"
+              >
+                <div
+                  class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-900/50"
+                >
+                  <Icon name="i-simple-icons-wechat" class="h-4 w-4 text-emerald-400" />
+                </div>
+                <div>
+                  <p class="font-mono text-xs text-slate-500">wechat</p>
+                  <p class="font-mono text-sm text-slate-200">braveheartonline</p>
+                </div>
+              </div>
+              <div class="mx-4 border-t border-slate-800" />
+
+              <!-- 工作时间 -->
+              <div
+                class="flex items-center gap-3 rounded-lg px-4 py-3 transition-colors hover:bg-slate-800/50"
+              >
+                <div
+                  class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-purple-900/50"
+                >
+                  <Icon name="heroicons:clock" class="h-4 w-4 text-purple-400" />
+                </div>
+                <div>
+                  <p class="font-mono text-xs text-slate-500">working_hours</p>
+                  <p class="font-mono text-xs text-slate-300">Mon–Fri&nbsp;&nbsp;09:00–18:00</p>
+                  <p class="font-mono text-xs text-slate-500">Sat–Sun&nbsp;10:00–16:00</p>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- 联系信息 -->
-            <div>
-              <div class="mb-6 flex items-center gap-3 sm:mb-8">
-                <div
-                  class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 dark:bg-primary-900/30"
-                >
-                  <Icon
-                    name="heroicons:information-circle"
-                    class="h-5 w-5 text-primary-600 dark:text-primary-400"
-                  />
-                </div>
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
-                  联系信息
-                </h2>
-              </div>
-
-              <div class="space-y-5">
-                <div
-                  class="flex items-start gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50"
-                >
-                  <div
-                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30"
-                  >
-                    <Icon
-                      name="heroicons:map-pin"
-                      class="h-5 w-5 text-blue-600 dark:text-blue-400"
-                    />
-                  </div>
-                  <div>
-                    <h3 class="font-medium text-gray-900 dark:text-white">工作地点</h3>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">中国，上海</p>
-                  </div>
-                </div>
-
-                <div
-                  class="flex items-start gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50"
-                >
-                  <div
-                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30"
-                  >
-                    <Icon
-                      name="heroicons:chat-bubble-left-right"
-                      class="h-5 w-5 text-green-600 dark:text-green-400"
-                    />
-                  </div>
-                  <div>
-                    <h3 class="font-medium text-gray-900 dark:text-white">微信号</h3>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">请通过表单联系获取</p>
-                  </div>
-                </div>
-
-                <div
-                  class="flex items-start gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-800/50"
-                >
-                  <div
-                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30"
-                  >
-                    <Icon
-                      name="heroicons:clock"
-                      class="h-5 w-5 text-purple-600 dark:text-purple-400"
-                    />
-                  </div>
-                  <div>
-                    <h3 class="font-medium text-gray-900 dark:text-white">工作时间</h3>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                      周一至周五: 9:00 - 18:00
-                    </p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">周末: 10:00 - 16:00</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-6 sm:mt-8">
-                <h3 class="mb-4 text-sm font-medium text-gray-500 dark:text-gray-400">社交媒体</h3>
-                <div class="flex gap-3">
-                  <a
-                    href="#"
-                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-primary-100 hover:text-primary-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-primary-900/30 dark:hover:text-primary-400"
-                  >
-                    <Icon name="simple-icons:github" class="h-5 w-5" />
-                  </a>
-                  <a
-                    href="#"
-                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-blue-100 hover:text-blue-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
-                  >
-                    <Icon name="simple-icons:twitter" class="h-5 w-5" />
-                  </a>
-                  <a
-                    href="#"
-                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-green-100 hover:text-green-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-green-900/30 dark:hover:text-green-400"
-                  >
-                    <Icon name="simple-icons:weixin" class="h-5 w-5" />
-                  </a>
-                  <a
-                    href="#"
-                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-red-100 hover:text-red-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-red-900/30 dark:hover:text-red-400"
-                  >
-                    <Icon name="heroicons:envelope" class="h-5 w-5" />
-                  </a>
-                </div>
-              </div>
-
-              <div
-                class="mt-6 rounded-xl border border-primary-200 bg-primary-50 p-5 dark:border-primary-800/50 dark:bg-primary-900/20"
+          <!-- 社交媒体 -->
+          <div
+            class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+          >
+            <p class="mb-3 font-mono text-xs text-slate-400 dark:text-slate-500">// social.links</p>
+            <div class="grid grid-cols-4 gap-2">
+              <a
+                v-for="s in socials"
+                :key="s.label"
+                :href="s.href"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group flex flex-col items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 py-3 transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-800/40"
+                :class="s.hover"
               >
-                <div class="flex items-start gap-3">
-                  <Icon
-                    name="heroicons:light-bulb"
-                    class="h-5 w-5 flex-shrink-0 text-primary-600 dark:text-primary-400"
-                  />
-                  <div>
-                    <h3 class="font-medium text-primary-800 dark:text-primary-200">温馨提示</h3>
-                    <p class="mt-1 text-sm text-primary-700 dark:text-primary-300">
-                      我们通常会在24小时内回复您发送的消息。如果您需要紧急帮助，请直接发送邮件至
-                      support@example.com
-                    </p>
-                  </div>
-                </div>
-              </div>
+                <Icon
+                  :name="s.icon"
+                  class="h-5 w-5 transition-colors"
+                  :class="[s.color, s.groupColor]"
+                />
+                <span
+                  class="font-mono text-[10px] text-slate-400 transition-colors"
+                  :class="s.labelHover"
+                  >{{ s.label }}</span
+                >
+              </a>
+            </div>
+          </div>
+
+          <!-- 提示信息 -->
+          <div class="overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
+            <div class="border-b border-slate-800 bg-slate-800/80 px-4 py-2">
+              <span class="font-mono text-xs text-slate-500">$ tips</span>
+            </div>
+            <div class="p-4">
+              <p class="font-mono text-xs leading-relaxed text-slate-400">
+                <span class="text-emerald-400">›</span> 通常在
+                <span class="text-white">24小时</span> 内回复<br />
+                <span class="text-emerald-400">›</span> 紧急事项请发邮件至<br />
+                <span class="ml-3 text-primary-400">contact@example.com</span><br />
+                <span class="text-emerald-400">›</span> 欢迎技术交流 &amp; 合作咨询
+              </p>
             </div>
           </div>
         </div>
@@ -320,47 +423,64 @@
 </template>
 
 <script setup lang="ts">
-// 页面元数据
 definePageMeta({
   title: '联系我',
   description: '通过表单或直接联系方式与我取得联系'
 })
 
-// 表单状态
-const form = ref({
-  name: '',
-  email: '',
-  subject: '',
-  message: ''
-})
-
-const errors = ref({
-  name: '',
-  email: '',
-  subject: '',
-  message: ''
-})
-
+const form = ref({ name: '', email: '', subject: '', message: '' })
+const errors = ref({ name: '', email: '', subject: '', message: '' })
 const isSubmitting = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 
-// 表单验证
-const validateForm = () => {
-  errors.value = {
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
+const socials = [
+  {
+    label: 'GitHub',
+    href: 'https://github.com',
+    icon: 'i-simple-icons-github',
+    color: 'text-slate-500 dark:text-slate-400',
+    groupColor: 'group-hover:text-slate-900 dark:group-hover:text-white',
+    hover: 'hover:border-slate-400 dark:hover:border-slate-600',
+    labelHover: 'group-hover:text-slate-600 dark:group-hover:text-slate-300'
+  },
+  {
+    label: 'Twitter',
+    href: 'https://twitter.com',
+    icon: 'i-simple-icons-twitter',
+    color: 'text-slate-500 dark:text-slate-400',
+    groupColor: 'group-hover:text-sky-500',
+    hover: 'hover:border-sky-200 dark:hover:border-sky-800/60',
+    labelHover: 'group-hover:text-sky-500'
+  },
+  {
+    label: 'WeChat',
+    href: '#',
+    icon: 'i-simple-icons-wechat',
+    color: 'text-slate-500 dark:text-slate-400',
+    groupColor: 'group-hover:text-emerald-500',
+    hover: 'hover:border-emerald-200 dark:hover:border-emerald-800/60',
+    labelHover: 'group-hover:text-emerald-500'
+  },
+  {
+    label: 'Email',
+    href: 'mailto:contact@example.com',
+    icon: 'heroicons:envelope',
+    color: 'text-slate-500 dark:text-slate-400',
+    groupColor: 'group-hover:text-primary-600 dark:group-hover:text-primary-400',
+    hover: 'hover:border-primary-200 dark:hover:border-primary-800/60',
+    labelHover: 'group-hover:text-primary-600 dark:group-hover:text-primary-400'
   }
+]
 
+const validateForm = () => {
+  errors.value = { name: '', email: '', subject: '', message: '' }
   let isValid = true
 
   if (!form.value.name.trim()) {
     errors.value.name = '请输入您的姓名'
     isValid = false
   }
-
   if (!form.value.email.trim()) {
     errors.value.email = '请输入您的邮箱'
     isValid = false
@@ -368,21 +488,17 @@ const validateForm = () => {
     errors.value.email = '请输入有效的邮箱地址'
     isValid = false
   }
-
   if (!form.value.subject.trim()) {
     errors.value.subject = '请输入消息主题'
     isValid = false
   }
-
   if (!form.value.message.trim()) {
     errors.value.message = '请输入消息内容'
     isValid = false
   }
-
   return isValid
 }
 
-// 提交表单
 const submitForm = async () => {
   if (!validateForm()) return
 
@@ -392,9 +508,7 @@ const submitForm = async () => {
 
   try {
     const supabase = useSupabaseClient()
-
-    // 保存联系消息到数据库
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('contact_messages')
       .insert({
         name: form.value.name.trim(),
@@ -406,8 +520,6 @@ const submitForm = async () => {
       .single()
 
     if (error) {
-      console.error('插入联系消息失败:', error)
-      // 检查是否是权限错误
       if (
         error.code === '42501' ||
         error.message?.includes('permission') ||
@@ -418,26 +530,13 @@ const submitForm = async () => {
       throw error
     }
 
-    // 成功消息
     successMessage.value = '您的消息已成功发送！我会尽快回复您。'
-
-    // 重置表单
-    form.value = {
-      name: '',
-      email: '',
-      subject: '',
-      message: ''
-    }
-
-    // 5秒后清除成功消息
+    form.value = { name: '', email: '', subject: '', message: '' }
     setTimeout(() => {
       successMessage.value = ''
     }, 5000)
-  } catch (error: any) {
-    console.error('发送消息失败:', error)
-    errorMessage.value = error.message || '发送消息时出现错误，请稍后再试。'
-
-    // 5秒后清除错误消息
+  } catch (err: any) {
+    errorMessage.value = err.message || '发送消息时出现错误，请稍后再试。'
     setTimeout(() => {
       errorMessage.value = ''
     }, 5000)
