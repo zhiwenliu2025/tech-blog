@@ -8,10 +8,13 @@
       </h3>
       <NuxtLink
         to="/blog?sort=hot"
-        class="inline-flex items-center gap-0.5 text-xs font-medium text-primary-600 transition-all duration-150 hover:gap-1 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+        class="group inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500 transition-all duration-150 hover:bg-primary-50 hover:text-primary-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
       >
-        更多
-        <Icon name="heroicons:arrow-right" class="h-3 w-3" />
+        查看更多
+        <Icon
+          name="heroicons:arrow-right"
+          class="h-3 w-3 transition-transform duration-150 group-hover:translate-x-0.5"
+        />
       </NuxtLink>
     </div>
 
