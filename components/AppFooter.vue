@@ -107,15 +107,15 @@
         <div class="lg:col-span-4">
           <h3 class="mb-5 font-mono text-xs text-slate-500">// 技术分类</h3>
           <ul class="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-1">
-            <li v-for="cat in categoryLinks" :key="cat.path">
+            <li v-for="cat in categoryLinks" :key="cat">
               <NuxtLink
-                :to="cat.path"
+                :to="`/category/${encodeURIComponent(cat)}`"
                 class="group flex items-center gap-2 text-sm text-slate-400 transition-colors duration-150 hover:text-white"
               >
                 <span
                   class="h-px w-0 rounded-full bg-primary-400 transition-all duration-200 group-hover:w-4"
                 />
-                {{ cat.label }}
+                {{ cat }}
               </NuxtLink>
             </li>
           </ul>
@@ -160,12 +160,5 @@ const navLinks = [
   { label: '联系', path: '/contact' }
 ]
 
-const categoryLinks = [
-  { label: '前端开发', path: '/blog?category=前端开发' },
-  { label: '后端开发', path: '/blog?category=后端开发' },
-  { label: 'DevOps', path: '/blog?category=DevOps' },
-  { label: '人工智能', path: '/blog?category=人工智能' },
-  { label: '架构设计', path: '/blog?category=架构设计' },
-  { label: '云计算', path: '/blog?category=云计算' }
-]
+const categoryLinks = ['前端开发', '后端开发', 'DevOps', '人工智能', '架构设计', '云计算']
 </script>

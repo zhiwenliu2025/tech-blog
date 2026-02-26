@@ -578,7 +578,7 @@
                     <NuxtLink
                       v-for="(category, idx) in categories.slice(0, 6)"
                       :key="category"
-                      :to="`/blog?category=${encodeURIComponent(category)}`"
+                      :to="`/category/${encodeURIComponent(category)}`"
                       class="group relative flex items-center justify-between rounded-lg px-3 py-2.5 transition-all duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/80"
                     >
                       <!-- 左侧彩条（hover 展开） -->
