@@ -437,14 +437,33 @@
           <div class="lg:col-span-1">
             <div class="sticky top-20 space-y-4">
               <!-- 写文章入口 (仅登录用户) -->
-              <div v-if="user" class="card overflow-hidden">
+              <div
+                v-if="user"
+                class="overflow-hidden rounded-xl border border-dashed border-primary-300 bg-primary-50/60 dark:border-primary-800/50 dark:bg-primary-950/20"
+              >
                 <div class="p-4">
+                  <div class="mb-3 flex items-center gap-3">
+                    <div
+                      class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary-100 dark:bg-primary-900/50"
+                    >
+                      <Icon
+                        name="i-heroicons-pencil-square"
+                        class="h-4 w-4 text-primary-600 dark:text-primary-400"
+                      />
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                        分享你的想法
+                      </p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">写一篇技术文章</p>
+                    </div>
+                  </div>
                   <NuxtLink
-                    to="/blog/write"
-                    class="touch-optimized flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-500/20 transition-all duration-200 hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:shadow-primary-500/30"
+                    to="/blog/create"
+                    class="touch-optimized flex w-full items-center justify-center gap-2 rounded-xl bg-primary-600 py-2.5 text-sm font-semibold text-white shadow-sm shadow-primary-600/20 transition-all duration-200 hover:bg-primary-700 hover:shadow-md hover:shadow-primary-600/25"
                   >
                     <Icon name="i-heroicons-pencil-square" class="h-4 w-4" />
-                    写文章
+                    开始写作
                   </NuxtLink>
                 </div>
               </div>
@@ -454,6 +473,7 @@
 
               <!-- 关于博客 -->
               <div class="card overflow-hidden">
+                <!-- 渐变标题 -->
                 <div
                   class="relative overflow-hidden bg-gradient-to-br from-primary-600 to-primary-700 px-4 py-3.5"
                 >
@@ -469,10 +489,49 @@
                     关于博客
                   </h3>
                 </div>
+
                 <div class="p-4">
                   <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
                     基于 Nuxt 4 + Supabase 构建的技术博客，专注分享前端、后端、架构设计等深度内容。
                   </p>
+
+                  <!-- 迷你统计条 -->
+                  <div
+                    class="mt-3 grid grid-cols-3 divide-x divide-gray-200 overflow-hidden rounded-lg bg-gray-50 dark:divide-gray-700 dark:bg-gray-800/50"
+                  >
+                    <div class="flex flex-col items-center py-2.5">
+                      <span class="text-sm font-bold text-gray-900 dark:text-white">
+                        <span v-if="loading" class="animate-pulse text-gray-300 dark:text-gray-600"
+                          >—</span
+                        >
+                        <span v-else>{{ posts.length }}</span>
+                      </span>
+                      <span class="text-[10px] text-gray-400 dark:text-gray-500">文章</span>
+                    </div>
+                    <div class="flex flex-col items-center py-2.5">
+                      <span class="text-sm font-bold text-gray-900 dark:text-white">
+                        <span
+                          v-if="categoriesLoading"
+                          class="animate-pulse text-gray-300 dark:text-gray-600"
+                          >—</span
+                        >
+                        <span v-else>{{ categories.length }}</span>
+                      </span>
+                      <span class="text-[10px] text-gray-400 dark:text-gray-500">分类</span>
+                    </div>
+                    <div class="flex flex-col items-center py-2.5">
+                      <span class="text-sm font-bold text-gray-900 dark:text-white">
+                        <span
+                          v-if="tagsLoading"
+                          class="animate-pulse text-gray-300 dark:text-gray-600"
+                          >—</span
+                        >
+                        <span v-else>{{ tags.length }}</span>
+                      </span>
+                      <span class="text-[10px] text-gray-400 dark:text-gray-500">标签</span>
+                    </div>
+                  </div>
+
                   <NuxtLink
                     to="/about"
                     class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary-600 transition-all duration-150 hover:gap-1.5 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
@@ -501,13 +560,22 @@
                   </div>
                   <div v-else-if="categories && categories.length > 0">
                     <NuxtLink
-                      v-for="category in categories.slice(0, 6)"
+                      v-for="(category, idx) in categories.slice(0, 6)"
                       :key="category"
                       :to="`/blog?category=${encodeURIComponent(category)}`"
-                      class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800/80 dark:hover:text-primary-400"
+                      class="group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm text-gray-700 transition-colors duration-150 hover:bg-gray-50 hover:text-primary-600 dark:text-gray-300 dark:hover:bg-gray-800/80 dark:hover:text-primary-400"
                     >
-                      <span>{{ category }}</span>
-                      <Icon name="i-heroicons-chevron-right" class="h-3.5 w-3.5 text-gray-400" />
+                      <span class="flex items-center gap-2.5">
+                        <span
+                          class="h-1.5 w-1.5 flex-shrink-0 rounded-full transition-colors duration-150"
+                          :class="getCategoryDotClass(idx)"
+                        />
+                        {{ category }}
+                      </span>
+                      <Icon
+                        name="i-heroicons-chevron-right"
+                        class="h-3.5 w-3.5 text-gray-300 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-primary-400 dark:text-gray-600"
+                      />
                     </NuxtLink>
                   </div>
                   <div v-else class="py-4 text-center text-sm text-gray-400">暂无分类</div>
@@ -532,7 +600,7 @@
                   </div>
                   <div v-else-if="tags && tags.length > 0" class="flex flex-wrap gap-1.5">
                     <NuxtLink
-                      v-for="tag in tags.slice(0, 12)"
+                      v-for="tag in tags.slice(0, 15)"
                       :key="tag"
                       :to="`/blog?tag=${encodeURIComponent(tag)}`"
                       class="tag text-xs"
@@ -541,6 +609,27 @@
                     </NuxtLink>
                   </div>
                   <div v-else class="py-4 text-center text-sm text-gray-400">暂无标签</div>
+                </div>
+              </div>
+
+              <!-- 技术栈 -->
+              <div class="card overflow-hidden">
+                <div class="sidebar-widget-header">
+                  <h3 class="sidebar-widget-title">
+                    <Icon name="i-heroicons-cpu-chip" class="h-4 w-4 text-primary-500" />
+                    技术栈
+                  </h3>
+                </div>
+                <div class="p-4">
+                  <div class="flex flex-wrap gap-1.5">
+                    <span
+                      v-for="tech in sidebarTechStack"
+                      :key="tech"
+                      class="inline-flex items-center rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 font-mono text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                    >
+                      {{ tech }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -565,6 +654,29 @@ const techTags = [
   'Go',
   'React'
 ]
+
+// 侧边栏技术栈
+const sidebarTechStack = [
+  'Nuxt 4',
+  'Vue 3',
+  'TypeScript',
+  'Tailwind CSS',
+  'Supabase',
+  'Tiptap',
+  'highlight.js',
+  'Vercel'
+]
+
+// 分类圆点颜色循环
+const categoryDotClasses = [
+  'bg-primary-400',
+  'bg-violet-400',
+  'bg-emerald-400',
+  'bg-amber-400',
+  'bg-rose-400',
+  'bg-sky-400'
+]
+const getCategoryDotClass = (idx: number) => categoryDotClasses[idx % categoryDotClasses.length]
 
 // 分页与筛选状态
 const currentPage = ref(parseInt((route.query.page as string) || '1'))

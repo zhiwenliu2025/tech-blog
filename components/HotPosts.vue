@@ -8,40 +8,38 @@
       </h3>
       <NuxtLink
         to="/blog?sort=hot"
-        class="text-xs font-medium text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+        class="inline-flex items-center gap-0.5 text-xs font-medium text-primary-600 transition-all duration-150 hover:gap-1 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
       >
         更多
+        <Icon name="heroicons:arrow-right" class="h-3 w-3" />
       </NuxtLink>
     </div>
 
     <!-- 内容 -->
-    <div class="p-2">
+    <div class="divide-y divide-gray-100 dark:divide-gray-800">
       <!-- 加载状态 -->
-      <div v-if="loading" class="space-y-1">
-        <div
-          v-for="i in limit"
-          :key="i"
-          class="flex animate-pulse items-start gap-3 rounded-lg p-3"
-        >
-          <div class="h-7 w-7 flex-shrink-0 rounded-full bg-gray-100 dark:bg-gray-800" />
-          <div class="flex-1 space-y-2">
-            <div class="h-3.5 w-3/4 rounded-md bg-gray-100 dark:bg-gray-800" />
-            <div class="h-3 w-1/2 rounded-md bg-gray-100 dark:bg-gray-800" />
+      <div v-if="loading">
+        <div v-for="i in limit" :key="i" class="flex animate-pulse items-start gap-3 p-3">
+          <div class="h-7 w-7 flex-shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800" />
+          <div class="flex-1 space-y-2 pt-0.5">
+            <div class="h-3 w-4/5 rounded-md bg-gray-100 dark:bg-gray-800" />
+            <div class="h-2.5 w-2/3 rounded-md bg-gray-100 dark:bg-gray-800" />
+            <div class="h-1 w-full rounded-full bg-gray-100 dark:bg-gray-800" />
           </div>
         </div>
       </div>
 
       <!-- 热门文章列表 -->
-      <div v-else-if="hotPosts && hotPosts.length > 0">
+      <template v-else-if="hotPosts && hotPosts.length > 0">
         <NuxtLink
           v-for="(post, index) in hotPosts"
           :key="post.id"
           :to="`/blog/${post.slug}`"
-          class="group flex items-start gap-3 rounded-lg p-3 transition-all duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/80"
+          class="group flex items-start gap-3 p-3 transition-all duration-150 hover:bg-gray-50 dark:hover:bg-gray-800/60"
         >
           <!-- 排名徽章 -->
           <div
-            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-xs font-bold"
+            class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-xs font-bold"
             :class="getRankClass(index)"
           >
             {{ index + 1 }}
@@ -50,37 +48,50 @@
           <!-- 文章信息 -->
           <div class="min-w-0 flex-1">
             <h4
-              class="mb-1 line-clamp-2 text-xs font-medium leading-snug text-gray-800 transition-colors group-hover:text-primary-600 dark:text-gray-200 dark:group-hover:text-primary-400"
+              class="mb-1.5 line-clamp-2 text-xs font-medium leading-snug text-gray-800 transition-colors group-hover:text-primary-600 dark:text-gray-200 dark:group-hover:text-primary-400"
             >
               {{ post.title }}
             </h4>
+
+            <!-- 热度条 -->
+            <div
+              class="mb-1.5 h-1 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"
+            >
+              <div
+                class="h-full rounded-full transition-all duration-700"
+                :class="getHeatBarClass(index)"
+                :style="{ width: `${getHeatWidth(post)}%` }"
+              />
+            </div>
+
+            <!-- 统计数字 -->
             <div class="flex items-center gap-2.5 text-xs text-gray-400 dark:text-gray-500">
               <span class="flex items-center gap-0.5">
                 <Icon name="heroicons:eye" class="h-3 w-3" />
                 {{ formatNumber(post.view_count || 0) }}
               </span>
               <span class="flex items-center gap-0.5">
-                <Icon name="heroicons:heart" class="h-3 w-3" />
+                <Icon name="heroicons:heart" class="h-3 w-3 text-red-400" />
                 {{ formatNumber(post.likes_count || 0) }}
               </span>
             </div>
           </div>
         </NuxtLink>
-      </div>
+      </template>
 
       <!-- 空状态 -->
       <div v-else class="flex flex-col items-center justify-center py-8 text-center">
         <Icon name="heroicons:fire" class="mb-2 h-8 w-8 text-gray-200 dark:text-gray-700" />
         <p class="text-xs text-gray-400">暂无热门文章</p>
       </div>
+    </div>
 
-      <!-- 错误提示 -->
-      <div
-        v-if="error"
-        class="rounded-lg bg-red-50 p-3 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400"
-      >
-        {{ error }}
-      </div>
+    <!-- 错误提示 -->
+    <div
+      v-if="error"
+      class="mx-3 mb-3 rounded-lg bg-red-50 p-3 text-xs text-red-600 dark:bg-red-900/20 dark:text-red-400"
+    >
+      {{ error }}
     </div>
   </div>
 </template>
@@ -100,32 +111,42 @@ const props = withDefaults(defineProps<Props>(), {
   useDecay: true
 })
 
-// 使用缓存版本的热门文章 composable
 const { posts: hotPosts, loading, error, fetchHotPosts } = useCachedHotPosts()
 
-// 组件挂载时获取热门文章（通过缓存API）
 onMounted(async () => {
   await fetchHotPosts(props.limit, props.days)
 })
 
-// 获取排名样式
+// 获取排名徽章样式
 const getRankClass = (index: number): string => {
   const classes: Record<number, string> = {
-    0: 'bg-yellow-400 text-white',
-    1: 'bg-gray-400 text-white',
-    2: 'bg-orange-400 text-white'
+    0: 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white shadow-sm shadow-yellow-400/30',
+    1: 'bg-gradient-to-br from-slate-400 to-slate-500 text-white shadow-sm shadow-slate-400/20',
+    2: 'bg-gradient-to-br from-orange-400 to-amber-500 text-white shadow-sm shadow-orange-400/20'
   }
-
-  return classes[index] || 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+  return classes[index] ?? 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
 }
 
-// 格式化数字（1000 -> 1k, 1000000 -> 1M）
+// 热度条颜色：前三名用暖色，其余用蓝色
+const getHeatBarClass = (index: number): string => {
+  if (index === 0) return 'bg-gradient-to-r from-yellow-400 to-orange-500'
+  if (index === 1) return 'bg-gradient-to-r from-slate-400 to-slate-500'
+  if (index === 2) return 'bg-gradient-to-r from-orange-400 to-amber-400'
+  return 'bg-gradient-to-r from-primary-400 to-primary-500'
+}
+
+// 相对热度宽度（以列表中最高浏览量为基准）
+const getHeatWidth = (post: any): number => {
+  if (!hotPosts.value?.length) return 20
+  const maxViews = Math.max(...hotPosts.value.map((p: any) => p.view_count || 0))
+  if (maxViews === 0) return 20
+  return Math.max(12, Math.round(((post.view_count || 0) / maxViews) * 100))
+}
+
+// 格式化数字
 const formatNumber = (num: number): string => {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
-  } else if (num >= 1000) {
-    return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-  }
+  if (num >= 1000000) return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (num >= 1000) return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
   return num.toString()
 }
 </script>
