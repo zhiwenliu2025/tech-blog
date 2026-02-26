@@ -1,162 +1,144 @@
 <template>
-  <footer
-    class="safe-area-bottom border-t border-gray-200 bg-white/80 backdrop-blur-sm transition-colors duration-300 dark:border-gray-800/80 dark:bg-gray-900/90"
-  >
-    <div class="container mx-auto px-3 py-8 sm:px-4 sm:py-10 md:px-6 md:py-12">
-      <div class="grid grid-cols-1 gap-8 sm:gap-10 md:grid-cols-2 lg:grid-cols-4">
-        <!-- Logo 和描述 -->
-        <div class="col-span-1 text-center lg:col-span-2 lg:text-left">
-          <div class="mb-4 flex items-center justify-center space-x-2 lg:justify-start">
+  <footer class="safe-area-bottom relative overflow-hidden bg-slate-900">
+    <!-- 点阵底纹（与 Hero 一致） -->
+    <div
+      class="pointer-events-none absolute inset-0 opacity-[0.18]"
+      style="
+        background-image: radial-gradient(circle, rgb(148 163 184 / 0.3) 1px, transparent 1px);
+        background-size: 28px 28px;
+      "
+    />
+    <!-- 顶部渐变淡入 -->
+    <div
+      class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-900/80 to-transparent"
+    />
+    <!-- 右下角光晕 -->
+    <div
+      class="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-primary-600/10 blur-3xl"
+    />
+    <!-- 左上角光晕 -->
+    <div
+      class="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-indigo-600/10 blur-3xl"
+    />
+
+    <div class="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+      <!-- 主内容网格 -->
+      <div class="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
+        <!-- 品牌区 (5 列) -->
+        <div class="lg:col-span-5">
+          <!-- Logo -->
+          <div class="mb-5 flex items-center gap-3">
             <div
-              class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/25 sm:h-10 sm:w-10"
+              class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 shadow-lg shadow-primary-500/25"
             >
               <Icon name="i-heroicons-book-open" class="h-5 w-5 text-white" />
             </div>
-            <span
-              class="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-xl font-bold text-transparent dark:from-white dark:to-gray-300"
-              >{{ appName }}</span
-            >
+            <span class="text-xl font-bold text-white">{{ appName }}</span>
           </div>
-          <p
-            class="mx-auto max-w-md text-sm leading-relaxed text-gray-600 dark:text-gray-400 lg:mx-0 lg:text-base"
-          >
+
+          <!-- 描述 -->
+          <p class="mb-6 max-w-sm text-sm leading-relaxed text-slate-400">
             {{ appDescription }}
           </p>
-          <div class="mt-6 flex justify-center space-x-4 lg:justify-start">
+
+          <!-- 终端风格 "built with" -->
+          <div
+            class="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-800/60 px-3 py-2 font-mono text-xs"
+          >
+            <span class="text-slate-500">$</span>
+            <span class="text-slate-400">built with</span>
+            <span class="text-primary-400">nuxt</span>
+            <span class="text-slate-600">·</span>
+            <span class="text-emerald-400">supabase</span>
+            <span class="text-slate-600">·</span>
+            <span class="text-sky-400">tailwind</span>
+            <span class="inline-block h-3.5 w-0.5 animate-pulse bg-primary-400 opacity-80" />
+          </div>
+
+          <!-- 社交图标 -->
+          <div class="flex items-center gap-2">
             <a
               href="https://github.com"
               target="_blank"
               rel="noopener noreferrer"
-              class="touch-optimized flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              class="touch-optimized flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 transition-all duration-200 hover:bg-primary-600 hover:text-white hover:shadow-lg hover:shadow-primary-600/20"
               aria-label="GitHub"
             >
-              <Icon name="i-simple-icons-github" class="h-5 w-5" />
+              <Icon name="i-simple-icons-github" class="h-4 w-4" />
             </a>
             <a
               href="https://twitter.com"
               target="_blank"
               rel="noopener noreferrer"
-              class="touch-optimized flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              class="touch-optimized flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 transition-all duration-200 hover:bg-sky-500 hover:text-white hover:shadow-lg hover:shadow-sky-500/20"
               aria-label="Twitter"
             >
-              <Icon name="i-simple-icons-twitter" class="h-5 w-5" />
+              <Icon name="i-simple-icons-twitter" class="h-4 w-4" />
             </a>
             <a
               href="mailto:contact@example.com"
-              class="touch-optimized flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-600 transition-all hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              class="touch-optimized flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800 text-slate-400 transition-all duration-200 hover:bg-violet-600 hover:text-white hover:shadow-lg hover:shadow-violet-600/20"
               aria-label="Email"
             >
-              <Icon name="i-heroicons-envelope" class="h-5 w-5" />
+              <Icon name="i-heroicons-envelope" class="h-4 w-4" />
             </a>
           </div>
         </div>
 
-        <!-- 快速链接 -->
-        <div class="text-center lg:text-left">
-          <h3
-            class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-900 dark:text-white"
-          >
-            快速链接
-          </h3>
-          <ul class="space-y-2.5">
-            <li>
+        <!-- 导航链接 (3 列) -->
+        <div class="lg:col-span-3">
+          <h3 class="mb-5 font-mono text-xs text-slate-500">// 导航</h3>
+          <ul class="space-y-3">
+            <li v-for="link in navLinks" :key="link.path">
               <NuxtLink
-                to="/"
-                class="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 lg:text-base"
+                :to="link.path"
+                class="group flex items-center gap-2 text-sm text-slate-400 transition-colors duration-150 hover:text-white"
               >
-                首页
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
-                to="/blog"
-                class="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 lg:text-base"
-              >
-                博客
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
-                to="/about"
-                class="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 lg:text-base"
-              >
-                关于
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
-                to="/contact"
-                class="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 lg:text-base"
-              >
-                联系
+                <span
+                  class="h-px w-0 rounded-full bg-primary-400 transition-all duration-200 group-hover:w-4"
+                />
+                {{ link.label }}
               </NuxtLink>
             </li>
           </ul>
         </div>
 
-        <!-- 分类 -->
-        <div class="text-center lg:text-left">
-          <h3
-            class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-900 dark:text-white"
-          >
-            分类
-          </h3>
-          <ul class="space-y-2.5">
-            <li>
+        <!-- 技术分类 (4 列) -->
+        <div class="lg:col-span-4">
+          <h3 class="mb-5 font-mono text-xs text-slate-500">// 技术分类</h3>
+          <ul class="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-1">
+            <li v-for="cat in categoryLinks" :key="cat.path">
               <NuxtLink
-                to="/category/frontend"
-                class="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 lg:text-base"
+                :to="cat.path"
+                class="group flex items-center gap-2 text-sm text-slate-400 transition-colors duration-150 hover:text-white"
               >
-                前端开发
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
-                to="/category/backend"
-                class="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 lg:text-base"
-              >
-                后端开发
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
-                to="/category/devops"
-                class="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 lg:text-base"
-              >
-                DevOps
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink
-                to="/category/ai"
-                class="inline-block text-sm text-gray-600 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 lg:text-base"
-              >
-                人工智能
+                <span
+                  class="h-px w-0 rounded-full bg-primary-400 transition-all duration-200 group-hover:w-4"
+                />
+                {{ cat.label }}
               </NuxtLink>
             </li>
           </ul>
         </div>
       </div>
 
-      <!-- 版权信息 -->
-      <div class="mt-10 border-t border-gray-200 pt-6 dark:border-gray-800 sm:mt-12 sm:pt-8">
+      <!-- 底部版权栏 -->
+      <div class="mt-14 border-t border-white/[0.07] pt-6">
         <div
           class="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left"
         >
-          <p class="text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
-            © {{ currentYear }} {{ appName }}. 保留所有权利。
+          <!-- 版权 -->
+          <p class="font-mono text-xs text-slate-600">
+            © {{ currentYear }} {{ appName }}.&nbsp;All rights reserved.
           </p>
-          <div class="flex flex-wrap justify-center gap-4 sm:justify-end">
-            <NuxtLink
-              to="/privacy"
-              class="text-xs text-gray-500 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 sm:text-sm"
-            >
+
+          <!-- 法律链接 -->
+          <div class="flex items-center gap-1 text-xs text-slate-600">
+            <NuxtLink to="/privacy" class="px-2 py-1 transition-colors hover:text-slate-300">
               隐私政策
             </NuxtLink>
-            <NuxtLink
-              to="/terms"
-              class="text-xs text-gray-500 transition-colors hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 sm:text-sm"
-            >
+            <span class="text-slate-700">·</span>
+            <NuxtLink to="/terms" class="px-2 py-1 transition-colors hover:text-slate-300">
               服务条款
             </NuxtLink>
           </div>
@@ -167,9 +149,23 @@
 </template>
 
 <script setup lang="ts">
-// 获取应用名称和描述
 const { appName, appDescription } = useRuntimeConfig().public
-
-// 获取当前年份
 const currentYear = new Date().getFullYear()
+
+const navLinks = [
+  { label: '首页', path: '/' },
+  { label: '博客', path: '/blog' },
+  { label: '作者', path: '/authors' },
+  { label: '关于', path: '/about' },
+  { label: '联系', path: '/contact' }
+]
+
+const categoryLinks = [
+  { label: '前端开发', path: '/blog?category=前端开发' },
+  { label: '后端开发', path: '/blog?category=后端开发' },
+  { label: 'DevOps', path: '/blog?category=DevOps' },
+  { label: '人工智能', path: '/blog?category=人工智能' },
+  { label: '架构设计', path: '/blog?category=架构设计' },
+  { label: '云计算', path: '/blog?category=云计算' }
+]
 </script>
