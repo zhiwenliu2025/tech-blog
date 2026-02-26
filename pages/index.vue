@@ -34,7 +34,7 @@
         <div class="flex flex-col items-center py-20 sm:py-28 lg:flex-row lg:gap-16 lg:py-32">
           <!-- 左侧文字区 -->
           <div class="flex-1 text-center lg:text-left">
-            <!-- 标语徽章 -->
+            <!-- 状态徽章 -->
             <div
               class="mb-8 inline-flex items-center gap-2 rounded-full border border-primary-500/30 bg-primary-500/10 px-4 py-2 text-sm font-medium text-primary-300 backdrop-blur-sm"
             >
@@ -119,7 +119,7 @@
                 <div class="pl-4">
                   <span class="text-emerald-400">framework</span>
                   <span class="text-slate-300">: </span>
-                  <span class="text-amber-300">'Nuxt 3'</span>
+                  <span class="text-amber-300">'Nuxt 4'</span>
                   <span class="text-slate-300">,</span>
                 </div>
                 <div class="pl-4">
@@ -135,10 +135,16 @@
                   <span class="text-slate-300">,</span>
                 </div>
                 <div class="pl-4">
+                  <span class="text-emerald-400">hosting</span>
+                  <span class="text-slate-300">: </span>
+                  <span class="text-amber-300">'Vercel'</span>
+                  <span class="text-slate-300">,</span>
+                </div>
+                <div class="pl-4">
                   <span class="text-emerald-400">posts</span>
                   <span class="text-slate-300">: </span>
                   <span class="text-sky-300">
-                    <span v-if="loading">loading</span>
+                    <span v-if="loading" class="animate-pulse text-slate-600">...</span>
                     <span v-else>{{ posts.length }}</span>
                   </span>
                   <span class="text-slate-300">,</span>
@@ -147,8 +153,17 @@
                   <span class="text-emerald-400">categories</span>
                   <span class="text-slate-300">: </span>
                   <span class="text-sky-300">
-                    <span v-if="categoriesLoading">loading</span>
+                    <span v-if="categoriesLoading" class="animate-pulse text-slate-600">...</span>
                     <span v-else>{{ categories.length }}</span>
+                  </span>
+                  <span class="text-slate-300">,</span>
+                </div>
+                <div class="pl-4">
+                  <span class="text-emerald-400">tags</span>
+                  <span class="text-slate-300">: </span>
+                  <span class="text-sky-300">
+                    <span v-if="tagsLoading" class="animate-pulse text-slate-600">...</span>
+                    <span v-else>{{ tags.length }}</span>
                   </span>
                   <span class="text-slate-300">,</span>
                 </div>
@@ -200,13 +215,13 @@
     </section>
 
     <!-- 主内容 -->
-    <main class="bg-gray-50/50 dark:bg-transparent">
+    <main class="animate-fade-in bg-gray-50/50 dark:bg-transparent">
       <div class="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-4">
           <!-- 主内容区 -->
           <div class="lg:col-span-3">
             <!-- 板块标题 -->
-            <div class="mb-6 flex items-end justify-between">
+            <div class="mb-5 flex items-end justify-between">
               <div>
                 <p class="mb-1.5 text-xs font-semibold uppercase tracking-widest text-primary-500">
                   Latest
@@ -230,9 +245,40 @@
               </NuxtLink>
             </div>
 
+            <!-- 分类快速筛选 -->
+            <div
+              v-if="!categoriesLoading && categories.length > 0"
+              class="mb-5 flex flex-wrap gap-2"
+            >
+              <button
+                :class="[
+                  'rounded-full px-3 py-1 text-xs font-medium transition-all duration-150',
+                  selectedCategory === null
+                    ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/20'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                ]"
+                @click="setCategory(null)"
+              >
+                全部
+              </button>
+              <button
+                v-for="cat in categories.slice(0, 6)"
+                :key="cat"
+                :class="[
+                  'rounded-full px-3 py-1 text-xs font-medium transition-all duration-150',
+                  selectedCategory === cat
+                    ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/20'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+                ]"
+                @click="setCategory(cat)"
+              >
+                {{ cat }}
+              </button>
+            </div>
+
             <!-- 加载状态 -->
             <div v-if="loading" class="space-y-4">
-              <BlogPostCardSkeleton v-for="i in 3" :key="i" />
+              <BlogPostCardSkeleton v-for="i in postsPerPage" :key="i" />
             </div>
 
             <!-- 错误状态 -->
@@ -250,7 +296,7 @@
             </div>
 
             <!-- 文章列表 -->
-            <div v-else-if="posts && posts.length > 0" class="space-y-4">
+            <div v-else-if="filteredPosts.length > 0" class="space-y-4">
               <BlogPostCard
                 v-for="post in paginatedPosts"
                 :key="post.id"
@@ -272,11 +318,11 @@
                   </span>
                   –
                   <span class="font-semibold text-gray-900 dark:text-white">
-                    {{ Math.min(currentPage * postsPerPage, posts.length) }}
+                    {{ Math.min(currentPage * postsPerPage, filteredPosts.length) }}
                   </span>
                   条，共
                   <span class="font-semibold text-gray-900 dark:text-white">
-                    {{ posts.length }}
+                    {{ filteredPosts.length }}
                   </span>
                   条
                 </div>
@@ -379,8 +425,10 @@
             >
               <EmptyState
                 icon="i-heroicons-document-text"
-                title="暂无文章"
-                description="还没有发布任何文章"
+                :title="selectedCategory ? `「${selectedCategory}」暂无文章` : '暂无文章'"
+                :description="selectedCategory ? '换个分类试试看？' : '还没有发布任何文章'"
+                :action-text="selectedCategory ? '查看全部' : undefined"
+                @action="selectedCategory ? setCategory(null) : undefined"
               />
             </div>
           </div>
@@ -388,6 +436,19 @@
           <!-- 侧边栏 -->
           <div class="lg:col-span-1">
             <div class="sticky top-20 space-y-4">
+              <!-- 写文章入口 (仅登录用户) -->
+              <div v-if="user" class="card overflow-hidden">
+                <div class="p-4">
+                  <NuxtLink
+                    to="/blog/write"
+                    class="touch-optimized flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 py-2.5 text-sm font-semibold text-white shadow-md shadow-primary-500/20 transition-all duration-200 hover:from-primary-600 hover:to-primary-700 hover:shadow-lg hover:shadow-primary-500/30"
+                  >
+                    <Icon name="i-heroicons-pencil-square" class="h-4 w-4" />
+                    写文章
+                  </NuxtLink>
+                </div>
+              </div>
+
               <!-- 热门文章组件 -->
               <HotPosts :limit="5" :days="30" :use-decay="true" :show-score="false" />
 
@@ -410,11 +471,11 @@
                 </div>
                 <div class="p-4">
                   <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
-                    基于 Nuxt 3 + Supabase 构建的技术博客，专注分享前端、后端、架构设计等深度内容。
+                    基于 Nuxt 4 + Supabase 构建的技术博客，专注分享前端、后端、架构设计等深度内容。
                   </p>
                   <NuxtLink
                     to="/about"
-                    class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary-600 transition-colors duration-150 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                    class="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary-600 transition-all duration-150 hover:gap-1.5 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
                   >
                     了解更多
                     <Icon name="i-heroicons-arrow-right" class="h-3 w-3" />
@@ -496,7 +557,7 @@ const router = useRouter()
 
 const techTags = [
   'Vue.js',
-  'Nuxt 3',
+  'Nuxt 4',
   'TypeScript',
   'Node.js',
   'Docker',
@@ -505,11 +566,15 @@ const techTags = [
   'React'
 ]
 
-// 分页状态
+// 分页与筛选状态
 const currentPage = ref(parseInt((route.query.page as string) || '1'))
 const postsPerPage = 5
+const selectedCategory = ref<string | null>((route.query.category as string) || null)
 
 const { fetchCategories, fetchTags } = useBlogPosts()
+
+// 用户状态
+const { user } = useSupabaseAuth()
 
 // 使用缓存版本的文章列表
 const {
@@ -519,7 +584,7 @@ const {
   fetchPosts
 } = useCachedPostsList()
 
-// 使用 useAsyncData 缓存分类列表（分类变化不频繁，可以长时间缓存）
+// 使用 useAsyncData 缓存分类列表
 const { data: categoriesData, pending: categoriesPending } = await useAsyncData(
   'blog-categories',
   () => fetchCategories(),
@@ -529,7 +594,7 @@ const { data: categoriesData, pending: categoriesPending } = await useAsyncData(
   }
 )
 
-// 使用 useAsyncData 缓存标签列表（标签变化不频繁，可以长时间缓存）
+// 使用 useAsyncData 缓存标签列表
 const { data: tagsData, pending: tagsPending } = await useAsyncData(
   'blog-tags',
   () => fetchTags(),
@@ -539,7 +604,7 @@ const { data: tagsData, pending: tagsPending } = await useAsyncData(
   }
 )
 
-// 计算属性，提供响应式数据
+// 计算属性
 const posts = computed(() => {
   return Array.isArray(cachedPosts.value) ? cachedPosts.value : []
 }) as ComputedRef<Array<any>>
@@ -549,6 +614,19 @@ const loading = computed(() => postsLoading.value)
 const error = computed(() => postsError.value)
 const categoriesLoading = computed(() => categoriesPending.value)
 const tagsLoading = computed(() => tagsPending.value)
+
+// 按分类筛选
+const filteredPosts = computed(() => {
+  if (!selectedCategory.value) return posts.value
+  return posts.value.filter((p: any) => p.category === selectedCategory.value)
+})
+
+// 切换分类筛选
+const setCategory = (cat: string | null) => {
+  selectedCategory.value = cat
+  currentPage.value = 1
+  updateQueryParams()
+}
 
 // 刷新文章（使用缓存API）
 const refreshPosts = async () => {
@@ -562,16 +640,16 @@ onMounted(async () => {
 
 // 分页计算属性
 const totalPages = computed(() => {
-  return Math.ceil(posts.value.length / postsPerPage)
+  return Math.ceil(filteredPosts.value.length / postsPerPage)
 })
 
 const paginatedPosts = computed(() => {
   const startIndex = (currentPage.value - 1) * postsPerPage
   const endIndex = startIndex + postsPerPage
-  return posts.value.slice(startIndex, endIndex)
+  return filteredPosts.value.slice(startIndex, endIndex)
 })
 
-// 计算可见的页码（用于分页显示）
+// 计算可见的页码
 const visiblePages = computed(() => {
   const pages: number[] = []
   const current = currentPage.value
@@ -581,7 +659,6 @@ const visiblePages = computed(() => {
     return Array.from({ length: total }, (_, i) => i + 1)
   }
 
-  // 显示当前页前后各1页
   const start = Math.max(2, current - 1)
   const end = Math.min(total - 1, current + 1)
 
@@ -596,9 +673,7 @@ const visiblePages = computed(() => {
 const goToPage = (page: number) => {
   if (page >= 1 && page <= totalPages.value) {
     currentPage.value = page
-    // 更新URL参数
     updateQueryParams()
-    // 滚动到顶部
     if (process.client) {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -607,27 +682,25 @@ const goToPage = (page: number) => {
 
 // 更新URL查询参数
 const updateQueryParams = () => {
-  const query: any = {}
+  const query: Record<string, string> = {}
 
   if (currentPage.value > 1) {
     query.page = currentPage.value.toString()
+  }
+  if (selectedCategory.value) {
+    query.category = selectedCategory.value
   }
 
   router.replace({ query })
 }
 
-// 监听路由变化，同步页码
+// 监听路由变化，同步页码和分类
 watch(
-  () => route.query.page,
-  newPage => {
-    if (newPage) {
-      const page = parseInt(newPage as string)
-      if (page >= 1 && page <= totalPages.value) {
-        currentPage.value = page
-      }
-    } else {
-      currentPage.value = 1
-    }
+  () => route.query,
+  newQuery => {
+    const page = newQuery.page ? parseInt(newQuery.page as string) : 1
+    if (page >= 1) currentPage.value = page
+    selectedCategory.value = (newQuery.category as string) || null
   },
   { immediate: true }
 )
@@ -637,8 +710,15 @@ useHead({
   meta: [
     {
       name: 'description',
-      content: '基于 Nuxt 3 和 Supabase 构建的技术博客，分享前端开发、后端技术、云计算等相关内容。'
-    }
+      content: '基于 Nuxt 4 和 Supabase 构建的技术博客，分享前端开发、后端技术、云计算等相关内容。'
+    },
+    { property: 'og:title', content: '技术博客' },
+    {
+      property: 'og:description',
+      content: '分享前端开发、后端技术、云计算、架构设计等深度技术文章，让知识触手可及。'
+    },
+    { property: 'og:type', content: 'website' },
+    { name: 'twitter:card', content: 'summary_large_image' }
   ]
 })
 </script>
