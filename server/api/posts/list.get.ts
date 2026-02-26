@@ -62,6 +62,7 @@ export default defineEventHandler(async event => {
     } else if (sortBy === 'title') {
       dbQuery = dbQuery.order('title', { ascending: true })
     } else if (sortBy === 'view_count' || sortBy === 'hot') {
+      // hot 作为别名保留向后兼容，二者均按阅读量降序
       dbQuery = dbQuery.order('view_count', { ascending: false })
     } else {
       // 默认：created_at / 最新发布

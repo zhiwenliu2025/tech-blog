@@ -201,8 +201,7 @@
                   :options="[
                     { value: 'created_at', label: '最新发布' },
                     { value: 'updated_at', label: '最近更新' },
-                    { value: 'hot', label: '热度排序' },
-                    { value: 'view_count', label: '阅读量' },
+                    { value: 'view_count', label: '最多阅读' },
                     { value: 'title', label: '按标题' }
                   ]"
                 />
@@ -391,7 +390,7 @@ const router = useRouter()
 // 筛选和分页状态
 const selectedCategory = ref<string>(String(route.query.category || ''))
 const selectedTag = ref<string>(String(route.query.tag || ''))
-const sortBy = ref('created_at')
+const sortBy = ref<string>(String(route.query.sort || 'created_at'))
 const searchQuery = ref<string>(String(route.query.q || ''))
 const currentPage = ref(parseInt(route.query.page as string) || 1)
 const postsPerPage = 9
@@ -540,6 +539,10 @@ const updateQueryParams = () => {
 
   if (searchQuery.value) {
     query.q = searchQuery.value
+  }
+
+  if (sortBy.value && sortBy.value !== 'created_at') {
+    query.sort = sortBy.value
   }
 
   if (currentPage.value > 1) {
