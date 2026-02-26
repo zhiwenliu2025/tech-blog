@@ -331,7 +331,7 @@
                 >
                   <button
                     :disabled="currentPage === 1"
-                    class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                    class="touch-optimized flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all duration-150 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
                     @click="goToPage(currentPage - 1)"
                   >
                     <Icon name="i-heroicons-chevron-left" class="h-4 w-4" />
@@ -346,7 +346,7 @@
                         'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 sm:min-w-[40px] sm:px-3',
                         currentPage === page
                           ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
-                          : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                          : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400'
                       ]"
                       @click="goToPage(page)"
                     >
@@ -359,7 +359,7 @@
                         'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 sm:min-w-[40px] sm:px-3',
                         currentPage === 1
                           ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
-                          : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                          : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400'
                       ]"
                       @click="goToPage(1)"
                     >
@@ -368,7 +368,7 @@
 
                     <span
                       v-if="currentPage > 3"
-                      class="select-none px-1 text-gray-400 dark:text-gray-600"
+                      class="select-none px-1 text-slate-400 dark:text-slate-600"
                       >···</span
                     >
 
@@ -379,7 +379,7 @@
                           'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 sm:min-w-[40px] sm:px-3',
                           currentPage === page
                             ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
-                            : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                            : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400'
                         ]"
                         @click="goToPage(page)"
                       >
@@ -389,7 +389,7 @@
 
                     <span
                       v-if="currentPage < totalPages - 2"
-                      class="select-none px-1 text-gray-400 dark:text-gray-600"
+                      class="select-none px-1 text-slate-400 dark:text-slate-600"
                       >···</span
                     >
 
@@ -398,7 +398,7 @@
                         'touch-optimized min-w-[36px] rounded-lg px-2 py-2 text-sm font-medium transition-all duration-150 sm:min-w-[40px] sm:px-3',
                         currentPage === totalPages
                           ? 'bg-primary-600 text-white shadow-sm shadow-primary-600/30'
-                          : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+                          : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400'
                       ]"
                       @click="goToPage(totalPages)"
                     >
@@ -408,7 +408,7 @@
 
                   <button
                     :disabled="currentPage === totalPages"
-                    class="touch-optimized flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-all duration-150 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                    class="touch-optimized flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-all duration-150 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:bg-primary-900/20 dark:hover:text-primary-400"
                     @click="goToPage(currentPage + 1)"
                   >
                     <span class="hidden sm:inline">下一页</span>

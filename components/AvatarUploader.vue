@@ -48,7 +48,7 @@
       <!-- 上传按钮 -->
       <button
         type="button"
-        class="absolute -bottom-1 -right-1 rounded-full bg-primary-600 p-2 text-white shadow-lg transition-colors hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+        class="absolute -bottom-1 -right-1 rounded-full bg-primary-600 p-2 text-white shadow-lg transition-colors hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         :disabled="uploading"
         @click.stop="triggerFileInput"
       >
