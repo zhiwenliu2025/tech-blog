@@ -377,7 +377,7 @@
             class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
           >
             <p class="mb-3 font-mono text-xs text-slate-400 dark:text-slate-500">// social.links</p>
-            <div class="grid grid-cols-4 gap-2">
+            <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <a
                 v-for="s in socials"
                 :key="s.label"

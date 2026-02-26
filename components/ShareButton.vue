@@ -23,7 +23,7 @@
     >
       <div
         v-if="showMenu"
-        class="absolute left-0 z-50 mt-2 w-64 origin-top-left overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/40"
+        class="absolute left-0 z-50 mt-2 w-[min(16rem,calc(100vw-2rem))] origin-top-left overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl shadow-black/40"
       >
         <!-- 终端标题栏 -->
         <div class="flex items-center gap-2 border-b border-slate-800 bg-slate-800/80 px-4 py-2.5">

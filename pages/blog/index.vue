@@ -301,7 +301,7 @@
               v-for="page in totalPages"
               :key="page"
               :class="[
-                'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                'touch-optimized min-w-[44px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === page
                   ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
                   : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
@@ -316,7 +316,7 @@
           <template v-else>
             <button
               :class="[
-                'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                'touch-optimized min-w-[44px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === 1
                   ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
                   : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
@@ -334,7 +334,7 @@
               <button
                 v-if="page !== 1 && page !== totalPages"
                 :class="[
-                  'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                  'touch-optimized min-w-[44px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                   currentPage === page
                     ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
                     : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
@@ -351,7 +351,7 @@
             >
             <button
               :class="[
-                'touch-optimized min-w-[38px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
+                'touch-optimized min-w-[44px] rounded-lg px-3 py-2 text-sm font-medium transition-all',
                 currentPage === totalPages
                   ? 'bg-primary-600 text-white shadow-md shadow-primary-600/20'
                   : 'border border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-primary-700 dark:hover:text-primary-400'
