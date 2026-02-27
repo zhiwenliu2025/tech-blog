@@ -420,10 +420,14 @@ const {
   posts: cachedPosts,
   total,
   totalPages: cachedTotalPages,
-  loading,
+  loading: postsLoading,
   error: cachedError,
   fetchPosts
 } = useCachedPostsList()
+
+// 初始骨架屏标志：在客户端首次 fetch 完成前保持为 true，避免空状态闪烁
+const initialLoading = ref(true)
+const loading = computed(() => postsLoading.value || initialLoading.value)
 
 // 通过服务端 API 获取分类和标签（与 posts/list 保持一致的架构）
 const { data: filtersData } = await useAsyncData(
@@ -462,6 +466,7 @@ const totalPages = computed(() => {
 // 初始加载文章
 onMounted(async () => {
   await loadPosts()
+  initialLoading.value = false
 })
 const hasActiveFilters = computed(() => {
   return !!(
