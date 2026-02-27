@@ -56,7 +56,12 @@
               aria-haspopup="listbox"
               @click.stop="showColorMenu = !showColorMenu"
             >
-              <Icon :name="currentColorOption.icon" class="h-4 w-4 sm:h-5 sm:w-5" />
+              <ClientOnly>
+                <Icon :name="currentColorOption.icon" class="h-4 w-4 sm:h-5 sm:w-5" />
+                <template #fallback>
+                  <Icon name="i-heroicons-computer-desktop" class="h-4 w-4 sm:h-5 sm:w-5" />
+                </template>
+              </ClientOnly>
             </button>
 
             <Transition

@@ -63,7 +63,7 @@
               <!-- 结果区 -->
               <div class="max-h-[26rem] overflow-y-auto">
                 <!-- 加载中 -->
-                <div v-if="loading" class="flex flex-col items-center gap-3 py-12">
+                <div v-if="loading || isPending" class="flex flex-col items-center gap-3 py-12">
                   <Icon name="heroicons:arrow-path" class="h-6 w-6 animate-spin text-primary-500" />
                   <p class="font-mono text-xs text-slate-500">searching...</p>
                 </div>
@@ -103,7 +103,7 @@
 
                 <!-- 无结果 -->
                 <div
-                  v-else-if="results.length === 0"
+                  v-else-if="!isPending && results.length === 0"
                   class="flex flex-col items-center gap-3 py-12 text-center"
                 >
                   <div
@@ -179,7 +179,10 @@
                   查看全部结果 →
                 </button>
               </div>
-              <div v-else-if="!loading && searchQuery" class="border-t border-slate-800 px-4 py-2">
+              <div
+                v-else-if="!loading && !isPending && searchQuery"
+                class="border-t border-slate-800 px-4 py-2"
+              >
                 <p class="font-mono text-[10px] text-slate-700">按 Enter 跳转到搜索页</p>
               </div>
             </div>
@@ -206,6 +209,7 @@ const searchInput = ref<HTMLInputElement | null>(null)
 const { searchPosts, loading } = useBlogPosts()
 const results = ref<any[]>([])
 const error = ref<string | null>(null)
+const isPending = ref(false)
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
@@ -213,6 +217,7 @@ const performSearch = async () => {
   if (!searchQuery.value.trim()) {
     results.value = []
     error.value = null
+    isPending.value = false
     return
   }
   try {
@@ -227,11 +232,20 @@ const performSearch = async () => {
   } catch (err: any) {
     error.value = err.message || '搜索失败'
     results.value = []
+  } finally {
+    isPending.value = false
   }
 }
 
 watch(searchQuery, () => {
   if (searchTimeout) clearTimeout(searchTimeout)
+  if (searchQuery.value.trim()) {
+    isPending.value = true
+  } else {
+    isPending.value = false
+    results.value = []
+    error.value = null
+  }
   searchTimeout = setTimeout(() => performSearch(), 300)
 })
 

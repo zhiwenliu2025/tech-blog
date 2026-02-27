@@ -769,7 +769,7 @@ const posts = computed(() => {
 }) as ComputedRef<Array<any>>
 const categories = computed(() => categoriesData.value || [])
 const tags = computed(() => tagsData.value || [])
-const loading = computed(() => postsLoading.value)
+const loading = computed(() => postsLoading.value || initialLoading.value)
 const error = computed(() => postsError.value)
 const categoriesLoading = computed(() => categoriesPending.value)
 const tagsLoading = computed(() => tagsPending.value)
@@ -787,6 +787,9 @@ const setCategory = (cat: string | null) => {
   updateQueryParams()
 }
 
+// 初始骨架屏标志：在客户端首次 fetch 完成前保持为 true
+const initialLoading = ref(true)
+
 // 刷新文章（使用缓存API）
 const refreshPosts = async () => {
   await fetchPosts({ page: 1, limit: 100 })
@@ -795,6 +798,7 @@ const refreshPosts = async () => {
 // 初始加载文章
 onMounted(async () => {
   await refreshPosts()
+  initialLoading.value = false
 })
 
 // 分页计算属性
