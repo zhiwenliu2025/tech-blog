@@ -48,17 +48,67 @@
           </button>
 
           <!-- 暗色模式切换 -->
-          <button
-            class="rounded-lg p-2 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-            aria-label="切换暗色模式"
-            @click="toggleDarkMode"
-          >
-            <Icon v-if="isDark" name="i-heroicons-sun" class="h-4 w-4 sm:h-5 sm:w-5" />
-            <Icon v-else name="i-heroicons-moon" class="h-4 w-4 sm:h-5 sm:w-5" />
-          </button>
+          <div ref="colorMenuRef" class="relative">
+            <button
+              class="flex cursor-pointer items-center justify-center rounded-lg p-2 text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+              :aria-label="`当前：${currentColorOption.label}，点击切换颜色模式`"
+              :aria-expanded="showColorMenu"
+              aria-haspopup="listbox"
+              @click.stop="showColorMenu = !showColorMenu"
+            >
+              <Icon :name="currentColorOption.icon" class="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+
+            <Transition
+              enter-active-class="transition ease-out duration-150"
+              enter-from-class="opacity-0 scale-95 -translate-y-1"
+              enter-to-class="opacity-100 scale-100 translate-y-0"
+              leave-active-class="transition ease-in duration-100"
+              leave-from-class="opacity-100 scale-100 translate-y-0"
+              leave-to-class="opacity-0 scale-95 -translate-y-1"
+            >
+              <div
+                v-if="showColorMenu"
+                role="listbox"
+                :aria-label="'颜色模式'"
+                class="absolute right-0 z-50 mt-2 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg shadow-black/10 dark:border-slate-700/60 dark:bg-slate-900 dark:shadow-black/30"
+                @click.stop
+              >
+                <!-- 标题 -->
+                <div class="border-b border-slate-100 px-3 py-2 dark:border-slate-800">
+                  <p class="font-mono text-[10px] text-slate-400 dark:text-slate-600">
+                    // color_mode
+                  </p>
+                </div>
+                <div class="p-1">
+                  <button
+                    v-for="option in colorOptions"
+                    :key="option.value"
+                    role="option"
+                    :aria-selected="colorMode.preference === option.value"
+                    class="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors duration-150"
+                    :class="[
+                      colorMode.preference === option.value
+                        ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400'
+                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                    ]"
+                    @click="setColorMode(option.value)"
+                  >
+                    <Icon :name="option.icon" class="h-4 w-4 flex-shrink-0" />
+                    <span>{{ option.label }}</span>
+                    <Icon
+                      v-if="colorMode.preference === option.value"
+                      name="i-heroicons-check"
+                      class="ml-auto h-3.5 w-3.5 flex-shrink-0 text-primary-600 dark:text-primary-400"
+                    />
+                  </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
 
           <!-- ═══ 用户头像 + 下拉菜单 ═══ -->
-          <div v-if="user" class="relative">
+          <div v-if="user" ref="userMenuRef" class="relative">
             <button
               class="flex items-center gap-2 rounded-lg p-1.5 transition-all hover:bg-slate-100 dark:hover:bg-slate-800"
               aria-label="用户菜单"
@@ -288,17 +338,31 @@ const navItems = [
 ]
 
 const colorMode = useColorMode()
-const isDark = computed(() => colorMode.value === 'dark')
 const showMobileMenu = ref(false)
 const showUserMenu = ref(false)
 const showSearchModal = ref(false)
+const showColorMenu = ref(false)
+
+const colorMenuRef = ref<HTMLElement | null>(null)
+const userMenuRef = ref<HTMLElement | null>(null)
+
+const colorOptions = [
+  { value: 'light', label: '浅色', icon: 'i-heroicons-sun' },
+  { value: 'system', label: '跟随系统', icon: 'i-heroicons-computer-desktop' },
+  { value: 'dark', label: '深色', icon: 'i-heroicons-moon' }
+] as const
+
+const currentColorOption = computed(() => {
+  return colorOptions.find(o => o.value === colorMode.preference) ?? colorOptions[1]
+})
+
+const setColorMode = (mode: string) => {
+  colorMode.preference = mode
+  showColorMenu.value = false
+}
 
 const { user } = useSupabaseAuth()
 const { isAdmin } = useAdmin()
-
-const toggleDarkMode = () => {
-  colorMode.preference = isDark.value ? 'light' : 'dark'
-}
 
 const toggleMobileMenu = () => {
   showMobileMenu.value = !showMobileMenu.value
@@ -318,18 +382,32 @@ const handleSignOut = async () => {
 }
 
 onMounted(() => {
-  document.addEventListener('click', e => {
+  const handleClickOutside = (e: MouseEvent) => {
     const target = e.target as HTMLElement
-    if (!target.closest('.relative')) showUserMenu.value = false
-  })
+    if (colorMenuRef.value && !colorMenuRef.value.contains(target)) {
+      showColorMenu.value = false
+    }
+    if (userMenuRef.value && !userMenuRef.value.contains(target)) {
+      showUserMenu.value = false
+    }
+  }
+  document.addEventListener('click', handleClickOutside)
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault()
       showSearchModal.value = true
     }
+    if (e.key === 'Escape') {
+      showColorMenu.value = false
+      showUserMenu.value = false
+    }
   }
   document.addEventListener('keydown', handleKeyDown)
-  onUnmounted(() => document.removeEventListener('keydown', handleKeyDown))
+
+  onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+    document.removeEventListener('keydown', handleKeyDown)
+  })
 })
 </script>
