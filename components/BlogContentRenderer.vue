@@ -336,8 +336,8 @@ const applyCodeHighlighting = () => {
     if (hasHighlighting) {
       preElement.classList.add('hljs', 'code-block')
       codeElement.classList.add('hljs')
-      if (!preElement.querySelector('.copy-button')) {
-        addCopyButton(preElement)
+      if (!preElement.closest('.code-block-wrapper')) {
+        enhanceCodeBlock(preElement)
       }
       return
     }
@@ -407,72 +407,92 @@ const applyCodeHighlighting = () => {
 
       preElement.classList.add('hljs', 'code-block')
 
-      // 添加复制按钮
-      addCopyButton(preElement)
+      // 增强代码块（终端窗口风格）
+      enhanceCodeBlock(preElement)
     } catch (err) {
       console.warn('Code highlighting error:', err)
-      // 如果高亮失败，至少添加 hljs 类
       preElement.classList.add('hljs', 'code-block')
       codeElement.classList.add('hljs')
-      if (!preElement.querySelector('.copy-button')) {
-        addCopyButton(preElement)
-      }
+      enhanceCodeBlock(preElement)
     }
   })
 }
 
-// 添加复制按钮
-const addCopyButton = (preElement: HTMLElement) => {
-  // 如果已经有复制按钮，跳过
-  if (preElement.querySelector('.copy-button')) return
+// 将代码块增强为终端窗口风格
+const enhanceCodeBlock = (preElement: HTMLElement) => {
+  // 已经增强过则跳过
+  if (preElement.closest('.code-block-wrapper')) return
 
-  const button = document.createElement('button')
-  button.className = 'copy-button'
-  button.innerHTML = `
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-    </svg>
-    <span class="copy-text">复制</span>
+  const lang = preElement.getAttribute('data-lang') || ''
+  const langLabel = lang ? lang.toUpperCase() : 'CODE'
+
+  // ── 包裹容器 ──
+  const wrapper = document.createElement('div')
+  wrapper.className = 'code-block-wrapper'
+
+  // ── 标题栏 ──
+  const header = document.createElement('div')
+  header.className = 'code-block-header'
+  header.innerHTML = `
+    <div class="code-block-dots">
+      <span class="code-dot code-dot-red"></span>
+      <span class="code-dot code-dot-amber"></span>
+      <span class="code-dot code-dot-green"></span>
+    </div>
+    <span class="code-block-lang">${langLabel}</span>
+    <button class="copy-button" aria-label="复制代码" title="复制代码">
+      <svg class="copy-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+      </svg>
+      <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display:none">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+      </svg>
+      <span class="copy-text">复制</span>
+    </button>
   `
-  button.setAttribute('aria-label', '复制代码')
-  button.setAttribute('title', '复制代码')
 
+  // 复制按钮逻辑
+  const button = header.querySelector('.copy-button') as HTMLButtonElement
   button.addEventListener('click', async e => {
     e.stopPropagation()
     const codeElement = preElement.querySelector('code')
-    if (codeElement) {
-      const text = codeElement.textContent || ''
-      try {
-        await navigator.clipboard.writeText(text)
-        const textSpan = button.querySelector('.copy-text')
-        if (textSpan) {
-          textSpan.textContent = '已复制!'
-          button.classList.add('copied')
-        }
-        setTimeout(() => {
-          if (textSpan) {
-            textSpan.textContent = '复制'
-            button.classList.remove('copied')
-          }
-        }, 2000)
-      } catch (err) {
-        console.error('复制失败:', err)
-        const textSpan = button.querySelector('.copy-text')
-        if (textSpan) {
-          textSpan.textContent = '复制失败'
-          setTimeout(() => {
-            if (textSpan) {
-              textSpan.textContent = '复制'
-            }
-          }, 2000)
-        }
-      }
+    if (!codeElement) return
+
+    const text = codeElement.textContent || ''
+    const copyIcon = button.querySelector('.copy-icon') as SVGElement
+    const checkIcon = button.querySelector('.check-icon') as SVGElement
+    const textSpan = button.querySelector('.copy-text') as HTMLElement
+
+    try {
+      await navigator.clipboard.writeText(text)
+      copyIcon.style.display = 'none'
+      checkIcon.style.display = ''
+      textSpan.textContent = '已复制!'
+      button.classList.add('copied')
+      setTimeout(() => {
+        copyIcon.style.display = ''
+        checkIcon.style.display = 'none'
+        textSpan.textContent = '复制'
+        button.classList.remove('copied')
+      }, 2000)
+    } catch {
+      textSpan.textContent = '复制失败'
+      setTimeout(() => {
+        textSpan.textContent = '复制'
+      }, 2000)
     }
   })
 
-  preElement.classList.add('group', 'relative')
-  preElement.style.position = 'relative'
-  preElement.appendChild(button)
+  // 插入 DOM：wrapper > header + pre
+  preElement.parentNode!.insertBefore(wrapper, preElement)
+  wrapper.appendChild(header)
+  wrapper.appendChild(preElement)
+
+  // 清除 pre 上的冗余内联样式（由 wrapper 接管）
+  preElement.style.position = ''
+  preElement.style.borderRadius = ''
+  preElement.style.margin = ''
 }
 
 // 组件挂载后应用代码高亮和设置内容
@@ -505,236 +525,205 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-/* 确保编辑器内容样式正确 */
+/* ── ProseMirror 基础 ── */
 :deep(.ProseMirror) {
   outline: none;
   font-size: 1.0625rem;
   line-height: 1.75;
 }
 
-/* 代码块样式增强 - 使用深色主题 */
+/* ════════════════════════════════════════
+   代码块 — 终端窗口风格
+   ════════════════════════════════════════ */
+
+/* 外层容器：统一圆角 / 边框 / 阴影 */
+:deep(.ProseMirror .code-block-wrapper) {
+  margin: 2rem 0;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  border: 1px solid rgb(48 56 69);
+  background-color: rgb(13 17 23);
+  box-shadow:
+    0 10px 30px -8px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  transition: box-shadow 0.2s ease;
+}
+
+:deep(.ProseMirror .code-block-wrapper:hover) {
+  box-shadow:
+    0 16px 40px -8px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+}
+
+/* 标题栏 */
+:deep(.ProseMirror .code-block-header) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background-color: rgb(22 27 34);
+  border-bottom: 1px solid rgb(48 56 69);
+  user-select: none;
+}
+
+/* macOS 红绿灯 */
+:deep(.ProseMirror .code-block-dots) {
+  display: flex;
+  gap: 0.375rem;
+  margin-right: 0.25rem;
+}
+
+:deep(.ProseMirror .code-dot) {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+}
+
+:deep(.ProseMirror .code-dot-red) {
+  background-color: rgb(255 95 86);
+}
+:deep(.ProseMirror .code-dot-amber) {
+  background-color: rgb(255 189 68);
+}
+:deep(.ProseMirror .code-dot-green) {
+  background-color: rgb(39 201 63);
+}
+
+/* 语言徽章 */
+:deep(.ProseMirror .code-block-lang) {
+  flex: 1;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(139 148 158);
+}
+
+/* 复制按钮 */
+:deep(.ProseMirror .copy-button) {
+  display: flex;
+  align-items: center;
+  gap: 0.3125rem;
+  padding: 0.3125rem 0.625rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgb(110 118 129);
+  background: transparent;
+  border: 1px solid rgb(48 56 69);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+:deep(.ProseMirror .copy-button svg) {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+}
+
+:deep(.ProseMirror .copy-button:hover) {
+  color: rgb(201 209 217);
+  border-color: rgb(88 96 109);
+  background-color: rgb(33 38 45);
+}
+
+:deep(.ProseMirror .copy-button.copied) {
+  color: rgb(63 185 80);
+  border-color: rgb(63 185 80);
+  background-color: rgba(63, 185, 80, 0.1);
+}
+
+/* <pre> 本体（无圆角，交给 wrapper） */
 :deep(.ProseMirror pre),
 :deep(.ProseMirror pre.code-block),
 :deep(.ProseMirror pre.hljs) {
-  border-radius: 0.75rem;
+  border-radius: 0 !important;
+  margin: 0 !important;
   padding: 1.25rem 1.5rem;
   overflow-x: auto;
-  position: relative;
-  margin: 2rem 0;
   font-size: 0.875rem;
-  line-height: 1.7;
-  border: 1px solid rgb(55 65 75);
-  transition: all 0.2s;
-  /* 深色主题背景色 */
+  line-height: 1.75;
   background-color: rgb(13 17 23) !important;
   color: rgb(201 209 217) !important;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  border: none !important;
+  box-shadow: none !important;
 }
 
-:deep(.ProseMirror pre:hover) {
-  box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.4);
-}
-
-:deep(.dark .ProseMirror pre),
-:deep(.dark .ProseMirror pre.code-block),
-:deep(.dark .ProseMirror pre.hljs) {
-  border-color: rgb(55 65 75);
-  background-color: rgb(13 17 23) !important;
-}
-
-/* 确保 highlight.js 的样式优先级 */
-:deep(.ProseMirror pre.hljs code),
-:deep(.ProseMirror pre.hljs code.hljs) {
+/* 代码内容 */
+:deep(.ProseMirror pre code),
+:deep(.ProseMirror pre.hljs code) {
   background: transparent !important;
   padding: 0 !important;
+  border: none !important;
   font-size: inherit !important;
   line-height: inherit !important;
   display: block !important;
   color: inherit !important;
-  font-family:
-    'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace !important;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', monospace !important;
+  font-weight: 400 !important;
 }
 
-/* 复制按钮样式 - 优化版 */
-:deep(.ProseMirror pre .copy-button) {
-  position: absolute;
-  top: 0.875rem;
-  right: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.875rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: rgb(156 163 175);
-  background-color: rgba(31, 41, 55, 0.8);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgb(55 65 75);
-  border-radius: 0.5rem;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0;
-  transform: translateY(-4px);
-  z-index: 10;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+/* 滚动条（代码区域） */
+:deep(.ProseMirror pre::-webkit-scrollbar) {
+  height: 6px;
 }
 
-:deep(.ProseMirror pre:hover .copy-button) {
-  opacity: 1;
-  transform: translateY(0);
+:deep(.ProseMirror pre::-webkit-scrollbar-track) {
+  background: rgb(22 27 34);
 }
 
-:deep(.dark .ProseMirror pre .copy-button) {
-  color: rgb(156 163 175);
-  background-color: rgb(31 41 55);
-  border-color: rgb(55 65 75);
+:deep(.ProseMirror pre::-webkit-scrollbar-thumb) {
+  background: rgb(48 56 69);
+  border-radius: 3px;
 }
 
-:deep(.ProseMirror pre .copy-button:hover) {
-  background-color: rgba(55, 65, 75, 0.9);
-  border-color: rgb(75 85 99);
-  color: rgb(229 231 235);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.3);
+:deep(.ProseMirror pre::-webkit-scrollbar-thumb:hover) {
+  background: rgb(88 96 109);
 }
 
-:deep(.dark .ProseMirror pre .copy-button) {
-  color: rgb(156 163 175);
-  background-color: rgba(31, 41, 55, 0.8);
-  border-color: rgb(55 65 75);
-}
-
-:deep(.dark .ProseMirror pre .copy-button:hover) {
-  background-color: rgba(55, 65, 75, 0.9);
-  border-color: rgb(75 85 99);
-  color: rgb(229 231 235);
-}
-
-:deep(.ProseMirror pre .copy-button.copied) {
-  color: rgb(34 197 94);
-  border-color: rgb(34 197 94);
-  background-color: rgba(20, 83, 45, 0.8);
-  transform: scale(1.05);
-}
-
-:deep(.dark .ProseMirror pre .copy-button.copied) {
-  color: rgb(74 222 128);
-  border-color: rgb(74 222 128);
-  background-color: rgba(20, 83, 45, 0.8);
-}
-
-:deep(.ProseMirror pre .copy-button svg) {
-  flex-shrink: 0;
-}
-
-/* 代码块内的代码样式 */
-:deep(.ProseMirror pre.code-block code),
-:deep(.ProseMirror pre.hljs code) {
-  background: transparent;
-  padding: 0;
-  font-size: inherit;
-  line-height: inherit;
-  display: block;
-  color: inherit;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
-}
-
-/* 代码块语言标签 - 优化版 */
-:deep(.ProseMirror pre.code-block::before),
-:deep(.ProseMirror pre.hljs::before) {
-  content: attr(data-lang);
-  position: absolute;
-  top: 0.875rem;
-  left: 1rem;
-  font-size: 0.75rem;
-  color: rgb(156 163 175);
-  text-transform: uppercase;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.5rem;
-  background-color: rgba(55, 65, 75, 0.5);
-  border-radius: 0.25rem;
-  line-height: 1;
-}
-
-:deep(.dark .ProseMirror pre.code-block::before),
-:deep(.dark .ProseMirror pre.hljs::before) {
-  color: rgb(156 163 175);
-  background-color: rgba(55, 65, 75, 0.5);
-}
-
-/* 代码块滚动条样式 */
-:deep(.ProseMirror pre.code-block::-webkit-scrollbar),
-:deep(.ProseMirror pre.hljs::-webkit-scrollbar) {
-  height: 8px;
-}
-
-:deep(.ProseMirror pre.code-block::-webkit-scrollbar-track),
-:deep(.ProseMirror pre.hljs::-webkit-scrollbar-track) {
-  background: rgb(243 244 246);
-  border-radius: 4px;
-}
-
-:deep(.dark .ProseMirror pre.code-block::-webkit-scrollbar-track),
-:deep(.dark .ProseMirror pre.hljs::-webkit-scrollbar-track) {
-  background: rgb(31 41 55);
-}
-
-:deep(.ProseMirror pre.code-block::-webkit-scrollbar-thumb),
-:deep(.ProseMirror pre.hljs::-webkit-scrollbar-thumb) {
-  background: rgb(156 163 175);
-  border-radius: 4px;
-}
-
-:deep(.ProseMirror pre.code-block::-webkit-scrollbar-thumb:hover),
-:deep(.ProseMirror pre.hljs::-webkit-scrollbar-thumb:hover) {
-  background: rgb(107 114 128);
-}
-
-/* 行内代码样式 - 优化版 */
+/* ── 行内代码 ── */
 :deep(.ProseMirror code) {
-  background-color: rgb(254 242 242);
-  color: rgb(220 38 38);
-  padding: 0.2em 0.4em;
-  border-radius: 0.25rem;
-  font-size: 0.9em;
-  font-weight: 600;
-  border: 1px solid rgb(254 226 226);
+  background-color: rgb(240 246 252);
+  color: rgb(36 41 47);
+  padding: 0.15em 0.4em;
+  border-radius: 0.3125rem;
+  font-size: 0.875em;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-weight: 500;
+  border: 1px solid rgb(209 217 224);
 }
 
 :deep(.dark .ProseMirror code) {
-  background-color: rgb(69 26 26);
-  color: rgb(252 165 165);
-  border-color: rgb(127 29 29);
+  background-color: rgb(33 38 45);
+  color: rgb(121 192 255);
+  border-color: rgb(48 56 69);
 }
 
-/* 图片样式 - 优化版 */
+/* ── 图片 ── */
 :deep(.ProseMirror img) {
   max-width: 100%;
   height: auto;
   border-radius: 0.75rem;
   margin: 2rem auto;
   display: block;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.15);
   transition:
     transform 0.3s ease,
     box-shadow 0.3s ease;
 }
 
 :deep(.ProseMirror img:hover) {
-  transform: scale(1.02);
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: scale(1.01);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.2);
 }
 
-/* 图片标题样式 */
 :deep(.ProseMirror figure) {
   margin: 2rem 0;
 }
-
 :deep(.ProseMirror figure img) {
   margin: 0;
 }
@@ -752,14 +741,13 @@ onBeforeUnmount(() => {
   color: rgb(156 163 175);
 }
 
-/* 链接样式 - 优化版 */
+/* ── 链接 ── */
 :deep(.ProseMirror a) {
   color: rgb(59 130 246);
   text-decoration: none;
   font-weight: 500;
   border-bottom: 1px solid transparent;
   transition: all 0.2s ease;
-  position: relative;
 }
 
 :deep(.ProseMirror a:hover) {
@@ -767,56 +755,38 @@ onBeforeUnmount(() => {
   border-bottom-color: rgb(29 78 216);
 }
 
-/* 外部链接图标 */
 :deep(.ProseMirror a[href^='http']::after) {
   content: '↗';
   margin-left: 0.2em;
-  font-size: 0.85em;
-  opacity: 0.6;
+  font-size: 0.8em;
+  opacity: 0.5;
 }
 
 :deep(.dark .ProseMirror a) {
   color: rgb(96 165 250);
 }
-
 :deep(.dark .ProseMirror a:hover) {
   color: rgb(147 197 253);
   border-bottom-color: rgb(147 197 253);
 }
 
-/* 引用样式 - 优化版 */
+/* ── 引用块 ── */
 :deep(.ProseMirror blockquote) {
-  border-left: 4px solid rgb(59 130 246);
-  padding: 1em 1.5em;
+  border-left: 3px solid rgb(59 130 246);
+  padding: 0.875em 1.25em;
   margin: 2rem 0;
-  font-style: normal;
   color: rgb(75 85 99);
   background-color: rgb(239 246 255);
   border-radius: 0 0.5rem 0.5rem 0;
-  position: relative;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
-
-:deep(.ProseMirror blockquote::before) {
-  content: '"';
-  font-size: 3em;
-  color: rgb(59 130 246);
-  opacity: 0.2;
-  position: absolute;
-  top: -0.1em;
-  left: 0.3em;
-  line-height: 1;
-  font-family: Georgia, serif;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
 }
 
 :deep(.ProseMirror blockquote p) {
-  margin: 0.75em 0;
+  margin: 0.5em 0;
 }
-
 :deep(.ProseMirror blockquote p:first-child) {
   margin-top: 0;
 }
-
 :deep(.ProseMirror blockquote p:last-child) {
   margin-bottom: 0;
 }
@@ -825,14 +795,9 @@ onBeforeUnmount(() => {
   border-left-color: rgb(96 165 250);
   color: rgb(156 163 175);
   background-color: rgb(30 41 59);
-  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.1);
 }
 
-:deep(.dark .ProseMirror blockquote::before) {
-  color: rgb(96 165 250);
-}
-
-/* 列表样式 - 优化版 */
+/* ── 列表 ── */
 :deep(.ProseMirror ul),
 :deep(.ProseMirror ol) {
   padding-left: 1.75rem;
@@ -842,39 +807,35 @@ onBeforeUnmount(() => {
 :deep(.ProseMirror ul) {
   list-style-type: disc;
 }
-
 :deep(.ProseMirror ul ul) {
   list-style-type: circle;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
-
 :deep(.ProseMirror ul ul ul) {
   list-style-type: square;
 }
 
 :deep(.ProseMirror li) {
-  margin: 0.75rem 0;
-  padding-left: 0.5rem;
+  margin: 0.625rem 0;
+  padding-left: 0.375rem;
   line-height: 1.75;
 }
 
 :deep(.ProseMirror ul > li::marker) {
   color: rgb(59 130 246);
-  font-size: 1.2em;
+  font-size: 1.1em;
 }
-
 :deep(.ProseMirror ol > li::marker) {
   color: rgb(59 130 246);
   font-weight: 700;
 }
-
 :deep(.dark .ProseMirror ul > li::marker),
 :deep(.dark .ProseMirror ol > li::marker) {
   color: rgb(96 165 250);
 }
 
-/* 标题样式 - 优化版 */
+/* ── 标题 ── */
 :deep(.ProseMirror h1) {
   font-size: clamp(1.875rem, 5vw, 2.5rem);
   font-weight: 800;
@@ -886,33 +847,31 @@ onBeforeUnmount(() => {
 }
 
 :deep(.ProseMirror h2) {
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(1.375rem, 3.5vw, 1.875rem);
   font-weight: 700;
-  margin-top: 2em;
+  margin-top: 2.25em;
   margin-bottom: 0.75em;
   line-height: 1.3;
   letter-spacing: -0.02em;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid rgb(229 231 235);
+  border-bottom: 1px solid rgb(229 231 235);
   color: rgb(17 24 39);
 }
 
 :deep(.ProseMirror h3) {
-  font-size: clamp(1.25rem, 3vw, 1.5rem);
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
   font-weight: 600;
   margin-top: 1.75em;
   margin-bottom: 0.5em;
   line-height: 1.4;
-  letter-spacing: -0.01em;
   color: rgb(17 24 39);
 }
 
 :deep(.ProseMirror h4) {
-  font-size: 1.125rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   margin-top: 1.5em;
   margin-bottom: 0.5em;
-  line-height: 1.5;
   color: rgb(17 24 39);
 }
 
@@ -922,14 +881,13 @@ onBeforeUnmount(() => {
 :deep(.dark .ProseMirror h4) {
   color: rgb(243 244 246);
 }
-
 :deep(.dark .ProseMirror h2) {
   border-bottom-color: rgb(55 65 81);
 }
 
-/* 段落样式 - 优化版 */
+/* ── 段落 ── */
 :deep(.ProseMirror p) {
-  margin: 1.5em 0;
+  margin: 1.25em 0;
   line-height: 1.8;
   color: rgb(55 65 81);
 }
@@ -937,12 +895,11 @@ onBeforeUnmount(() => {
 :deep(.ProseMirror p:first-of-type) {
   margin-top: 0;
 }
-
 :deep(.dark .ProseMirror p) {
   color: rgb(209 213 219);
 }
 
-/* 表格样式 - 优化版 */
+/* ── 表格 ── */
 :deep(.ProseMirror table) {
   width: 100%;
   border-collapse: collapse;
@@ -951,7 +908,7 @@ onBeforeUnmount(() => {
   border-radius: 0.5rem;
   overflow: hidden;
   border: 1px solid rgb(229 231 235);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 :deep(.ProseMirror table th),
@@ -959,11 +916,6 @@ onBeforeUnmount(() => {
   border: 1px solid rgb(229 231 235);
   padding: 0.75rem 1rem;
   text-align: left;
-}
-
-:deep(.ProseMirror table thead) {
-  background-color: rgb(249 250 251);
-  font-weight: 700;
 }
 
 :deep(.ProseMirror table th) {
@@ -974,13 +926,11 @@ onBeforeUnmount(() => {
 }
 
 :deep(.ProseMirror table tbody tr) {
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease;
 }
-
 :deep(.ProseMirror table tbody tr:nth-child(even)) {
   background-color: rgb(249 250 251);
 }
-
 :deep(.ProseMirror table tbody tr:hover) {
   background-color: rgb(243 244 246);
 }
@@ -988,37 +938,32 @@ onBeforeUnmount(() => {
 :deep(.dark .ProseMirror table) {
   border-color: rgb(55 65 81);
 }
-
 :deep(.dark .ProseMirror table th),
 :deep(.dark .ProseMirror table td) {
   border-color: rgb(55 65 81);
 }
-
-:deep(.dark .ProseMirror table thead),
 :deep(.dark .ProseMirror table th) {
   background-color: rgb(31 41 55);
   color: rgb(243 244 246);
   border-bottom-color: rgb(55 65 81);
 }
-
 :deep(.dark .ProseMirror table tbody tr:nth-child(even)) {
   background-color: rgb(30 41 59);
 }
-
 :deep(.dark .ProseMirror table tbody tr:hover) {
   background-color: rgb(39 50 66);
 }
 
-/* 水平分割线 - 优化版 */
+/* ── 分割线 ── */
 :deep(.ProseMirror hr) {
   border: none;
-  border-top: 2px solid rgb(229 231 235);
+  border-top: 1px solid rgb(229 231 235);
   margin: 3rem 0;
   position: relative;
 }
 
 :deep(.ProseMirror hr::after) {
-  content: '✦';
+  content: '···';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1026,15 +971,15 @@ onBeforeUnmount(() => {
   background-color: white;
   padding: 0 1rem;
   color: rgb(156 163 175);
-  font-size: 0.875rem;
+  font-size: 1rem;
+  letter-spacing: 0.2em;
 }
 
 :deep(.dark .ProseMirror hr) {
   border-top-color: rgb(55 65 81);
 }
-
 :deep(.dark .ProseMirror hr::after) {
-  background-color: rgb(17 24 39);
-  color: rgb(107 114 128);
+  background-color: rgb(15 23 42);
+  color: rgb(71 85 105);
 }
 </style>
