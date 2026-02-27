@@ -299,9 +299,7 @@ watch(
         editor.value.commands.setContent(htmlContent)
         // 在下一个 tick 中应用代码高亮，使用 setTimeout 确保 DOM 更新完成
         nextTick(() => {
-          setTimeout(() => {
-            applyCodeHighlighting()
-          }, 50)
+          setTimeout(applyEnhancements, 50)
         })
       }
     }
@@ -495,23 +493,101 @@ const enhanceCodeBlock = (preElement: HTMLElement) => {
   preElement.style.margin = ''
 }
 
+// ── 增强普通 HTML 图片（Markdown 渲染的 <img>，不经过 OptimizedImageComponent）──
+const { open: openImageLightbox } = useImageLightbox()
+
+const enhanceImages = () => {
+  if (typeof window === 'undefined') return
+
+  // 只处理未经过 Tiptap node view 渲染的原始 img（.image-figure 是 node view 的外层）
+  const rawImgs = Array.from(
+    document.querySelectorAll<HTMLImageElement>('.ProseMirror img')
+  ).filter(img => !img.closest('.image-figure') && !img.closest('.image-enhanced'))
+
+  if (rawImgs.length === 0) return
+
+  // 收集所有原始图片供 lightbox 批量预览
+  const imageList = rawImgs.map(img => ({
+    src: img.src,
+    alt: img.alt || '',
+    title: img.title || ''
+  }))
+
+  rawImgs.forEach((img, index) => {
+    // 二次防重
+    if (img.closest('.image-enhanced')) return
+
+    const parent = img.parentNode
+    if (!parent) return
+
+    // ── 外层 figure ──
+    const figure = document.createElement('figure')
+    figure.className = 'image-enhanced'
+
+    // ── 内容容器（承载遮罩） ──
+    const inner = document.createElement('div')
+    inner.className = 'image-enhanced-inner'
+    inner.setAttribute('role', 'button')
+    inner.setAttribute('tabindex', '0')
+    inner.setAttribute('aria-label', '点击放大查看图片')
+
+    // ── 放大图标遮罩 ──
+    const overlay = document.createElement('div')
+    overlay.className = 'image-enhanced-overlay'
+    overlay.setAttribute('aria-hidden', 'true')
+    overlay.innerHTML = `<div class="image-enhanced-overlay-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+      </svg>
+    </div>`
+
+    parent.insertBefore(figure, img)
+    img.style.margin = '0'
+    inner.appendChild(img)
+    inner.appendChild(overlay)
+    figure.appendChild(inner)
+
+    // ── 图注（从 alt 或 title 提取） ──
+    const captionText =
+      img.title?.trim() ||
+      (img.alt?.trim() && !/\.(jpe?g|png|gif|webp|svg|avif)$/i.test(img.alt) ? img.alt.trim() : '')
+    if (captionText) {
+      const caption = document.createElement('figcaption')
+      caption.className = 'image-enhanced-caption'
+      caption.textContent = captionText
+      figure.appendChild(caption)
+    }
+
+    // ── 点击/键盘 → lightbox ──
+    const openAt = () => openImageLightbox(imageList, index)
+    inner.addEventListener('click', openAt)
+    inner.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        openAt()
+      }
+    })
+  })
+}
+
+// 统一执行内容增强的时机
+const applyEnhancements = () => {
+  applyCodeHighlighting()
+  enhanceImages()
+}
+
 // 组件挂载后应用代码高亮和设置内容
 onMounted(() => {
   if (editor.value && props.content) {
     const htmlContent = getHtmlContent(props.content, props.contentType)
     editor.value.commands.setContent(htmlContent)
-    // 使用多个 nextTick 确保 DOM 完全渲染
     nextTick(() => {
-      setTimeout(() => {
-        applyCodeHighlighting()
-      }, 100)
+      setTimeout(applyEnhancements, 100)
     })
   } else if (editor.value) {
-    // 即使没有内容，也检查是否有需要高亮的代码块
     nextTick(() => {
-      setTimeout(() => {
-        applyCodeHighlighting()
-      }, 100)
+      setTimeout(applyEnhancements, 100)
     })
   }
 })
@@ -703,42 +779,103 @@ onBeforeUnmount(() => {
   border-color: rgb(48 56 69);
 }
 
-/* ── 图片 ── */
+/* ── 图片（基础，node view 和原始 img 通用） ── */
 :deep(.ProseMirror img) {
   max-width: 100%;
   height: auto;
-  border-radius: 0.75rem;
-  margin: 2rem auto;
   display: block;
-  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.15);
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
+  border-radius: 0.875rem;
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.12);
 }
 
-:deep(.ProseMirror img:hover) {
-  transform: scale(1.01);
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.2);
-}
-
-:deep(.ProseMirror figure) {
+/* ── 普通 HTML img 增强容器（enhanceImages() 注入） ── */
+:deep(.ProseMirror .image-enhanced) {
   margin: 2rem 0;
-}
-:deep(.ProseMirror figure img) {
-  margin: 0;
-}
-
-:deep(.ProseMirror figcaption) {
-  color: rgb(107 114 128);
-  font-size: 0.875rem;
-  line-height: 1.5;
-  margin-top: 0.75rem;
   text-align: center;
-  font-style: italic;
 }
 
-:deep(.dark .ProseMirror figcaption) {
-  color: rgb(156 163 175);
+:deep(.ProseMirror .image-enhanced-inner) {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  border-radius: 0.875rem;
+  overflow: hidden;
+  cursor: zoom-in;
+  outline: none;
+}
+
+:deep(.ProseMirror .image-enhanced-inner:focus-visible) {
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.5);
+}
+
+:deep(.ProseMirror .image-enhanced-inner img) {
+  display: block;
+  margin: 0;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.ProseMirror .image-enhanced-inner:hover img) {
+  transform: scale(1.015);
+}
+
+/* 悬停遮罩 */
+:deep(.ProseMirror .image-enhanced-overlay) {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.25s ease;
+  border-radius: 0.875rem;
+  pointer-events: none;
+}
+
+:deep(.ProseMirror .image-enhanced-inner:hover .image-enhanced-overlay) {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+:deep(.ProseMirror .image-enhanced-overlay-icon) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: white;
+  opacity: 0;
+  transform: scale(0.7);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+:deep(.ProseMirror .image-enhanced-overlay-icon svg) {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+:deep(.ProseMirror .image-enhanced-inner:hover .image-enhanced-overlay-icon) {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 图注 */
+:deep(.ProseMirror .image-enhanced-caption) {
+  display: block;
+  margin-top: 0.625rem;
+  font-size: 0.8125rem;
+  color: rgb(100 116 139);
+  font-style: italic;
+  line-height: 1.5;
+  text-align: center;
+}
+
+:deep(.dark .ProseMirror .image-enhanced-caption) {
+  color: rgb(100 116 139);
 }
 
 /* ── 链接 ── */
