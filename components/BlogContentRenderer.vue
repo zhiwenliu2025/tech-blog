@@ -875,7 +875,8 @@ onBeforeUnmount(() => {
 }
 
 :deep(.dark .ProseMirror .image-enhanced-caption) {
-  color: rgb(100 116 139);
+  /* slate-400 — 对比度 ≈ 4.6:1（原 slate-500 仅 2.8:1，不符合 WCAG AA） */
+  color: rgb(148 163 184);
 }
 
 /* ── 链接 ── */
@@ -930,8 +931,10 @@ onBeforeUnmount(() => {
 
 :deep(.dark .ProseMirror blockquote) {
   border-left-color: rgb(96 165 250);
-  color: rgb(156 163 175);
-  background-color: rgb(30 41 59);
+  /* slate-200 → 14.39:1 AAA（引用背景更深，需要更亮的文字） */
+  color: rgb(226 232 240);
+  background-color: rgb(15 23 42);
+  box-shadow: 0 2px 8px rgba(96, 165, 250, 0.06);
 }
 
 /* ── 列表 ── */
@@ -1012,14 +1015,26 @@ onBeforeUnmount(() => {
   color: rgb(17 24 39);
 }
 
-:deep(.dark .ProseMirror h1),
-:deep(.dark .ProseMirror h2),
-:deep(.dark .ProseMirror h3),
-:deep(.dark .ProseMirror h4) {
-  color: rgb(243 244 246);
+/*
+  暗黑模式标题亮度阶梯（以 gray-900 #111827 为背景）
+  h1  slate-50  → 16.77:1  AAA  ████████████████▋
+  h2  slate-50  → 16.77:1  AAA  ████████████████▋
+  h3  slate-100 → 16.19:1  AAA  ████████████████
+  h4  slate-200 → 14.39:1  AAA  ██████████████▍
+  大小 + 字重提供层级，颜色差异保留视觉区分
+*/
+:deep(.dark .ProseMirror h1) {
+  color: rgb(248 250 252); /* slate-50 */
 }
 :deep(.dark .ProseMirror h2) {
-  border-bottom-color: rgb(55 65 81);
+  color: rgb(248 250 252); /* slate-50 — 上调，确保标题亮于正文 */
+  border-bottom-color: rgb(51 65 85); /* slate-700 */
+}
+:deep(.dark .ProseMirror h3) {
+  color: rgb(241 245 249); /* slate-100 — 上调，比正文略亮 */
+}
+:deep(.dark .ProseMirror h4) {
+  color: rgb(226 232 240); /* slate-200 */
 }
 
 /* ── 段落 ── */
@@ -1032,8 +1047,32 @@ onBeforeUnmount(() => {
 :deep(.ProseMirror p:first-of-type) {
   margin-top: 0;
 }
+
+/*
+  暗黑模式正文亮度（以 gray-900 #111827 为背景）
+  slate-100 → 16.19:1 AAA  — 较 slate-200(14.39:1) 对比度提升约 13%
+*/
 :deep(.dark .ProseMirror p) {
-  color: rgb(209 213 219);
+  color: rgb(241 245 249); /* slate-100 */
+}
+
+/* 列表项与段落保持一致 — 默认 prose-invert 使用 gray-300(12.04:1)，比段落暗 4 档 */
+:deep(.dark .ProseMirror li) {
+  color: rgb(241 245 249); /* slate-100 — 与段落统一 */
+}
+
+/* ── 加粗文字 ── */
+:deep(.ProseMirror strong) {
+  color: rgb(17 24 39);
+  font-weight: 700;
+}
+:deep(.dark .ProseMirror strong) {
+  color: rgb(248 250 252); /* slate-50 — 亮于正文 slate-100，视觉层次清晰 */
+}
+
+/* ── 斜体文字 ── */
+:deep(.dark .ProseMirror em) {
+  color: rgb(241 245 249); /* slate-100 — 与正文一致 */
 }
 
 /* ── 表格 ── */
@@ -1084,6 +1123,10 @@ onBeforeUnmount(() => {
   color: rgb(243 244 246);
   border-bottom-color: rgb(55 65 81);
 }
+/* 单元格正文 — slate-200(14.39:1)，与正文 slate-100 接近，表格背景略深故降一档 */
+:deep(.dark .ProseMirror table td) {
+  color: rgb(226 232 240);
+}
 :deep(.dark .ProseMirror table tbody tr:nth-child(even)) {
   background-color: rgb(30 41 59);
 }
@@ -1116,7 +1159,8 @@ onBeforeUnmount(() => {
   border-top-color: rgb(55 65 81);
 }
 :deep(.dark .ProseMirror hr::after) {
-  background-color: rgb(15 23 42);
+  /* 匹配布局 dark:bg-gray-900 (#111827) */
+  background-color: rgb(17 24 39);
   color: rgb(71 85 105);
 }
 </style>
