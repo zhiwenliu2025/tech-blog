@@ -28,11 +28,20 @@ export default defineEventHandler(async event => {
           )
         ].sort()
 
-        const tags = [
-          ...new Set((tagsResult.data || []).flatMap((p: any) => p.tags || []) as string[])
-        ].sort()
+        const tagCountMap = new Map<string, number>()
+        for (const post of tagsResult.data || []) {
+          for (const tag of (post.tags || []) as string[]) {
+            if (tag) tagCountMap.set(tag, (tagCountMap.get(tag) || 0) + 1)
+          }
+        }
 
-        return { categories, tags }
+        const tagsWithCounts = [...tagCountMap.entries()]
+          .sort((a, b) => b[1] - a[1])
+          .map(([name, count]) => ({ name, count }))
+
+        const tags = tagsWithCounts.map(t => t.name)
+
+        return { categories, tags, tagsWithCounts }
       },
       CACHE_TTL.POST_FILTERS
     )

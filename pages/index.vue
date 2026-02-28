@@ -163,7 +163,7 @@
                   <span class="text-slate-300">: </span>
                   <span class="text-sky-300">
                     <span v-if="tagsLoading" class="animate-pulse text-slate-600">...</span>
-                    <span v-else>{{ tags.length }}</span>
+                    <span v-else>{{ tagsWithCounts.length }}</span>
                   </span>
                   <span class="text-slate-300">,</span>
                 </div>
@@ -205,7 +205,9 @@
             <div class="flex flex-col items-center py-5 sm:flex-row sm:justify-center sm:gap-3">
               <span class="text-2xl font-bold text-white sm:text-3xl">
                 <span v-if="tagsLoading" class="animate-pulse text-slate-600">—</span>
-                <span v-else>{{ tags.length }}<span class="text-lg text-primary-400">+</span></span>
+                <span v-else
+                  >{{ tagsWithCounts.length }}<span class="text-lg text-primary-400">+</span></span
+                >
               </span>
               <span class="text-xs text-slate-400 sm:text-sm">热门标签</span>
             </div>
@@ -534,7 +536,7 @@
                           class="animate-pulse text-gray-300 dark:text-gray-600"
                           >...</span
                         >
-                        <span v-else>{{ tags.length }}</span>
+                        <span v-else>{{ tagsWithCounts.length }}</span>
                       </span>
                     </div>
                   </div>
@@ -601,39 +603,83 @@
                 </div>
               </div>
 
-              <!-- ⑤ 热门标签 -->
+              <!-- ⑤ 热门标签 — 标签云 -->
               <div
                 class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
               >
+                <!-- 渐变标题栏 -->
                 <div
-                  class="flex items-center gap-2 border-b border-gray-100 px-4 py-3 dark:border-gray-800"
+                  class="relative overflow-hidden bg-gradient-to-br from-violet-600 to-violet-700 px-4 py-3.5"
                 >
-                  <span
-                    class="flex h-5 w-5 items-center justify-center rounded-md bg-violet-100 dark:bg-violet-900/30"
+                  <div
+                    class="pointer-events-none absolute inset-0 opacity-[0.12]"
+                    style="
+                      background-image: radial-gradient(circle, white 1px, transparent 1px);
+                      background-size: 14px 14px;
+                    "
+                  />
+                  <h3
+                    class="relative flex items-center justify-between text-sm font-semibold text-white"
                   >
-                    <Icon name="i-heroicons-tag" class="h-3.5 w-3.5 text-violet-500" />
-                  </span>
-                  <h3 class="text-sm font-semibold text-gray-900 dark:text-white">热门标签</h3>
+                    <span class="flex items-center gap-2">
+                      <Icon name="i-heroicons-hashtag" class="h-4 w-4 text-violet-200" />
+                      热门标签
+                    </span>
+                    <span
+                      v-if="!tagsLoading && tagsWithCounts.length > 0"
+                      class="font-mono text-[11px] text-violet-200/70"
+                    >
+                      {{ tagsWithCounts.length }} tags
+                    </span>
+                  </h3>
                 </div>
+
                 <div class="p-4">
+                  <!-- 加载骨架 -->
                   <div v-if="tagsLoading" class="flex flex-wrap gap-2">
                     <div
-                      v-for="i in 8"
+                      v-for="(w, i) in [56, 72, 48, 80, 64, 52, 68, 44, 76, 60]"
                       :key="i"
-                      class="h-6 w-14 animate-pulse rounded-md bg-gray-100 dark:bg-gray-800"
+                      class="h-6 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800"
+                      :style="`width:${w}px`"
                     />
                   </div>
-                  <div v-else-if="tags && tags.length > 0" class="flex flex-wrap gap-1.5">
+
+                  <!-- 标签云 -->
+                  <div v-else-if="tagsWithCounts.length > 0" class="flex flex-wrap gap-2">
                     <NuxtLink
-                      v-for="tag in tags.slice(0, 15)"
-                      :key="tag"
-                      :to="`/blog?tag=${encodeURIComponent(tag)}`"
-                      class="tag text-xs"
+                      v-for="(tag, idx) in tagsWithCounts.slice(0, 18)"
+                      :key="tag.name"
+                      :to="`/blog?tag=${encodeURIComponent(tag.name)}`"
+                      class="group inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 font-mono font-medium transition-all duration-150 hover:-translate-y-px hover:shadow-sm"
+                      :class="[getTagSizeClass(idx), getTagColorClass(idx)]"
                     >
-                      #{{ tag }}
+                      <span class="opacity-50">#</span>{{ tag.name
+                      }}<span
+                        class="bg-black/8 ml-1 shrink-0 rounded px-1 py-px font-mono text-[9px] tabular-nums opacity-0 transition-opacity group-hover:opacity-100 dark:bg-white/10"
+                        >{{ tag.count }}</span
+                      >
                     </NuxtLink>
                   </div>
+
                   <div v-else class="py-4 text-center text-sm text-gray-400">暂无标签</div>
+
+                  <!-- 底部操作行 -->
+                  <div
+                    v-if="!tagsLoading && tagsWithCounts.length > 0"
+                    class="mt-3.5 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-800"
+                  >
+                    <span class="font-mono text-[10px] text-gray-400 dark:text-gray-600">
+                      // sorted by post_count
+                    </span>
+                    <NuxtLink
+                      to="/blog"
+                      class="inline-flex items-center gap-1 text-xs font-medium text-violet-600 transition-all duration-150 hover:gap-1.5 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300"
+                    >
+                      查看全部
+                      <Icon name="i-heroicons-arrow-right" class="h-3 w-3" />
+                    </NuxtLink>
+                  </div>
                 </div>
               </div>
 
@@ -723,14 +769,13 @@ const categoryBarClasses = [
   'bg-rose-400',
   'bg-sky-400'
 ]
-const getCategoryBarClass = (idx: number) => categoryBarClasses[idx % categoryBarClasses.length]
+const getCategoryBarClass = (idx: number | string) =>
+  categoryBarClasses[Number(idx) % categoryBarClasses.length]
 
 // 分页与筛选状态
 const currentPage = ref(parseInt((route.query.page as string) || '1'))
 const postsPerPage = 5
 const selectedCategory = ref<string | null>((route.query.category as string) || null)
-
-const { fetchCategories, fetchTags } = useBlogPosts()
 
 // 用户状态
 const { user } = useSupabaseAuth()
@@ -743,22 +788,16 @@ const {
   fetchPosts
 } = useCachedPostsList()
 
-// 使用 useAsyncData 缓存分类列表
-const { data: categoriesData, pending: categoriesPending } = await useAsyncData(
-  'blog-categories',
-  () => fetchCategories(),
+// 统一用 filters API 获取分类和标签（含计数），服务端缓存，SSR 友好
+const { data: filtersData, pending: filtersPending } = await useAsyncData(
+  'home-filters',
+  () => $fetch('/api/posts/filters').then((r: any) => r.data),
   {
-    default: () => [],
-    server: true
-  }
-)
-
-// 使用 useAsyncData 缓存标签列表
-const { data: tagsData, pending: tagsPending } = await useAsyncData(
-  'blog-tags',
-  () => fetchTags(),
-  {
-    default: () => [],
+    default: () => ({
+      categories: [] as string[],
+      tags: [] as string[],
+      tagsWithCounts: [] as { name: string; count: number }[]
+    }),
     server: true
   }
 )
@@ -767,12 +806,32 @@ const { data: tagsData, pending: tagsPending } = await useAsyncData(
 const posts = computed(() => {
   return Array.isArray(cachedPosts.value) ? cachedPosts.value : []
 }) as ComputedRef<Array<any>>
-const categories = computed(() => categoriesData.value || [])
-const tags = computed(() => tagsData.value || [])
+const categories = computed(() => filtersData.value?.categories || [])
+const tagsWithCounts = computed<{ name: string; count: number }[]>(
+  () => filtersData.value?.tagsWithCounts || []
+)
 const loading = computed(() => postsLoading.value || initialLoading.value)
 const error = computed(() => postsError.value)
-const categoriesLoading = computed(() => categoriesPending.value)
-const tagsLoading = computed(() => tagsPending.value)
+const categoriesLoading = computed(() => filtersPending.value)
+const tagsLoading = computed(() => filtersPending.value)
+
+// 标签云辅助 —— 按索引（即热度排名）决定字号
+const getTagSizeClass = (idx: number) => {
+  if (idx < 3) return 'text-sm'
+  if (idx < 8) return 'text-xs'
+  return 'text-[11px]'
+}
+
+// 标签云辅助 —— 6 色循环调色板
+const tagColorClasses = [
+  'border-primary-200 bg-primary-50 text-primary-700 hover:border-primary-300 hover:bg-primary-100 dark:border-primary-800/40 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/30',
+  'border-violet-200 bg-violet-50 text-violet-700 hover:border-violet-300 hover:bg-violet-100 dark:border-violet-800/40 dark:bg-violet-900/20 dark:text-violet-400 dark:hover:bg-violet-900/30',
+  'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300 hover:bg-emerald-100 dark:border-emerald-800/40 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/30',
+  'border-amber-200 bg-amber-50 text-amber-700 hover:border-amber-300 hover:bg-amber-100 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/30',
+  'border-sky-200 bg-sky-50 text-sky-700 hover:border-sky-300 hover:bg-sky-100 dark:border-sky-800/40 dark:bg-sky-900/20 dark:text-sky-400 dark:hover:bg-sky-900/30',
+  'border-rose-200 bg-rose-50 text-rose-700 hover:border-rose-300 hover:bg-rose-100 dark:border-rose-800/40 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/30'
+] as const
+const getTagColorClass = (idx: number) => tagColorClasses[idx % tagColorClasses.length]
 
 // 按分类筛选
 const filteredPosts = computed(() => {
