@@ -6,7 +6,7 @@ export default defineNuxtPlugin(async () => {
   watch(
     user,
     async newUser => {
-      if (newUser) {
+      if (newUser && newUser.id) {
         // Check if user profile exists
         const { data: profile, error } = await supabase
           .from('profiles')

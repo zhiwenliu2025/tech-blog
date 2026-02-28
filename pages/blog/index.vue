@@ -95,9 +95,13 @@
         class="mb-6 rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700/60 dark:bg-slate-900"
       >
         <!-- 筛选器标题栏（macOS 风格） -->
-        <button
-          class="flex w-full items-center justify-between rounded-t-xl border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60 sm:hidden"
+        <!-- 用 div 替换外层 button，避免 button 嵌套（违反 HTML 规范，会导致浏览器重排 DOM 引发 SSR hydration mismatch） -->
+        <div
+          class="flex w-full cursor-pointer items-center justify-between rounded-t-xl border-b border-slate-100 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-800/60 sm:hidden"
+          role="button"
+          tabindex="0"
           @click="isFilterExpanded = !isFilterExpanded"
+          @keydown.enter.space.prevent="isFilterExpanded = !isFilterExpanded"
         >
           <div class="flex items-center gap-2">
             <span class="h-2 w-2 rounded-full bg-red-400/70" />
@@ -122,7 +126,7 @@
               ]"
             />
           </div>
-        </button>
+        </div>
 
         <!-- 桌面端标题栏（始终可见） -->
         <div
