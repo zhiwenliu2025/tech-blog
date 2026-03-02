@@ -125,35 +125,48 @@ export const useBlogPosts = () => {
     try {
       const { data, error: dbError } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select(
+          `
+          *,
+          likes(post_id),
+          comments(post_id)
+        `
+        )
         .eq('slug', slug)
         .single()
 
       if (dbError) throw dbError
 
-      // 如果文章有作者ID，获取作者信息
-      // 注意：如果从缓存API获取，profiles 字段已经包含在响应中
-      const postData = data as any
-      if (data && postData.author_id && postData.author_id !== 'undefined' && !postData.profiles) {
-        try {
-          const { data: authorData } = await supabase
-            .from('profiles')
-            .select('id, username, full_name, avatar_url, bio')
-            .eq('id', postData.author_id)
-            .single()
-
-          // 将作者信息附加到文章数据
-          if (authorData) {
-            postData.profiles = authorData
-          }
-        } catch (authorError) {
-          // 如果获取作者信息失败，不影响文章数据返回
-          console.warn('Failed to fetch author info:', authorError)
-          postData.profiles = null
+      if (data) {
+        const postData = data as BlogPostRow & {
+          likes: Pick<LikeRow, 'post_id'>[]
+          comments: Pick<CommentRow, 'post_id'>[]
         }
-      } else if (!data || !postData.author_id) {
-        // 没有作者ID，设置为 null
-        if (data) {
+
+        postData.likes_count = postData.likes?.length || 0
+        postData.comments_count = postData.comments?.length || 0
+
+        // 如果文章有作者ID，获取作者信息
+        // 注意：如果从缓存API获取，profiles 字段已经包含在响应中
+        if (postData.author_id && postData.author_id !== 'undefined' && !postData.profiles) {
+          try {
+            const { data: authorData } = await supabase
+              .from('profiles')
+              .select('id, username, full_name, avatar_url, bio')
+              .eq('id', postData.author_id)
+              .single()
+
+            // 将作者信息附加到文章数据
+            if (authorData) {
+              postData.profiles = authorData
+            }
+          } catch (authorError) {
+            // 如果获取作者信息失败，不影响文章数据返回
+            console.warn('Failed to fetch author info:', authorError)
+            postData.profiles = null
+          }
+        } else if (!postData.author_id) {
+          // 没有作者ID，设置为 null
           postData.profiles = null
         }
       }
@@ -175,7 +188,13 @@ export const useBlogPosts = () => {
     try {
       const { data, error: dbError } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select(
+          `
+          *,
+          likes(post_id),
+          comments(post_id)
+        `
+        )
         .eq('category', category)
         .eq('published', true)
         .order('published_at', { ascending: false })
@@ -183,7 +202,17 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      return (data || []) as BlogPostRow[]
+      const postsData = (data || []) as (BlogPostRow & {
+        likes: Pick<LikeRow, 'post_id'>[]
+        comments: Pick<CommentRow, 'post_id'>[]
+      })[]
+
+      postsData.forEach((post: any) => {
+        post.likes_count = post.likes?.length || 0
+        post.comments_count = post.comments?.length || 0
+      })
+
+      return postsData
     } catch (err: any) {
       error.value = err.message
       return []
@@ -200,7 +229,13 @@ export const useBlogPosts = () => {
     try {
       const { data, error: dbError } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select(
+          `
+          *,
+          likes(post_id),
+          comments(post_id)
+        `
+        )
         .contains('tags', [tag])
         .eq('published', true)
         .order('published_at', { ascending: false })
@@ -208,7 +243,17 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      return (data || []) as BlogPostRow[]
+      const postsData = (data || []) as (BlogPostRow & {
+        likes: Pick<LikeRow, 'post_id'>[]
+        comments: Pick<CommentRow, 'post_id'>[]
+      })[]
+
+      postsData.forEach((post: any) => {
+        post.likes_count = post.likes?.length || 0
+        post.comments_count = post.comments?.length || 0
+      })
+
+      return postsData
     } catch (err: any) {
       error.value = err.message
       return []
@@ -1076,8 +1121,18 @@ export const useBlogPosts = () => {
 
       const offset = (page - 1) * pageSize
 
-      // Build base query
-      let query = supabase.from('blog_posts').select('*', { count: 'exact' }).eq('published', true)
+      // Build base query with relational data
+      let query = supabase
+        .from('blog_posts')
+        .select(
+          `
+        *,
+        likes(post_id),
+        comments(post_id)
+      `,
+          { count: 'exact' }
+        )
+        .eq('published', true)
 
       // Apply category filter
       if (category) {
@@ -1115,45 +1170,15 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      const postsData = (data || []) as BlogPostRow[]
+      const postsData = (data || []) as (BlogPostRow & {
+        likes: Pick<LikeRow, 'post_id'>[]
+        comments: Pick<CommentRow, 'post_id'>[]
+      })[]
 
-      // Get likes and comments counts for all posts
-      if (postsData && postsData.length > 0) {
-        const postIds = postsData.map(post => post.id)
-
-        // Get likes counts
-        const { data: likesData } = await supabase
-          .from('likes')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Get comments counts
-        const { data: commentsData } = await supabase
-          .from('comments')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Count likes and comments per post
-        const likesCountMap = new Map<string, number>()
-        const commentsCountMap = new Map<string, number>()
-
-        const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
-        const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
-
-        likesRows.forEach(like => {
-          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-        })
-
-        commentsRows.forEach(comment => {
-          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-        })
-
-        // Add counts to posts
-        postsData.forEach((post: any) => {
-          post.likes_count = likesCountMap.get(post.id) || 0
-          post.comments_count = commentsCountMap.get(post.id) || 0
-        })
-      }
+      postsData.forEach((post: any) => {
+        post.likes_count = post.likes?.length || 0
+        post.comments_count = post.comments?.length || 0
+      })
 
       return {
         data: postsData,
@@ -1208,10 +1233,17 @@ export const useBlogPosts = () => {
         // Fallback to manual search if function doesn't exist or fails
         console.warn('Search function not available, using fallback search:', searchError)
 
-        // Manual full-text search using Supabase query
+        // Manual full-text search using Supabase query with relational data
         let searchQuery = supabase
           .from('blog_posts')
-          .select('*', { count: 'exact' })
+          .select(
+            `
+            *,
+            likes(post_id),
+            comments(post_id)
+          `,
+            { count: 'exact' }
+          )
           .eq('published', true)
           .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%,content.ilike.%${query}%`)
           .order('published_at', { ascending: false })
@@ -1229,41 +1261,15 @@ export const useBlogPosts = () => {
 
         if (dbError) throw dbError
 
-        const postsData = (data || []) as BlogPostRow[]
+        const postsData = (data || []) as (BlogPostRow & {
+          likes: Pick<LikeRow, 'post_id'>[]
+          comments: Pick<CommentRow, 'post_id'>[]
+        })[]
 
-        // Get likes and comments counts
-        if (postsData && postsData.length > 0) {
-          const postIds = postsData.map(post => post.id)
-
-          const { data: likesData } = await supabase
-            .from('likes')
-            .select('post_id')
-            .in('post_id', postIds)
-
-          const { data: commentsData } = await supabase
-            .from('comments')
-            .select('post_id')
-            .in('post_id', postIds)
-
-          const likesCountMap = new Map<string, number>()
-          const commentsCountMap = new Map<string, number>()
-
-          const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
-          const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
-
-          likesRows.forEach(like => {
-            likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-          })
-
-          commentsRows.forEach(comment => {
-            commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-          })
-
-          postsData.forEach((post: any) => {
-            post.likes_count = likesCountMap.get(post.id) || 0
-            post.comments_count = commentsCountMap.get(post.id) || 0
-          })
-        }
+        postsData.forEach((post: any) => {
+          post.likes_count = post.likes?.length || 0
+          post.comments_count = post.comments?.length || 0
+        })
 
         return { data: postsData, error: null, count: count || 0 }
       }
@@ -1289,7 +1295,7 @@ export const useBlogPosts = () => {
 
         const postIds = filteredResults.map(post => post.id)
 
-        // Get likes and comments counts
+        // Get likes and comments counts using relational data
         const { data: likesData } = await supabase
           .from('likes')
           .select('post_id')
@@ -1358,52 +1364,28 @@ export const useBlogPosts = () => {
     try {
       const { data, error: dbError } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select(
+          `
+          *,
+          likes(post_id),
+          comments(post_id)
+        `
+        )
         .eq('published', true)
         .order('view_count', { ascending: false })
         .range(offset, offset + limit - 1)
 
       if (dbError) throw dbError
 
-      const postsData = (data || []) as BlogPostRow[]
+      const postsData = (data || []) as (BlogPostRow & {
+        likes: Pick<LikeRow, 'post_id'>[]
+        comments: Pick<CommentRow, 'post_id'>[]
+      })[]
 
-      // Get likes and comments counts for all posts
-      if (postsData && postsData.length > 0) {
-        const postIds = postsData.map(post => post.id)
-
-        // Get likes counts
-        const { data: likesData } = await supabase
-          .from('likes')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Get comments counts
-        const { data: commentsData } = await supabase
-          .from('comments')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Count likes and comments per post
-        const likesCountMap = new Map<string, number>()
-        const commentsCountMap = new Map<string, number>()
-
-        const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
-        const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
-
-        likesRows.forEach(like => {
-          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-        })
-
-        commentsRows.forEach(comment => {
-          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-        })
-
-        // Add counts to posts
-        postsData.forEach((post: any) => {
-          post.likes_count = likesCountMap.get(post.id) || 0
-          post.comments_count = commentsCountMap.get(post.id) || 0
-        })
-      }
+      postsData.forEach((post: any) => {
+        post.likes_count = post.likes?.length || 0
+        post.comments_count = post.comments?.length || 0
+      })
 
       return { data: postsData, error: null }
     } catch (err: any) {
