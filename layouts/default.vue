@@ -6,10 +6,13 @@
     </main>
     <AppFooter />
     <Toast />
+    <SpeedInsights />
   </div>
 </template>
 
 <script setup lang="ts">
+import { SpeedInsights } from '@vercel/speed-insights/vue'
+
 // 使用 Tailwind CSS 的暗色模式 + 全局 canonical
 const config = useRuntimeConfig()
 const route = useRoute()
