@@ -23,7 +23,13 @@ export const useBlogPosts = () => {
     try {
       let query = supabase
         .from('blog_posts')
-        .select('*')
+        .select(
+          `
+          *,
+          likes(post_id),
+          comments(post_id)
+        `
+        )
         .order('published_at', { ascending: false })
         .range(offset, offset + limit - 1)
 
@@ -35,45 +41,15 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      const postsData = (data || []) as BlogPostRow[]
+      const postsData = (data || []) as (BlogPostRow & {
+        likes: Pick<LikeRow, 'post_id'>[]
+        comments: Pick<CommentRow, 'post_id'>[]
+      })[]
 
-      // Get likes and comments counts for all posts
-      if (postsData && postsData.length > 0) {
-        const postIds = postsData.map(post => post.id)
-
-        // Get likes counts
-        const { data: likesData } = await supabase
-          .from('likes')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Get comments counts
-        const { data: commentsData } = await supabase
-          .from('comments')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Count likes and comments per post
-        const likesCountMap = new Map<string, number>()
-        const commentsCountMap = new Map<string, number>()
-
-        const likesRows = (likesData || []) as LikeRow[]
-        const commentsRows = (commentsData || []) as CommentRow[]
-
-        likesRows.forEach(like => {
-          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-        })
-
-        commentsRows.forEach(comment => {
-          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-        })
-
-        // Add counts to posts
-        postsData.forEach((post: any) => {
-          post.likes_count = likesCountMap.get(post.id) || 0
-          post.comments_count = commentsCountMap.get(post.id) || 0
-        })
-      }
+      postsData.forEach((post: any) => {
+        post.likes_count = post.likes?.length || 0
+        post.comments_count = post.comments?.length || 0
+      })
 
       return { data: postsData, error: null }
     } catch (err: any) {
@@ -97,7 +73,13 @@ export const useBlogPosts = () => {
     try {
       let query = supabase
         .from('blog_posts')
-        .select('*')
+        .select(
+          `
+          *,
+          likes(post_id),
+          comments(post_id)
+        `
+        )
         .eq('published', true)
         .order('published_at', { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1)
@@ -114,45 +96,15 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      const postsData = (data || []) as BlogPostRow[]
+      const postsData = (data || []) as (BlogPostRow & {
+        likes: Pick<LikeRow, 'post_id'>[]
+        comments: Pick<CommentRow, 'post_id'>[]
+      })[]
 
-      // Get likes and comments counts for all posts
-      if (postsData && postsData.length > 0) {
-        const postIds = postsData.map(post => post.id)
-
-        // Get likes counts
-        const { data: likesData } = await supabase
-          .from('likes')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Get comments counts
-        const { data: commentsData } = await supabase
-          .from('comments')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Count likes and comments per post
-        const likesCountMap = new Map<string, number>()
-        const commentsCountMap = new Map<string, number>()
-
-        const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
-        const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
-
-        likesRows.forEach(like => {
-          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-        })
-
-        commentsRows.forEach(comment => {
-          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-        })
-
-        // Add counts to posts
-        postsData.forEach((post: any) => {
-          post.likes_count = likesCountMap.get(post.id) || 0
-          post.comments_count = commentsCountMap.get(post.id) || 0
-        })
-      }
+      postsData.forEach((post: any) => {
+        post.likes_count = post.likes?.length || 0
+        post.comments_count = post.comments?.length || 0
+      })
 
       posts.value = postsData
       return postsData
@@ -332,7 +284,13 @@ export const useBlogPosts = () => {
     try {
       const { data, error: dbError } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select(
+          `
+          *,
+          likes(post_id),
+          comments(post_id)
+        `
+        )
         .eq('author_id', authorId)
         .eq('published', true)
         .order('published_at', { ascending: false })
@@ -340,45 +298,15 @@ export const useBlogPosts = () => {
 
       if (dbError) throw dbError
 
-      const postsData = (data || []) as BlogPostRow[]
+      const postsData = (data || []) as (BlogPostRow & {
+        likes: Pick<LikeRow, 'post_id'>[]
+        comments: Pick<CommentRow, 'post_id'>[]
+      })[]
 
-      // Get likes and comments counts for all posts
-      if (postsData && postsData.length > 0) {
-        const postIds = postsData.map(post => post.id)
-
-        // Get likes counts
-        const { data: likesData } = await supabase
-          .from('likes')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Get comments counts
-        const { data: commentsData } = await supabase
-          .from('comments')
-          .select('post_id')
-          .in('post_id', postIds)
-
-        // Count likes and comments per post
-        const likesCountMap = new Map<string, number>()
-        const commentsCountMap = new Map<string, number>()
-
-        const likesRows = (likesData || []) as Pick<LikeRow, 'post_id'>[]
-        const commentsRows = (commentsData || []) as Pick<CommentRow, 'post_id'>[]
-
-        likesRows.forEach(like => {
-          likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-        })
-
-        commentsRows.forEach(comment => {
-          commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-        })
-
-        // Add counts to posts
-        postsData.forEach((post: any) => {
-          post.likes_count = likesCountMap.get(post.id) || 0
-          post.comments_count = commentsCountMap.get(post.id) || 0
-        })
-      }
+      postsData.forEach((post: any) => {
+        post.likes_count = post.likes?.length || 0
+        post.comments_count = post.comments?.length || 0
+      })
 
       return postsData
     } catch (err: any) {

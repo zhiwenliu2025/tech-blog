@@ -91,10 +91,16 @@ export const useHotPosts = () => {
       const startDate = new Date()
       startDate.setDate(startDate.getDate() - days)
 
-      // 查询已发布的文章（最近 N 天）
+      // 查询已发布的文章（最近 N 天），使用关联查询获取点赞和评论
       const { data: posts, error: dbError } = await supabase
         .from('blog_posts')
-        .select('*')
+        .select(
+          `
+          *,
+          likes(post_id),
+          comments(post_id)
+        `
+        )
         .eq('published', true)
         .gte('created_at', startDate.toISOString())
         .order('created_at', { ascending: false })
@@ -106,34 +112,15 @@ export const useHotPosts = () => {
         return []
       }
 
-      // 获取所有文章的点赞和评论数
-      const postIds = posts.map(p => p.id)
-
-      // 查询点赞数
-      const { data: likes } = await supabase.from('likes').select('post_id').in('post_id', postIds)
-
-      // 查询评论数
-      const { data: comments } = await supabase
-        .from('comments')
-        .select('post_id')
-        .in('post_id', postIds)
-
-      // 构建点赞和评论计数映射
-      const likesCountMap = new Map<string, number>()
-      likes?.forEach(like => {
-        likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-      })
-
-      const commentsCountMap = new Map<string, number>()
-      comments?.forEach(comment => {
-        commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-      })
-
-      // 客户端计算热度分数
-      const postsWithScore: BlogPostWithHotScore[] = posts.map(post => {
+      const postsWithScore: BlogPostWithHotScore[] = (
+        posts as (BlogPostRow & {
+          likes: Pick<LikeRow, 'post_id'>[]
+          comments: Pick<CommentRow, 'post_id'>[]
+        })[]
+      ).map(post => {
         const viewCount = post.view_count || 0
-        const likesCount = likesCountMap.get(post.id) || 0
-        const commentsCount = commentsCountMap.get(post.id) || 0
+        const likesCount = post.likes?.length || 0
+        const commentsCount = post.comments?.length || 0
 
         const hot_score = calculateHotScore(viewCount, likesCount, commentsCount)
         const daysSince = (Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60 * 24)
@@ -180,12 +167,22 @@ export const useHotPosts = () => {
     error.value = null
 
     try {
-      // 查询所有已发布的文章
+      // 查询所有已发布的文章，使用关联查询获取点赞和评论
       const {
         data: posts,
         error: dbError,
         count
-      } = await supabase.from('blog_posts').select('*', { count: 'exact' }).eq('published', true)
+      } = await supabase
+        .from('blog_posts')
+        .select(
+          `
+        *,
+        likes(post_id),
+        comments(post_id)
+      `,
+          { count: 'exact' }
+        )
+        .eq('published', true)
 
       if (dbError) throw dbError
 
@@ -193,34 +190,15 @@ export const useHotPosts = () => {
         return { data: [], count: 0 }
       }
 
-      // 获取所有文章的点赞和评论数
-      const postIds = posts.map(p => p.id)
-
-      // 查询点赞数
-      const { data: likes } = await supabase.from('likes').select('post_id').in('post_id', postIds)
-
-      // 查询评论数
-      const { data: comments } = await supabase
-        .from('comments')
-        .select('post_id')
-        .in('post_id', postIds)
-
-      // 构建点赞和评论计数映射
-      const likesCountMap = new Map<string, number>()
-      likes?.forEach(like => {
-        likesCountMap.set(like.post_id, (likesCountMap.get(like.post_id) || 0) + 1)
-      })
-
-      const commentsCountMap = new Map<string, number>()
-      comments?.forEach(comment => {
-        commentsCountMap.set(comment.post_id, (commentsCountMap.get(comment.post_id) || 0) + 1)
-      })
-
-      // 客户端计算热度分数并排序
-      const postsWithScore: BlogPostWithHotScore[] = posts.map(post => {
+      const postsWithScore: BlogPostWithHotScore[] = (
+        posts as (BlogPostRow & {
+          likes: Pick<LikeRow, 'post_id'>[]
+          comments: Pick<CommentRow, 'post_id'>[]
+        })[]
+      ).map(post => {
         const viewCount = post.view_count || 0
-        const likesCount = likesCountMap.get(post.id) || 0
-        const commentsCount = commentsCountMap.get(post.id) || 0
+        const likesCount = post.likes?.length || 0
+        const commentsCount = post.comments?.length || 0
 
         const hot_score = calculateHotScore(viewCount, likesCount, commentsCount)
         const decayFactor = useDecay ? calculateDecayFactor(post.created_at) : 1.0
