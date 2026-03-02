@@ -1,22 +1,6 @@
-import type { Database } from '~/types/database.types'
-import type { HotPost } from '~/types/blog'
-
-type BlogPostRow = Database['public']['Tables']['blog_posts']['Row']
-
-// 扩展类型以包含动态计算的字段
-interface BlogPostWithCounts extends BlogPostRow {
-  likes_count?: number
-  comments_count?: number
-}
-
-interface BlogPostWithHotScore extends BlogPostWithCounts {
-  hot_score: number
-  hot_score_with_decay?: number
-}
-
 export const useHotPosts = () => {
-  const supabase = useSupabaseClient<Database>()
-  const hotPosts = ref<BlogPostWithHotScore[]>([])
+  const supabase = useSupabaseClient()
+  const hotPosts = ref<any[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -60,19 +44,16 @@ export const useHotPosts = () => {
   }
 
   /**
-   * 计算带时间衰减的热度分数
-   * @param post - 博客文章
+   * 计算带时间衰减的热度分数（目前主要用于参考，核心排序已下推到 SQL）
    */
-  const calculateHotScoreWithDecay = (post: BlogPostRow): number => {
-    // 这里需要动态获取 likes 和 comments，但为了向后兼容，
-    // 我们假设 post 上已经有这些字段（从 fetchPostsSortedByHot 调用时）
-    const viewCount = post.view_count || 0
-    // 注意：这里的 likes_count 和 comments_count 需要在调用前附加到 post 上
-    const likesCount = (post as any).likes_count || 0
-    const commentsCount = (post as any).comments_count || 0
-
+  const calculateHotScoreWithDecay = (
+    viewCount: number,
+    likesCount: number,
+    commentsCount: number,
+    publishedAt: string
+  ) => {
     const baseScore = calculateHotScore(viewCount, likesCount, commentsCount)
-    const decayFactor = calculateDecayFactor(post.created_at)
+    const decayFactor = calculateDecayFactor(publishedAt)
     return baseScore * decayFactor
   }
 
@@ -87,64 +68,24 @@ export const useHotPosts = () => {
     error.value = null
 
     try {
-      // 计算时间范围
-      const startDate = new Date()
-      startDate.setDate(startDate.getDate() - days)
+      // 调用服务端 API（内部通过 Supabase RPC 计算热门文章并带缓存）
+      const response = await $fetch<{
+        success: boolean
+        data: any[]
+      }>('/api/posts/hot', {
+        params: {
+          limit,
+          days
+        }
+      })
 
-      // 查询已发布的文章（最近 N 天），使用关联查询获取点赞和评论
-      const { data: posts, error: dbError } = await supabase
-        .from('blog_posts')
-        .select(
-          `
-          *,
-          likes(post_id),
-          comments(post_id)
-        `
-        )
-        .eq('published', true)
-        .gte('created_at', startDate.toISOString())
-        .order('created_at', { ascending: false })
-
-      if (dbError) throw dbError
-
-      if (!posts || posts.length === 0) {
+      if (!response.success || !response.data || response.data.length === 0) {
         hotPosts.value = []
         return []
       }
 
-      const postsWithScore: BlogPostWithHotScore[] = (
-        posts as (BlogPostRow & {
-          likes: Pick<LikeRow, 'post_id'>[]
-          comments: Pick<CommentRow, 'post_id'>[]
-        })[]
-      ).map(post => {
-        const viewCount = post.view_count || 0
-        const likesCount = post.likes?.length || 0
-        const commentsCount = post.comments?.length || 0
-
-        const hot_score = calculateHotScore(viewCount, likesCount, commentsCount)
-        const daysSince = (Date.now() - new Date(post.created_at).getTime()) / (1000 * 60 * 60 * 24)
-        const decayFactor = useDecay ? calculateDecayFactor(post.created_at) : 1.0
-        const hot_score_with_decay = hot_score * decayFactor
-
-        return {
-          ...post,
-          likes_count: likesCount,
-          comments_count: commentsCount,
-          hot_score,
-          hot_score_with_decay
-        }
-      })
-
-      // 按热度分数排序（使用衰减分数或基础分数）
-      const sortedPosts = postsWithScore.sort((a, b) => {
-        const scoreA = useDecay ? a.hot_score_with_decay || 0 : a.hot_score
-        const scoreB = useDecay ? b.hot_score_with_decay || 0 : b.hot_score
-        return scoreB - scoreA
-      })
-
-      // 限制返回数量
-      hotPosts.value = sortedPosts.slice(0, limit)
+      // API 已经按热度排序并限制数量，这里直接使用
+      hotPosts.value = response.data
       return hotPosts.value
     } catch (err: any) {
       console.error('Error fetching hot posts:', err)
@@ -167,65 +108,31 @@ export const useHotPosts = () => {
     error.value = null
 
     try {
-      // 查询所有已发布的文章，使用关联查询获取点赞和评论
-      const {
-        data: posts,
-        error: dbError,
-        count
-      } = await supabase
-        .from('blog_posts')
-        .select(
-          `
-        *,
-        likes(post_id),
-        comments(post_id)
-      `,
-          { count: 'exact' }
-        )
-        .eq('published', true)
+      const start = (page - 1) * pageSize
+      const offset = start
+
+      // 使用 RPC 在数据库中按热度排序并分页
+      const { data, error: dbError } = await (supabase as any).rpc('get_hot_posts', {
+        p_days: 365, // 列表页默认看过去一年的文章
+        p_limit: pageSize,
+        p_offset: offset,
+        p_use_decay: useDecay
+      })
 
       if (dbError) throw dbError
 
-      if (!posts || posts.length === 0) {
-        return { data: [], count: 0 }
-      }
+      const posts = (data || []) as any[]
 
-      const postsWithScore: BlogPostWithHotScore[] = (
-        posts as (BlogPostRow & {
-          likes: Pick<LikeRow, 'post_id'>[]
-          comments: Pick<CommentRow, 'post_id'>[]
-        })[]
-      ).map(post => {
-        const viewCount = post.view_count || 0
-        const likesCount = post.likes?.length || 0
-        const commentsCount = post.comments?.length || 0
+      // 单独获取总数（已发布文章总数）
+      const { count, error: countError } = await supabase
+        .from('blog_posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('published', true)
 
-        const hot_score = calculateHotScore(viewCount, likesCount, commentsCount)
-        const decayFactor = useDecay ? calculateDecayFactor(post.created_at) : 1.0
-        const hot_score_with_decay = hot_score * decayFactor
-
-        return {
-          ...post,
-          likes_count: likesCount,
-          comments_count: commentsCount,
-          hot_score,
-          hot_score_with_decay
-        }
-      })
-
-      const sortedPosts = postsWithScore.sort((a, b) => {
-        const scoreA = useDecay ? a.hot_score_with_decay || 0 : a.hot_score
-        const scoreB = useDecay ? b.hot_score_with_decay || 0 : b.hot_score
-        return scoreB - scoreA
-      })
-
-      // 分页
-      const start = (page - 1) * pageSize
-      const end = start + pageSize
-      const paginatedPosts = sortedPosts.slice(start, end)
+      if (countError) throw countError
 
       return {
-        data: paginatedPosts,
+        data: posts,
         count: count || 0
       }
     } catch (err: any) {

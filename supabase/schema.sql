@@ -2,6 +2,7 @@
 -- Note: Drop functions before dropping tables to avoid dependency issues
 DROP FUNCTION IF EXISTS search_blog_posts(TEXT, INTEGER, INTEGER) CASCADE;
 DROP FUNCTION IF EXISTS blog_posts_search_vector(blog_posts) CASCADE;
+DROP FUNCTION IF EXISTS get_hot_posts(INTEGER, INTEGER, INTEGER, BOOLEAN) CASCADE;
 DROP FUNCTION IF EXISTS public.is_admin() CASCADE;
 DROP FUNCTION IF EXISTS handle_updated_at() CASCADE;
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
@@ -381,6 +382,85 @@ BEGIN
     GROUP BY post_id
   ) c ON c.post_id = bp.id
   WHERE bp.id = ANY (post_ids);
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+-- Function to get hot posts with likes, comments and view-based score
+CREATE OR REPLACE FUNCTION get_hot_posts(
+  p_days INTEGER DEFAULT 30,
+  p_limit INTEGER DEFAULT 10,
+  p_offset INTEGER DEFAULT 0,
+  p_use_decay BOOLEAN DEFAULT true
+)
+RETURNS TABLE (
+  id UUID,
+  title TEXT,
+  slug TEXT,
+  excerpt TEXT,
+  cover_image TEXT,
+  view_count INTEGER,
+  published_at TIMESTAMP WITH TIME ZONE,
+  category TEXT,
+  tags TEXT[],
+  author_id UUID,
+  likes_count BIGINT,
+  comments_count BIGINT,
+  hot_score NUMERIC
+) AS $$
+BEGIN
+  RETURN QUERY
+  WITH base_posts AS (
+    SELECT *
+    FROM blog_posts
+    WHERE blog_posts.published = true
+      AND blog_posts.published_at IS NOT NULL
+      AND blog_posts.published_at >= now() - (p_days || ' days')::interval
+  ),
+  likes_agg AS (
+    SELECT post_id, COUNT(*) AS likes_count
+    FROM likes
+    WHERE post_id IN (SELECT base_posts.id FROM base_posts)
+    GROUP BY post_id
+  ),
+  comments_agg AS (
+    SELECT post_id, COUNT(*) AS comments_count
+    FROM comments
+    WHERE post_id IN (SELECT base_posts.id FROM base_posts)
+    GROUP BY post_id
+  )
+  SELECT
+    bp.id,
+    bp.title,
+    bp.slug,
+    bp.excerpt,
+    bp.cover_image,
+    bp.view_count,
+    bp.published_at,
+    bp.category,
+    bp.tags,
+    bp.author_id,
+    COALESCE(l.likes_count, 0) AS likes_count,
+    COALESCE(c.comments_count, 0) AS comments_count,
+    (
+      (bp.view_count * 0.3)
+      + COALESCE(l.likes_count, 0) * 0.4
+      + COALESCE(c.comments_count, 0) * 0.3
+    )
+    * CASE
+        WHEN NOT p_use_decay THEN 1
+        ELSE GREATEST(
+          0.1,
+          1 - (
+            EXTRACT(EPOCH FROM (now() - bp.published_at)) / 86400.0
+          ) / GREATEST(p_days, 1)
+        )
+      END AS hot_score
+  FROM base_posts bp
+  LEFT JOIN likes_agg l ON l.post_id = bp.id
+  LEFT JOIN comments_agg c ON c.post_id = bp.id
+  ORDER BY hot_score DESC, bp.published_at DESC
+  LIMIT p_limit
+  OFFSET p_offset;
 END;
 $$ LANGUAGE plpgsql STABLE;
 

@@ -1,3 +1,4 @@
+import type { Database } from '~/types/database.types'
 import { serverSupabaseClient } from '#supabase/server'
 import { serverCache, CACHE_KEYS, CACHE_TTL } from '~/server/utils/cache'
 
@@ -18,36 +19,38 @@ export default defineEventHandler(async event => {
     const hotPosts = await serverCache.getOrSet(
       cacheKey,
       async () => {
-        const client = await serverSupabaseClient(event)
+        const client = await serverSupabaseClient<Database>(event)
 
-        // 获取指定天数内的已发布文章
-        const daysAgo = new Date()
-        daysAgo.setDate(daysAgo.getDate() - days)
+        // 使用 RPC 在数据库中一次性计算热门文章（包含点赞数、评论数和热度分数）
+        const { data, error } = await (client as any).rpc('get_hot_posts', {
+          p_days: days,
+          p_limit: limit,
+          p_offset: 0,
+          p_use_decay: true
+        })
 
-        const { data: posts, error } = await client
-          .from('blog_posts')
-          .select(
-            `
-            id,
-            title,
-            slug,
-            excerpt,
-            cover_image,
-            view_count,
-            published_at,
-            category,
-            tags,
-            author_id
-          `
-          )
-          .eq('published', true)
-          .gte('published_at', daysAgo.toISOString())
-          .order('published_at', { ascending: false })
+        if (error) {
+          throw error
+        }
 
-        if (error) throw error
+        const posts = (data || []) as Array<{
+          id: string
+          title: string
+          slug: string
+          excerpt: string | null
+          cover_image: string | null
+          view_count: number
+          published_at: string | null
+          category: string | null
+          tags: string[] | null
+          author_id: string | null
+          likes_count: number | null
+          comments_count: number | null
+          hot_score: number | null
+        }>
 
         // 获取所有唯一的作者ID
-        const authorIds = [...new Set((posts || []).map((p: any) => p.author_id).filter(Boolean))]
+        const authorIds = [...new Set(posts.map(p => p.author_id).filter(Boolean))] as string[]
 
         // 批量获取作者信息
         const authorsResult =
@@ -64,48 +67,22 @@ export default defineEventHandler(async event => {
           authorsMap[author.id] = author
         })
 
-        // 获取每篇文章的点赞数和评论数
-        const postsWithStats = await Promise.all(
-          (posts || []).map(async (post: any) => {
-            // 查询点赞数
-            const { count: likeCount } = await client
-              .from('likes')
-              .select('*', { count: 'exact', head: true })
-              .eq('post_id', post.id)
+        // 组装最终结果，保持与原先结构兼容
+        return posts.map(post => {
+          const likeCount = Number(post.likes_count ?? 0)
+          const commentCount = Number(post.comments_count ?? 0)
+          const hotScore = Number(post.hot_score ?? 0)
 
-            // 查询评论数
-            const { count: commentCount } = await client
-              .from('comments')
-              .select('*', { count: 'exact', head: true })
-              .eq('post_id', post.id)
-
-            // 计算热度分数
-            // 阅读量 × 0.3 + 点赞数 × 0.4 + 评论数 × 0.3
-            const hotScore =
-              (post.view_count || 0) * 0.3 + (likeCount || 0) * 0.4 + (commentCount || 0) * 0.3
-
-            // 时间衰减因子（越新的文章权重越高）
-            const publishedAt = new Date(post.published_at || '')
-            const daysSincePublished = Math.floor(
-              (Date.now() - publishedAt.getTime()) / (1000 * 60 * 60 * 24)
-            )
-            const timeFactor = Math.max(0.1, 1 - daysSincePublished / days)
-
-            return {
-              ...post,
-              likes_count: likeCount || 0,
-              comments_count: commentCount || 0,
-              likeCount: likeCount || 0,
-              commentCount: commentCount || 0,
-              hotScore: hotScore * timeFactor,
-              // 添加作者信息
-              profiles: post.author_id ? authorsMap[post.author_id] || null : null
-            }
-          })
-        )
-
-        // 按热度分数排序并返回前 N 篇
-        return postsWithStats.sort((a: any, b: any) => b.hotScore - a.hotScore).slice(0, limit)
+          return {
+            ...post,
+            likes_count: likeCount,
+            comments_count: commentCount,
+            likeCount,
+            commentCount,
+            hotScore,
+            profiles: post.author_id ? authorsMap[post.author_id] || null : null
+          }
+        })
       },
       CACHE_TTL.HOT_POSTS
     )
