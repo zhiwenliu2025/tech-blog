@@ -1,3 +1,4 @@
+import type { Database } from '~/types/database.types'
 import { serverSupabaseClient } from '#supabase/server'
 import { serverCache, CACHE_KEYS, CACHE_TTL } from '~/server/utils/cache'
 
@@ -21,52 +22,82 @@ export default defineEventHandler(async event => {
   const ids = postIds.split(',').filter(Boolean)
 
   try {
-    const client = await serverSupabaseClient(event)
-    const stats = await Promise.all(
-      ids.map(async postId => {
-        const cacheKey = `${CACHE_KEYS.POST_STATS}${postId}`
+    const client = await serverSupabaseClient<Database>(event)
 
-        // 尝试从缓存获取
-        const cached = serverCache.get(cacheKey)
-        if (cached) {
-          return { postId, ...cached, fromCache: true }
-        }
+    // 先从缓存中取出已有的数据，剩余的通过 RPC 一次性获取
+    const results: {
+      postId: string
+      likeCount: number
+      commentCount: number
+      viewCount: number
+      fromCache: boolean
+    }[] = []
 
-        // 查询点赞数
-        const { count: likeCount } = await client
-          .from('likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('post_id', postId)
+    const idsToFetch: string[] = []
 
-        // 查询评论数
-        const { count: commentCount } = await client
-          .from('comments')
-          .select('*', { count: 'exact', head: true })
-          .eq('post_id', postId)
+    for (const postId of ids) {
+      const cacheKey = `${CACHE_KEYS.POST_STATS}${postId}`
+      const cached = serverCache.get(cacheKey)
+      if (cached) {
+        results.push({
+          postId,
+          likeCount: cached.likeCount ?? 0,
+          commentCount: cached.commentCount ?? 0,
+          viewCount: cached.viewCount ?? 0,
+          fromCache: true
+        })
+      } else {
+        idsToFetch.push(postId)
+      }
+    }
 
-        // 查询阅读数
-        const { data: post } = await client
-          .from('blog_posts')
-          .select('view_count')
-          .eq('id', postId)
-          .single()
-
-        const result = {
-          likeCount: likeCount || 0,
-          commentCount: commentCount || 0,
-          viewCount: post?.view_count || 0
-        }
-
-        // 缓存 1 分钟
-        serverCache.set(cacheKey, result, CACHE_TTL.POST_STATS)
-
-        return { postId, ...result, fromCache: false }
+    if (idsToFetch.length > 0) {
+      // 使用 RPC 一次性获取剩余帖子统计信息（此处使用 any 以避免对未在类型定义中声明的函数报错）
+      const { data, error } = await (client as any).rpc('get_post_stats', {
+        post_ids: idsToFetch
       })
-    )
+
+      if (error) {
+        throw error
+      }
+
+      // 将 RPC 结果映射为与之前相同的结构，并写入缓存
+      const statsById = new Map<
+        string,
+        { likeCount: number; commentCount: number; viewCount: number }
+      >()
+
+      for (const row of (data || []) as any[]) {
+        const postId = row.post_id as string
+        const likeCount = Number(row.like_count ?? 0)
+        const commentCount = Number(row.comment_count ?? 0)
+        const viewCount = Number(row.view_count ?? 0)
+
+        const value = { likeCount, commentCount, viewCount }
+        statsById.set(postId, value)
+
+        const cacheKey = `${CACHE_KEYS.POST_STATS}${postId}`
+        serverCache.set(cacheKey, value, CACHE_TTL.POST_STATS)
+      }
+
+      // 对于本次需要查询的 id，按照原始顺序补充结果（即使某些 id 在数据库中不存在，也要返回 0）
+      for (const postId of idsToFetch) {
+        const stat = statsById.get(postId) ?? {
+          likeCount: 0,
+          commentCount: 0,
+          viewCount: 0
+        }
+        results.push({
+          postId,
+          ...stat,
+          fromCache: false
+        })
+      }
+    }
 
     return {
       success: true,
-      data: stats
+      data: results
     }
   } catch (error: any) {
     console.error('Error fetching post stats:', error)

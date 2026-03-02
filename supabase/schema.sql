@@ -352,6 +352,38 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permission to everyone
 GRANT EXECUTE ON FUNCTION increment_view_count(UUID) TO anon, authenticated;
 
+-- Function to get post stats (likes, comments, views) for multiple posts
+CREATE OR REPLACE FUNCTION get_post_stats(post_ids UUID[])
+RETURNS TABLE (
+  post_id UUID,
+  like_count BIGINT,
+  comment_count BIGINT,
+  view_count INTEGER
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    bp.id AS post_id,
+    COALESCE(l.like_count, 0) AS like_count,
+    COALESCE(c.comment_count, 0) AS comment_count,
+    COALESCE(bp.view_count, 0) AS view_count
+  FROM blog_posts bp
+  LEFT JOIN (
+    SELECT post_id, COUNT(*) AS like_count
+    FROM likes
+    WHERE post_id = ANY (post_ids)
+    GROUP BY post_id
+  ) l ON l.post_id = bp.id
+  LEFT JOIN (
+    SELECT post_id, COUNT(*) AS comment_count
+    FROM comments
+    WHERE post_id = ANY (post_ids)
+    GROUP BY post_id
+  ) c ON c.post_id = bp.id
+  WHERE bp.id = ANY (post_ids);
+END;
+$$ LANGUAGE plpgsql STABLE;
+
 -- Triggers for updated_at
 DROP TRIGGER IF EXISTS handle_blog_posts_updated_at ON blog_posts;
 CREATE TRIGGER handle_blog_posts_updated_at
