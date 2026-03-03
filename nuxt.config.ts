@@ -189,6 +189,7 @@ export default defineNuxtConfig({
           workbox: {
             navigateFallback: '/',
             globPatterns: ['**/*.{js,css,html,png,svg,ico,jpg,jpeg,webp,woff,woff2}'],
+            globIgnores: ['og-image.jpg'],
             runtimeCaching: [
               {
                 urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
