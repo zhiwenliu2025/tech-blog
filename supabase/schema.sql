@@ -32,8 +32,12 @@ DROP INDEX IF EXISTS contact_messages_created_at_idx;
 DROP INDEX IF EXISTS contact_messages_read_created_idx;
 DROP INDEX IF EXISTS profiles_username_idx;
 DROP INDEX IF EXISTS profiles_is_admin_idx;
-DROP INDEX IF EXISTS storage_objects_bucket_idx;
-DROP INDEX IF EXISTS storage_objects_bucket_name_idx;
+DROP INDEX IF EXISTS profiles_created_at_idx;
+DROP INDEX IF EXISTS blog_posts_published_created_idx;
+DROP INDEX IF EXISTS blog_posts_published_updated_idx;
+DROP INDEX IF EXISTS blog_posts_published_title_idx;
+DROP INDEX IF EXISTS blog_posts_published_view_count_idx;
+DROP INDEX IF EXISTS blog_posts_published_published_created_idx;
 
 -- Drop constraints
 ALTER TABLE blog_posts DROP CONSTRAINT IF EXISTS check_published_at_not_null;
@@ -112,13 +116,29 @@ DROP INDEX IF EXISTS blog_posts_published_at_idx;
 CREATE INDEX blog_posts_published_at_idx ON blog_posts(published, published_at DESC);
 
 DROP INDEX IF EXISTS blog_posts_published_category_idx;
-CREATE INDEX blog_posts_published_category_idx ON blog_posts(published, category);
+CREATE INDEX blog_posts_published_category_idx ON blog_posts(published, category, published_at DESC);
 
 DROP INDEX IF EXISTS blog_posts_author_id_idx;
 CREATE INDEX blog_posts_author_id_idx ON blog_posts(author_id);
 
 DROP INDEX IF EXISTS blog_posts_author_published_idx;
-CREATE INDEX blog_posts_author_published_idx ON blog_posts(author_id, published);
+CREATE INDEX blog_posts_author_published_idx ON blog_posts(author_id, published, published_at DESC);
+
+-- Additional sorting indexes for blog_posts
+DROP INDEX IF EXISTS blog_posts_published_created_idx;
+CREATE INDEX blog_posts_published_created_idx ON blog_posts(published, created_at DESC);
+
+DROP INDEX IF EXISTS blog_posts_published_updated_idx;
+CREATE INDEX blog_posts_published_updated_idx ON blog_posts(published, updated_at DESC);
+
+DROP INDEX IF EXISTS blog_posts_published_title_idx;
+CREATE INDEX blog_posts_published_title_idx ON blog_posts(published, title);
+
+DROP INDEX IF EXISTS blog_posts_published_view_count_idx;
+CREATE INDEX blog_posts_published_view_count_idx ON blog_posts(published, view_count DESC);
+
+DROP INDEX IF EXISTS blog_posts_published_published_created_idx;
+CREATE INDEX blog_posts_published_published_created_idx ON blog_posts(published, published_at DESC, created_at DESC);
 
 -- Optimized indexes for comments table
 DROP INDEX IF EXISTS comments_post_id_idx;
@@ -140,6 +160,9 @@ CREATE INDEX profiles_username_idx ON profiles(username);
 
 DROP INDEX IF EXISTS profiles_is_admin_idx;
 CREATE INDEX profiles_is_admin_idx ON profiles(is_admin);
+
+DROP INDEX IF EXISTS profiles_created_at_idx;
+CREATE INDEX profiles_created_at_idx ON profiles(created_at DESC);
 
 -- Optimized indexes for contact_messages table
 DROP INDEX IF EXISTS contact_messages_read_idx;
@@ -586,13 +609,6 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create storage bucket for avatars
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
-
--- Optimized indexes for storage objects
-DROP INDEX IF EXISTS storage_objects_bucket_idx;
-CREATE INDEX storage_objects_bucket_idx ON storage.objects(bucket_id);
-
-DROP INDEX IF EXISTS storage_objects_bucket_name_idx;
-CREATE INDEX storage_objects_bucket_name_idx ON storage.objects(bucket_id, name);
 
 -- Policies for avatar storage
 -- Anyone can view all avatars (public bucket, needed for displaying user avatars in posts/comments)
