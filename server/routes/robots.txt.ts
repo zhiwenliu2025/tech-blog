@@ -4,9 +4,16 @@ export default defineEventHandler(event => {
 
   const lines = [
     'User-Agent: *',
-    'Disallow:',
+    // 私有页面：需要登录才能访问，无需爬取
+    'Disallow: /auth/',
+    'Disallow: /my-blogs',
+    'Disallow: /profile',
+    // 编辑类页面：无需索引
+    'Disallow: /blog/create',
+    'Disallow: /blog/edit/',
+    // API 路由
+    'Disallow: /api/',
     '',
-    // 提示搜索引擎 sitemap 地址
     `Sitemap: ${baseUrl}/sitemap.xml`
   ]
 

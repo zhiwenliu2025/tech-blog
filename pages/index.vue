@@ -927,6 +927,9 @@ watch(
   { immediate: true }
 )
 
+const indexConfig = useRuntimeConfig()
+const siteUrl = indexConfig.public.appUrl || ''
+
 useHead({
   title: '技术博客 - 首页',
   meta: [
@@ -934,13 +937,23 @@ useHead({
       name: 'description',
       content: '基于 Nuxt 4 和 Supabase 构建的技术博客，分享前端开发、后端技术、云计算等相关内容。'
     },
+    { property: 'og:type', content: 'website' },
     { property: 'og:title', content: '技术博客' },
     {
       property: 'og:description',
       content: '分享前端开发、后端技术、云计算、架构设计等深度技术文章，让知识触手可及。'
     },
-    { property: 'og:type', content: 'website' },
-    { name: 'twitter:card', content: 'summary_large_image' }
-  ]
+    { property: 'og:image', content: `${siteUrl}/og-image.jpg` },
+    { property: 'og:url', content: siteUrl || '/' },
+    { property: 'og:site_name', content: '技术博客' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: '技术博客' },
+    {
+      name: 'twitter:description',
+      content: '分享前端开发、后端技术、云计算、架构设计等深度技术文章，让知识触手可及。'
+    },
+    { name: 'twitter:image', content: `${siteUrl}/og-image.jpg` }
+  ],
+  link: siteUrl ? [{ rel: 'canonical', href: siteUrl }] : []
 })
 </script>

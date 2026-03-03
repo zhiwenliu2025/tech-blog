@@ -573,4 +573,34 @@ watch(currentPage, () => {
   updateQueryParams()
   loadPosts()
 })
+
+const blogConfig = useRuntimeConfig()
+const blogBaseUrl = blogConfig.public.appUrl || ''
+
+useHead({
+  title: '所有文章',
+  meta: [
+    {
+      name: 'description',
+      content: '浏览所有技术文章，涵盖前端开发、后端技术、云计算、架构设计等主题。'
+    },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:title', content: '所有文章 — 技术博客' },
+    {
+      property: 'og:description',
+      content: '浏览所有技术文章，涵盖前端开发、后端技术、云计算、架构设计等主题。'
+    },
+    { property: 'og:image', content: `${blogBaseUrl}/og-image.jpg` },
+    { property: 'og:url', content: `${blogBaseUrl}/blog` },
+    { property: 'og:site_name', content: '技术博客' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: '所有文章 — 技术博客' },
+    {
+      name: 'twitter:description',
+      content: '浏览所有技术文章，涵盖前端开发、后端技术、云计算、架构设计等主题。'
+    },
+    { name: 'twitter:image', content: `${blogBaseUrl}/og-image.jpg` }
+  ],
+  link: [{ rel: 'canonical', href: `${blogBaseUrl}/blog` }]
+})
 </script>

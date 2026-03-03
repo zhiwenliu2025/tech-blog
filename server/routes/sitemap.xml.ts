@@ -6,18 +6,8 @@ export default defineEventHandler(async event => {
 
   const baseUrl = (config.public.appUrl || 'http://localhost:3000').replace(/\/+$/, '')
 
-  // 静态页面路由
-  const staticPaths = [
-    '/',
-    '/blog',
-    '/about',
-    '/contact',
-    '/privacy',
-    '/terms',
-    '/my-blogs',
-    '/authors',
-    '/profile'
-  ]
+  // 静态页面路由（仅公开可访问的页面）
+  const staticPaths = ['/', '/blog', '/about', '/contact', '/privacy', '/terms', '/authors']
 
   type UrlEntry = {
     loc: string
@@ -37,6 +27,7 @@ export default defineEventHandler(async event => {
     // 使用 Nuxt Supabase 服务端客户端，避免额外的 ESM 加载问题
     const supabase = await serverSupabaseClient<Database>(event)
 
+    // 文章页
     const { data: posts } = await supabase
       .from('blog_posts')
       .select('slug, updated_at, created_at')
@@ -53,6 +44,39 @@ export default defineEventHandler(async event => {
           lastmod: (post.updated_at || post.created_at)?.split('T')[0],
           changefreq: 'weekly',
           priority: '0.9'
+        })
+      }
+    }
+
+    // 分类页（从已发布文章中提取唯一分类）
+    const { data: categoryRows } = await supabase
+      .from('blog_posts')
+      .select('category')
+      .eq('published', true)
+      .not('category', 'is', null)
+
+    if (categoryRows && Array.isArray(categoryRows)) {
+      const uniqueCategories = [
+        ...new Set(categoryRows.map((r: { category: string | null }) => r.category).filter(Boolean))
+      ] as string[]
+      for (const cat of uniqueCategories) {
+        urls.push({
+          loc: `${baseUrl}/category/${encodeURIComponent(cat)}`,
+          changefreq: 'weekly',
+          priority: '0.7'
+        })
+      }
+    }
+
+    // 作者页
+    const { data: authors } = await supabase.from('profiles').select('id')
+
+    if (authors && Array.isArray(authors)) {
+      for (const author of authors as { id: string }[]) {
+        urls.push({
+          loc: `${baseUrl}/authors/${author.id}`,
+          changefreq: 'monthly',
+          priority: '0.6'
         })
       }
     }
