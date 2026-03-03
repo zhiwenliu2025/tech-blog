@@ -21,6 +21,22 @@ DROP INDEX IF EXISTS blog_posts_category_idx;
 DROP INDEX IF EXISTS blog_posts_published_at_idx;
 DROP INDEX IF EXISTS comments_post_id_idx;
 DROP INDEX IF EXISTS likes_post_id_idx;
+DROP INDEX IF EXISTS blog_posts_author_id_idx;
+DROP INDEX IF EXISTS blog_posts_author_published_idx;
+DROP INDEX IF EXISTS blog_posts_published_partial_idx;
+DROP INDEX IF EXISTS blog_posts_published_search_idx;
+DROP INDEX IF EXISTS comments_user_id_idx;
+DROP INDEX IF EXISTS likes_user_id_idx;
+DROP INDEX IF EXISTS contact_messages_read_idx;
+DROP INDEX IF EXISTS contact_messages_created_at_idx;
+DROP INDEX IF EXISTS contact_messages_read_created_idx;
+DROP INDEX IF EXISTS profiles_username_idx;
+DROP INDEX IF EXISTS profiles_is_admin_idx;
+DROP INDEX IF EXISTS storage_objects_bucket_idx;
+DROP INDEX IF EXISTS storage_objects_bucket_name_idx;
+
+-- Drop constraints
+ALTER TABLE blog_posts DROP CONSTRAINT IF EXISTS check_published_at_not_null;
 
 -- Drop tables if they exist (in reverse order of dependencies)
 DROP TABLE IF EXISTS contact_messages CASCADE;
@@ -44,7 +60,8 @@ CREATE TABLE IF NOT EXISTS blog_posts (
   view_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  published_at TIMESTAMP WITH TIME ZONE
+  published_at TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT check_published_at_not_null CHECK (published = false OR published_at IS NOT NULL)
 );
 
 -- Create profiles table for user profiles
@@ -116,6 +133,32 @@ CREATE INDEX likes_post_id_idx ON likes(post_id, user_id);
 
 DROP INDEX IF EXISTS likes_user_id_idx;
 CREATE INDEX likes_user_id_idx ON likes(user_id);
+
+-- Optimized indexes for profiles table
+DROP INDEX IF EXISTS profiles_username_idx;
+CREATE INDEX profiles_username_idx ON profiles(username);
+
+DROP INDEX IF EXISTS profiles_is_admin_idx;
+CREATE INDEX profiles_is_admin_idx ON profiles(is_admin);
+
+-- Optimized indexes for contact_messages table
+DROP INDEX IF EXISTS contact_messages_read_idx;
+CREATE INDEX contact_messages_read_idx ON contact_messages(read);
+
+DROP INDEX IF EXISTS contact_messages_created_at_idx;
+CREATE INDEX contact_messages_created_at_idx ON contact_messages(created_at DESC);
+
+DROP INDEX IF EXISTS contact_messages_read_created_idx;
+CREATE INDEX contact_messages_read_created_idx ON contact_messages(read, created_at DESC);
+
+-- Partial indexes for better performance
+DROP INDEX IF EXISTS blog_posts_published_partial_idx;
+CREATE INDEX blog_posts_published_partial_idx ON blog_posts(published_at DESC)
+WHERE published = true AND published_at IS NOT NULL;
+
+DROP INDEX IF EXISTS blog_posts_published_search_idx;
+CREATE INDEX blog_posts_published_search_idx ON blog_posts(published)
+WHERE published = true;
 
 -- Full-text search support
 -- Create a function to generate search vector from title, excerpt, content, and tags
@@ -419,27 +462,17 @@ RETURNS TABLE (
   comments_count BIGINT,
   hot_score NUMERIC
 ) AS $$
+DECLARE
+  v_post_ids UUID[];
 BEGIN
+  -- 先获取符合条件的文章 ID
+  SELECT ARRAY_AGG(id) INTO v_post_ids
+  FROM blog_posts
+  WHERE published = true
+    AND published_at IS NOT NULL
+    AND published_at >= now() - (p_days || ' days')::interval;
+  
   RETURN QUERY
-  WITH base_posts AS (
-    SELECT *
-    FROM blog_posts
-    WHERE blog_posts.published = true
-      AND blog_posts.published_at IS NOT NULL
-      AND blog_posts.published_at >= now() - (p_days || ' days')::interval
-  ),
-  likes_agg AS (
-    SELECT post_id, COUNT(*) AS likes_count
-    FROM likes
-    WHERE post_id IN (SELECT base_posts.id FROM base_posts)
-    GROUP BY post_id
-  ),
-  comments_agg AS (
-    SELECT post_id, COUNT(*) AS comments_count
-    FROM comments
-    WHERE post_id IN (SELECT base_posts.id FROM base_posts)
-    GROUP BY post_id
-  )
   SELECT
     bp.id,
     bp.title,
@@ -467,9 +500,20 @@ BEGIN
           ) / GREATEST(p_days, 1)
         )
       END AS hot_score
-  FROM base_posts bp
-  LEFT JOIN likes_agg l ON l.post_id = bp.id
-  LEFT JOIN comments_agg c ON c.post_id = bp.id
+  FROM blog_posts bp
+  LEFT JOIN (
+    SELECT post_id, COUNT(*) AS likes_count
+    FROM likes
+    WHERE post_id = ANY(v_post_ids)
+    GROUP BY post_id
+  ) l ON l.post_id = bp.id
+  LEFT JOIN (
+    SELECT post_id, COUNT(*) AS comments_count
+    FROM comments
+    WHERE post_id = ANY(v_post_ids)
+    GROUP BY post_id
+  ) c ON c.post_id = bp.id
+  WHERE bp.id = ANY(v_post_ids)
   ORDER BY hot_score DESC, bp.published_at DESC
   LIMIT p_limit
   OFFSET p_offset;
@@ -542,6 +586,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Create storage bucket for avatars
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT (id) DO NOTHING;
+
+-- Optimized indexes for storage objects
+DROP INDEX IF EXISTS storage_objects_bucket_idx;
+CREATE INDEX storage_objects_bucket_idx ON storage.objects(bucket_id);
+
+DROP INDEX IF EXISTS storage_objects_bucket_name_idx;
+CREATE INDEX storage_objects_bucket_name_idx ON storage.objects(bucket_id, name);
 
 -- Policies for avatar storage
 -- Anyone can view all avatars (public bucket, needed for displaying user avatars in posts/comments)
