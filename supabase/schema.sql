@@ -90,21 +90,32 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create indexes for better performance
-DROP INDEX IF EXISTS blog_posts_published_idx;
-CREATE INDEX blog_posts_published_idx ON blog_posts(published);
-
-DROP INDEX IF EXISTS blog_posts_category_idx;
-CREATE INDEX blog_posts_category_idx ON blog_posts(category);
-
+-- Create optimized composite indexes
 DROP INDEX IF EXISTS blog_posts_published_at_idx;
-CREATE INDEX blog_posts_published_at_idx ON blog_posts(published_at DESC);
+CREATE INDEX blog_posts_published_at_idx ON blog_posts(published, published_at DESC);
 
+DROP INDEX IF EXISTS blog_posts_published_category_idx;
+CREATE INDEX blog_posts_published_category_idx ON blog_posts(published, category);
+
+DROP INDEX IF EXISTS blog_posts_author_id_idx;
+CREATE INDEX blog_posts_author_id_idx ON blog_posts(author_id);
+
+DROP INDEX IF EXISTS blog_posts_author_published_idx;
+CREATE INDEX blog_posts_author_published_idx ON blog_posts(author_id, published);
+
+-- Optimized indexes for comments table
 DROP INDEX IF EXISTS comments_post_id_idx;
-CREATE INDEX comments_post_id_idx ON comments(post_id);
+CREATE INDEX comments_post_id_idx ON comments(post_id, created_at DESC);
 
+DROP INDEX IF EXISTS comments_user_id_idx;
+CREATE INDEX comments_user_id_idx ON comments(user_id);
+
+-- Optimized indexes for likes table
 DROP INDEX IF EXISTS likes_post_id_idx;
-CREATE INDEX likes_post_id_idx ON likes(post_id);
+CREATE INDEX likes_post_id_idx ON likes(post_id, user_id);
+
+DROP INDEX IF EXISTS likes_user_id_idx;
+CREATE INDEX likes_user_id_idx ON likes(user_id);
 
 -- Full-text search support
 -- Create a function to generate search vector from title, excerpt, content, and tags
@@ -122,7 +133,8 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 -- Create GIN index for full-text search (using expression index)
 DROP INDEX IF EXISTS blog_posts_search_idx;
 CREATE INDEX blog_posts_search_idx ON blog_posts 
-USING GIN (blog_posts_search_vector(blog_posts.*));
+USING GIN (blog_posts_search_vector(blog_posts.*))
+WITH (fastupdate = on);
 
 -- Create a search function for blog posts
 CREATE OR REPLACE FUNCTION search_blog_posts(
