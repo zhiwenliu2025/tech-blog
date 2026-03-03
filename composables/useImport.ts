@@ -61,15 +61,9 @@ export function useImport() {
       }
 
       const { savePost } = useBlogPosts()
+      const { generateUniqueSlug } = useUniqueSlug()
 
-      // Generate slug from title
-      const slug =
-        options.title
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .trim() || `imported-${Date.now()}`
+      const slug = await generateUniqueSlug(options.title)
 
       console.log('[useImport] saveAsPost: saving post', {
         title: options.title,

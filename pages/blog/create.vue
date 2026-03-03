@@ -506,18 +506,19 @@ const {
   formatSavedTime
 } = useDraft(draftKey)
 
-const generateSlug = () => {
+const { generateSlugFromTitle, isValidSlug } = useSlug()
+const { ensureUniqueSlug } = useUniqueSlug()
+
+const generateSlug = async () => {
   if (post.title && !post.slug) {
-    post.slug = post.title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
+    const baseSlug = generateSlugFromTitle(post.title)
+    post.slug = await ensureUniqueSlug(baseSlug)
   }
 }
 
-watch(() => post.title, generateSlug)
+const debouncedGenerateSlug = useDebounceFn(generateSlug, 500)
+
+watch(() => post.title, debouncedGenerateSlug)
 
 const restoreDraft = () => {
   const draft = loadDraft()
@@ -548,6 +549,12 @@ const createPost = async () => {
     return
   }
 
+  if (!post.slug || !isValidSlug(post.slug)) {
+    const toast = useToast()
+    toast.error('错误', 'URL别名格式不正确')
+    return
+  }
+
   saving.value = true
   try {
     const supabase = useSupabaseClient()
@@ -555,11 +562,13 @@ const createPost = async () => {
     const userId = user.value.id || user.value.sub
     if (!userId) throw new Error('无法获取用户ID')
 
+    const finalSlug = await ensureUniqueSlug(post.slug)
+
     const { data, error } = await supabase
       .from('blog_posts')
       .insert({
         title: post.title,
-        slug: post.slug,
+        slug: finalSlug,
         content: post.content,
         excerpt: post.excerpt,
         cover_image: post.cover_image,

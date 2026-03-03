@@ -476,6 +476,9 @@ const {
   formatSavedTime
 } = useDraft(draftKey)
 
+const { generateSlugFromTitle, isValidSlug } = useSlug()
+const { ensureUniqueSlug } = useUniqueSlug()
+
 const fetchPost = async () => {
   try {
     if (!user.value) {
@@ -527,6 +530,11 @@ const updatePost = async () => {
     return
   }
 
+  if (!post.slug || !isValidSlug(post.slug)) {
+    useToast().error('错误', 'URL别名格式不正确')
+    return
+  }
+
   saving.value = true
   try {
     const userId = user.value.id || user.value.sub
@@ -542,11 +550,13 @@ const updatePost = async () => {
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0)
 
+    const finalSlug = await ensureUniqueSlug(post.slug, post.id)
+
     const { error } = await supabase
       .from('blog_posts')
       .update({
         title: post.title,
-        slug: post.slug,
+        slug: finalSlug,
         content: post.content,
         excerpt: post.excerpt,
         cover_image: post.cover_image,
@@ -562,7 +572,7 @@ const updatePost = async () => {
 
     clearDraft()
     useToast().success('成功', '文章已更新')
-    router.push(post.published ? `/blog/${post.slug}` : '/my-blogs')
+    router.push(post.published ? `/blog/${finalSlug}` : '/my-blogs')
   } catch (error) {
     console.error('更新文章失败:', error)
     useToast().error('错误', '更新文章失败')
