@@ -290,7 +290,11 @@ export default defineNuxtConfig({
           content:
             'width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover'
         },
-        { name: 'description', content: '基于 Nuxt 3 的技术博客' },
+        {
+          name: 'description',
+          content:
+            '基于 Nuxt 4 和 Supabase 构建的技术博客，分享前端开发、后端技术、云计算等深度技术文章。'
+        },
         { name: 'theme-color', content: '#3b82f6' },
         { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },

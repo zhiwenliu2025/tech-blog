@@ -362,8 +362,30 @@ watch(
   }
 )
 
-useHead({
-  title: author.value ? `${author.value.username || '作者'}的文章` : '作者文章',
-  meta: [{ name: 'description', content: author.value?.bio || '查看作者的所有博客文章' }]
+const authorConfig = useRuntimeConfig()
+
+useHead(() => {
+  const authorName = author.value?.username || '作者'
+  const authorBio = author.value?.bio || `查看 ${authorName} 的所有博客文章`
+  const authorCanonical = `${authorConfig.public.appUrl || ''}/authors/${authorId}`
+  const authorAvatar = author.value?.avatar_url || '/og-image.jpg'
+
+  return {
+    title: author.value ? `${authorName} 的文章` : '作者文章',
+    meta: [
+      { name: 'description', content: authorBio },
+      { property: 'og:type', content: 'profile' },
+      { property: 'og:title', content: `${authorName} — 技术博客` },
+      { property: 'og:description', content: authorBio },
+      { property: 'og:image', content: authorAvatar },
+      { property: 'og:url', content: authorCanonical },
+      { property: 'og:site_name', content: '技术博客' },
+      { name: 'twitter:card', content: 'summary' },
+      { name: 'twitter:title', content: `${authorName} — 技术博客` },
+      { name: 'twitter:description', content: authorBio },
+      { name: 'twitter:image', content: authorAvatar }
+    ],
+    link: [{ rel: 'canonical', href: authorCanonical }]
+  }
 })
 </script>

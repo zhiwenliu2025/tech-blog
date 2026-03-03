@@ -1128,20 +1128,77 @@ const formatDate = (dateString: string) => {
 }
 
 // 页面元数据
-useHead(() => ({
-  title: () => (post.value ? `${post.value.title} - 技术博客` : '文章详情'),
-  meta: [
-    { name: 'description', content: () => post.value?.excerpt || post.value?.title || '文章详情' },
-    { property: 'og:title', content: () => post.value?.title || '文章详情' },
-    {
-      property: 'og:description',
-      content: () => post.value?.excerpt || post.value?.title || '文章详情'
-    },
-    { property: 'og:image', content: () => post.value?.cover_image || '/og-image.jpg' },
-    { property: 'og:type', content: 'article' },
-    { name: 'twitter:card', content: 'summary_large_image' }
-  ]
-}))
+useHead(() => {
+  const canonicalUrl = post.value ? `${config.public.appUrl || ''}/blog/${post.value.slug}` : ''
+  const description = post.value?.excerpt || post.value?.title || '文章详情'
+  const image = post.value?.cover_image || '/og-image.jpg'
+
+  return {
+    title: post.value ? post.value.title : '文章详情',
+    meta: [
+      { name: 'description', content: description },
+      // Open Graph
+      { property: 'og:type', content: 'article' },
+      { property: 'og:title', content: post.value?.title || '文章详情' },
+      { property: 'og:description', content: description },
+      { property: 'og:image', content: image },
+      { property: 'og:url', content: canonicalUrl },
+      { property: 'og:site_name', content: '技术博客' },
+      // 文章专属 Open Graph
+      {
+        property: 'article:published_time',
+        content: post.value?.created_at || ''
+      },
+      {
+        property: 'article:modified_time',
+        content: post.value?.updated_at || post.value?.created_at || ''
+      },
+      {
+        property: 'article:author',
+        content: author.value?.username || ''
+      },
+      // Twitter Card
+      { name: 'twitter:card', content: 'summary_large_image' },
+      { name: 'twitter:title', content: post.value?.title || '文章详情' },
+      { name: 'twitter:description', content: description },
+      { name: 'twitter:image', content: image }
+    ],
+    link: canonicalUrl ? [{ rel: 'canonical', href: canonicalUrl }] : [],
+    script: post.value
+      ? [
+          {
+            type: 'application/ld+json',
+            innerHTML: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BlogPosting',
+              headline: post.value.title,
+              description: description,
+              image: image,
+              url: canonicalUrl,
+              datePublished: post.value.created_at,
+              dateModified: post.value.updated_at || post.value.created_at,
+              author: {
+                '@type': 'Person',
+                name: author.value?.username || '技术博客作者',
+                url: post.value.author_id
+                  ? `${config.public.appUrl || ''}/authors/${post.value.author_id}`
+                  : undefined
+              },
+              publisher: {
+                '@type': 'Organization',
+                name: '技术博客',
+                url: config.public.appUrl || ''
+              },
+              mainEntityOfPage: {
+                '@type': 'WebPage',
+                '@id': canonicalUrl
+              }
+            })
+          }
+        ]
+      : []
+  }
+})
 
 // 监听文章数据变化
 watch(

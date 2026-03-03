@@ -169,8 +169,22 @@ const { data: posts, pending } = await useAsyncData(
   }
 )
 
+const categoryConfig = useRuntimeConfig()
+const categoryCanonical = `${categoryConfig.public.appUrl || ''}/category/${category.value}`
+
 useHead({
   title: `${category.value} — 分类文章`,
-  meta: [{ name: 'description', content: `浏览 ${category.value} 分类下的所有技术文章` }]
+  meta: [
+    { name: 'description', content: `浏览 ${category.value} 分类下的所有技术文章` },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:title', content: `${category.value} — 技术博客` },
+    { property: 'og:description', content: `浏览 ${category.value} 分类下的所有技术文章` },
+    { property: 'og:url', content: categoryCanonical },
+    { property: 'og:site_name', content: '技术博客' },
+    { name: 'twitter:card', content: 'summary' },
+    { name: 'twitter:title', content: `${category.value} — 技术博客` },
+    { name: 'twitter:description', content: `浏览 ${category.value} 分类下的所有技术文章` }
+  ],
+  link: [{ rel: 'canonical', href: categoryCanonical }]
 })
 </script>
