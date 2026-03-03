@@ -489,11 +489,11 @@ DECLARE
   v_post_ids UUID[];
 BEGIN
   -- 先获取符合条件的文章 ID
-  SELECT ARRAY_AGG(id) INTO v_post_ids
-  FROM blog_posts
-  WHERE published = true
-    AND published_at IS NOT NULL
-    AND published_at >= now() - (p_days || ' days')::interval;
+  SELECT ARRAY_AGG(bp.id) INTO v_post_ids
+  FROM blog_posts bp
+  WHERE bp.published = true
+    AND bp.published_at IS NOT NULL
+    AND bp.published_at >= now() - (p_days || ' days')::interval;
   
   RETURN QUERY
   SELECT
