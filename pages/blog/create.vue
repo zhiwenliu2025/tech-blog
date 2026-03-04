@@ -432,7 +432,9 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
+
 definePageMeta({
   title: '创建文章',
   description: '创建新的博客文章',
@@ -557,40 +559,31 @@ const createPost = async () => {
 
   saving.value = true
   try {
-    const supabase = useSupabaseClient()
     const tags = parsedTags.value
-    const userId = user.value.id || user.value.sub
-    if (!userId) throw new Error('无法获取用户ID')
-
     const finalSlug = await ensureUniqueSlug(post.slug)
 
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .insert({
+    await $fetch('/api/posts', {
+      method: 'POST',
+      body: {
         title: post.title,
         slug: finalSlug,
         content: post.content,
         excerpt: post.excerpt,
         cover_image: post.cover_image,
         published: post.published,
-        author_id: userId,
         category: post.category,
-        tags,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .select()
-
-    if (error) throw error
+        tags
+      }
+    })
 
     clearDraft()
     const toast = useToast()
     toast.success('成功', '文章已创建')
-    router.push(post.published ? `/blog/${post.slug}` : '/my-blogs')
-  } catch (error) {
+    router.push(post.published ? `/blog/${finalSlug}` : '/my-blogs')
+  } catch (error: any) {
     console.error('创建文章失败:', error)
     const toast = useToast()
-    toast.error('错误', '创建文章失败')
+    toast.error('错误', error?.data?.message || '创建文章失败')
   } finally {
     saving.value = false
   }

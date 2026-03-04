@@ -928,7 +928,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 definePageMeta({
   title: '管理后台',
   description: '管理博客文章、用户和系统设置',
@@ -964,13 +964,8 @@ const tabs = [
 
 const fetchPosts = async () => {
   try {
-    const supabase = useSupabaseClient()
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    posts.value = data || []
+    const res = await $fetch('/api/admin/posts', { params: { limit: 200 } })
+    posts.value = res.data || []
   } catch (error) {
     console.error('获取文章列表失败:', error)
   }
@@ -978,13 +973,8 @@ const fetchPosts = async () => {
 
 const fetchUsers = async () => {
   try {
-    const supabase = useSupabaseClient()
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    users.value = data || []
+    const res = await $fetch('/api/admin/users')
+    users.value = res.data || []
   } catch (error) {
     console.error('获取用户列表失败:', error)
   }
@@ -992,13 +982,8 @@ const fetchUsers = async () => {
 
 const fetchMessages = async () => {
   try {
-    const supabase = useSupabaseClient()
-    const { data, error } = await supabase
-      .from('contact_messages')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    messages.value = data || []
+    const res = await $fetch('/api/admin/messages')
+    messages.value = res.data || []
   } catch (error) {
     console.error('获取消息列表失败:', error)
   }
@@ -1041,12 +1026,10 @@ const deletePost = async () => {
 
 const toggleAdminRole = async user => {
   try {
-    const supabase = useSupabaseClient()
-    const { error } = await supabase
-      .from('profiles')
-      .update({ is_admin: !user.is_admin })
-      .eq('id', user.id)
-    if (error) throw error
+    await $fetch(`/api/admin/users/${user.id}/role`, {
+      method: 'PUT',
+      body: { is_admin: !user.is_admin }
+    })
     await fetchUsers()
     useToast().success('成功', `已${user.is_admin ? '取消' : '设置'}管理员权限`)
   } catch (error) {
@@ -1061,12 +1044,10 @@ const openMessage = message => {
 }
 const markAsRead = async message => {
   try {
-    const supabase = useSupabaseClient()
-    const { error } = await supabase
-      .from('contact_messages')
-      .update({ read: true })
-      .eq('id', message.id)
-    if (error) throw error
+    await $fetch(`/api/admin/messages/${message.id}`, {
+      method: 'PUT',
+      body: { read: true }
+    })
     await fetchMessages()
     useToast().success('成功', '消息已标记为已读')
   } catch (error) {
@@ -1082,12 +1063,7 @@ const confirmDeleteMessage = message => {
 const deleteMessage = async () => {
   if (!messageToDelete.value) return
   try {
-    const supabase = useSupabaseClient()
-    const { error } = await supabase
-      .from('contact_messages')
-      .delete()
-      .eq('id', messageToDelete.value.id)
-    if (error) throw error
+    await $fetch(`/api/admin/messages/${messageToDelete.value.id}`, { method: 'DELETE' })
     await fetchMessages()
     showDeleteMessageDialog.value = false
     messageToDelete.value = null

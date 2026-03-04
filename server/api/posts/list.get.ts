@@ -40,9 +40,7 @@ export default defineEventHandler(async event => {
         updated_at,
         category,
         tags,
-        author_id,
-        likes(post_id),
-        comments(post_id)
+        author_id
       `,
       { count: 'exact' }
     )

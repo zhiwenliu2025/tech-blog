@@ -235,7 +235,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 definePageMeta({
   title: '登录',
   description: '用户登录页面',

@@ -91,7 +91,6 @@ const emit = defineEmits<{
   (e: 'error', error: string): void
 }>()
 
-const supabase = useSupabaseClient()
 const { user } = useSupabaseAuth()
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
@@ -187,22 +186,11 @@ const validateFile = (file: File): string | null => {
   return null
 }
 
-// 上传头像
+// 上传头像（通过服务端 API）
 const uploadAvatar = async (file: File) => {
-  // 获取 session 以确保用户 ID 可用
-  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-
-  if (sessionError || !sessionData?.session?.user) {
+  if (!user.value) {
     error.value = '请先登录'
     emit('error', '请先登录')
-    return
-  }
-
-  // 获取用户ID（兼容 id 和 sub 属性）
-  const userId = sessionData.session.user.id || (sessionData.session.user as any).sub
-  if (!userId) {
-    error.value = '无法获取用户ID'
-    emit('error', '无法获取用户ID，请重新登录')
     return
   }
 
@@ -219,106 +207,34 @@ const uploadAvatar = async (file: File) => {
   lastUploadFile.value = file
 
   try {
-    // 处理头像（压缩、裁剪、转换为 WebP）
     const processedFile = await processAvatar(file)
 
     // 生成预览
-    const previewBlob = URL.createObjectURL(processedFile)
-    previewUrl.value = previewBlob
+    previewUrl.value = URL.createObjectURL(processedFile)
+    uploadProgress.value = 30
 
-    // 生成文件名
-    const fileExt = processedFile.name.split('.').pop() || 'jpg'
-    const fileName = `${userId}/avatar.${fileExt}`
+    const formData = new FormData()
+    formData.append('file', processedFile, processedFile.name)
 
-    // 使用 XMLHttpRequest 实现真实上传进度
-    const config = useRuntimeConfig()
-    const supabaseUrl = config.public.supabaseUrl
-    const supabaseKey = config.public.supabaseKey
+    uploadProgress.value = 60
 
-    const uploadPromise = new Promise<{ data: any; error: any }>((resolve, reject) => {
-      // 使用之前获取的 session
-      if (!sessionData?.session) {
-        reject(new Error('未登录'))
-        return
-      }
-
-      const xhr = new XMLHttpRequest()
-      const uploadUrl = `${supabaseUrl}/storage/v1/object/avatars/${fileName}`
-
-      xhr.upload.addEventListener('progress', e => {
-        if (e.lengthComputable) {
-          const percentComplete = Math.round((e.loaded / e.total) * 100)
-          uploadProgress.value = Math.min(percentComplete, 95)
-        }
-      })
-
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          uploadProgress.value = 100
-          try {
-            const response = xhr.responseText ? JSON.parse(xhr.responseText) : {}
-            resolve({ data: response, error: null })
-          } catch {
-            resolve({ data: {}, error: null })
-          }
-        } else {
-          try {
-            const error = JSON.parse(xhr.responseText)
-            reject(error)
-          } catch {
-            reject(new Error(`上传失败: ${xhr.statusText || '未知错误'}`))
-          }
-        }
-      })
-
-      xhr.addEventListener('error', () => {
-        reject(new Error('网络错误，上传失败'))
-      })
-
-      xhr.addEventListener('abort', () => {
-        reject(new Error('上传已取消'))
-      })
-
-      xhr.open('POST', uploadUrl)
-      xhr.setRequestHeader('Authorization', `Bearer ${sessionData.session.access_token}`)
-      xhr.setRequestHeader('apikey', supabaseKey)
-      xhr.setRequestHeader('x-upsert', 'true') // 允许覆盖
-      // 注意：cache-control 是响应头，不能通过请求头设置
-      // Supabase Storage 会自动设置适当的缓存响应头
-
-      const formData = new FormData()
-      formData.append('file', processedFile)
-
-      xhr.send(formData)
+    const res: any = await $fetch('/api/profiles/avatar', {
+      method: 'POST',
+      body: formData
     })
 
-    const { data, error: uploadError } = await uploadPromise
+    uploadProgress.value = 100
 
-    if (uploadError) throw uploadError
-
-    // 获取公共 URL
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(fileName)
-
-    // 更新用户资料
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        avatar_url: urlData.publicUrl
-      })
-      .eq('id', userId)
-
-    if (updateError) throw updateError
-
-    // 清理预览 URL
     if (previewUrl.value) {
       URL.revokeObjectURL(previewUrl.value)
+      previewUrl.value = null
     }
 
-    emit('uploaded', urlData.publicUrl)
+    emit('uploaded', res.data.avatar_url)
     lastUploadFile.value = null
   } catch (err: any) {
     console.error('上传头像失败:', err)
-    const errorMessage = err.message || '上传失败，请重试'
+    const errorMessage = err.data?.message || err.message || '上传失败，请重试'
     error.value = errorMessage
     emit('error', errorMessage)
   } finally {

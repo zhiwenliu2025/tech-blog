@@ -414,7 +414,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 definePageMeta({
   title: '我的博客',
   description: '管理您创建的博客文章',
@@ -422,7 +422,6 @@ definePageMeta({
 })
 
 const { user } = useSupabaseAuth()
-const supabase = useSupabaseClient()
 const { deletePost: deletePostFromBlog } = useBlogPosts()
 
 const posts = ref([])
@@ -455,13 +454,10 @@ const fetchMyPosts = async () => {
   try {
     loading.value = true
     const userId = user.value.id || user.value.sub
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('author_id', userId)
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    posts.value = data || []
+    const res = await $fetch('/api/posts/list', {
+      params: { authorId: userId, published: false, limit: 200 }
+    })
+    posts.value = res.data?.posts || []
   } catch (error) {
     console.error('获取文章列表失败:', error)
     useToast().error('错误', '获取文章列表失败')

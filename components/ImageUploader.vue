@@ -127,7 +127,6 @@ const emit = defineEmits<{
   (e: 'error', error: string): void
 }>()
 
-const supabase = useSupabaseClient()
 const { user } = useSupabaseAuth()
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
@@ -403,12 +402,10 @@ const deleteImageFromStorage = async (imageUrl: string | undefined): Promise<boo
       return false
     }
 
-    const { error } = await supabase.storage.from('blog-images').remove([filePath])
-
-    if (error) {
-      console.error('删除图片失败:', error)
-      return false
-    }
+    await $fetch('/api/images/delete', {
+      method: 'POST' as any,
+      body: { paths: [filePath] }
+    })
 
     return true
   } catch (err) {

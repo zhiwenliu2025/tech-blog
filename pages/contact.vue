@@ -507,28 +507,15 @@ const submitForm = async () => {
   successMessage.value = ''
 
   try {
-    const supabase = useSupabaseClient()
-    const { error } = await supabase
-      .from('contact_messages')
-      .insert({
+    await $fetch('/api/contact', {
+      method: 'POST',
+      body: {
         name: form.value.name.trim(),
         email: form.value.email.trim(),
         subject: form.value.subject.trim(),
         message: form.value.message.trim()
-      } as any)
-      .select()
-      .single()
-
-    if (error) {
-      if (
-        error.code === '42501' ||
-        error.message?.includes('permission') ||
-        error.message?.includes('policy')
-      ) {
-        throw new Error('没有权限发送消息，请检查数据库策略设置')
       }
-      throw error
-    }
+    })
 
     successMessage.value = '您的消息已成功发送！我会尽快回复您。'
     form.value = { name: '', email: '', subject: '', message: '' }
@@ -536,7 +523,7 @@ const submitForm = async () => {
       successMessage.value = ''
     }, 5000)
   } catch (err: any) {
-    errorMessage.value = err.message || '发送消息时出现错误，请稍后再试。'
+    errorMessage.value = err.data?.message || err.message || '发送消息时出现错误，请稍后再试。'
     setTimeout(() => {
       errorMessage.value = ''
     }, 5000)

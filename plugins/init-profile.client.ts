@@ -1,67 +1,51 @@
 export default defineNuxtPlugin(async () => {
   const { user } = useSupabaseAuth()
-  const supabase = useSupabaseClient()
 
-  // Watch for user changes
   watch(
     user,
     async newUser => {
-      if (newUser && newUser.id) {
-        // Check if user profile exists
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', newUser.id)
-          .single()
+      if (!newUser?.id) return
 
-        // If profile doesn't exist, create one
-        if (error && error.code === 'PGRST116') {
-          // Profile doesn't exist, create it
-          // 优先使用 GitHub 用户信息，如果没有则使用邮箱或默认值
+      try {
+        // 尝试获取现有资料
+        const res: any = await $fetch('/api/profiles/me').catch(() => null)
+
+        if (!res?.data) {
+          // 资料不存在，通过 upsert 创建
           const metadata = newUser.user_metadata || {}
           const username =
-            metadata.user_name || // GitHub 用户名
-            metadata.preferred_username || // 其他 OAuth 提供商的用户名
-            newUser.email?.split('@')[0] || // 从邮箱提取
-            'user' // 默认值
+            metadata.user_name ||
+            metadata.preferred_username ||
+            newUser.email?.split('@')[0] ||
+            'user'
+          const full_name = metadata.full_name || metadata.name || ''
+          const avatar_url = metadata.avatar_url || metadata.picture || ''
 
-          const fullName =
-            metadata.full_name || // GitHub 全名
-            metadata.name || // 其他提供商的名称
-            '' // 空字符串
-
-          const avatarUrl =
-            metadata.avatar_url || // GitHub 头像
-            metadata.picture || // 其他提供商的头像
-            '' // 空字符串
-
-          await supabase.from('profiles').insert({
-            id: newUser.id,
-            username,
-            full_name: fullName,
-            avatar_url: avatarUrl,
-            created_at: new Date().toISOString()
-          })
-        } else if (profile) {
-          // 如果用户资料已存在，但缺少 GitHub 信息，尝试更新
+          await $fetch('/api/profiles/me', {
+            method: 'PUT' as any,
+            body: { username, full_name, avatar_url }
+          }).catch(console.error)
+        } else {
+          // 资料已存在，补全 OAuth 信息（如 GitHub 头像/全名）
           const metadata = newUser.user_metadata || {}
-          const updates = {}
+          const updates: Record<string, string> = {}
 
-          // 如果用户资料中没有头像，但 GitHub 有，则更新
-          if (!profile.avatar_url && metadata.avatar_url) {
+          if (!res.data.avatar_url && metadata.avatar_url) {
             updates.avatar_url = metadata.avatar_url
           }
-
-          // 如果用户资料中没有全名，但 GitHub 有，则更新
-          if (!profile.full_name && metadata.full_name) {
-            updates.full_name = metadata.full_name
+          if (!res.data.full_name && (metadata.full_name || metadata.name)) {
+            updates.full_name = metadata.full_name || metadata.name
           }
 
-          // 如果有更新，则保存
           if (Object.keys(updates).length > 0) {
-            await supabase.from('profiles').update(updates).eq('id', newUser.id)
+            await $fetch('/api/profiles/me', {
+              method: 'PUT' as any,
+              body: updates
+            }).catch(console.error)
           }
         }
+      } catch (err) {
+        console.warn('[init-profile] 初始化资料失败:', err)
       }
     },
     { immediate: true }

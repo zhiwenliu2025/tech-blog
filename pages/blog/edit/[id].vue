@@ -417,7 +417,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 definePageMeta({
   title: '编辑文章',
   description: '编辑博客文章',
@@ -427,8 +427,6 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const { user } = useSupabaseAuth()
-const supabase = useSupabaseClient()
-
 const saving = ref(false)
 const tagsString = ref('')
 const showRestoreDialog = ref(false)
@@ -487,20 +485,8 @@ const fetchPost = async () => {
       return
     }
 
-    const userId = user.value.id || user.value.sub
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .select('*')
-      .eq('id', route.params.id)
-      .single()
-
-    if (error) throw error
-
-    if (data.author_id !== userId) {
-      useToast().error('错误', '您没有权限编辑此文章')
-      router.push('/my-blogs')
-      return
-    }
+    const res = await $fetch(`/api/posts/${route.params.id}/edit`)
+    const data = res.data
 
     Object.assign(post, data)
     if (data.tags && Array.isArray(data.tags)) {
@@ -519,7 +505,7 @@ const fetchPost = async () => {
     }
   } catch (error) {
     console.error('获取文章数据失败:', error)
-    useToast().error('错误', '获取文章数据失败')
+    useToast().error('错误', error?.data?.message || '获取文章数据失败')
     router.push('/my-blogs')
   }
 }
@@ -537,14 +523,6 @@ const updatePost = async () => {
 
   saving.value = true
   try {
-    const userId = user.value.id || user.value.sub
-
-    if (post.author_id !== userId) {
-      useToast().error('错误', '您没有权限编辑此文章')
-      router.push('/my-blogs')
-      return
-    }
-
     const tags = tagsString.value
       .split(',')
       .map(tag => tag.trim())
@@ -552,9 +530,9 @@ const updatePost = async () => {
 
     const finalSlug = await ensureUniqueSlug(post.slug, post.id)
 
-    const { error } = await supabase
-      .from('blog_posts')
-      .update({
+    await $fetch(`/api/posts/${post.id}`, {
+      method: 'PUT',
+      body: {
         title: post.title,
         slug: finalSlug,
         content: post.content,
@@ -562,20 +540,16 @@ const updatePost = async () => {
         cover_image: post.cover_image,
         published: post.published,
         category: post.category,
-        tags,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', post.id)
-      .eq('author_id', userId)
-
-    if (error) throw error
+        tags
+      }
+    })
 
     clearDraft()
     useToast().success('成功', '文章已更新')
     router.push(post.published ? `/blog/${finalSlug}` : '/my-blogs')
   } catch (error) {
     console.error('更新文章失败:', error)
-    useToast().error('错误', '更新文章失败')
+    useToast().error('错误', error?.data?.message || '更新文章失败')
   } finally {
     saving.value = false
   }

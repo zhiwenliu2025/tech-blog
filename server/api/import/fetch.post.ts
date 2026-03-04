@@ -102,7 +102,8 @@ export default defineEventHandler(async event => {
 
     // 5. Sanitize HTML with DOMPurify (server-side using linkedom window)
     const { parseHTML } = await import('linkedom')
-    const { window: purifyWindow } = parseHTML('')
+    const linkedomResult = parseHTML('') as any
+    const purifyWindow = linkedomResult.window
 
     const DOMPurify = DOMPurifyFactory(purifyWindow as any)
     const cleanHtml = DOMPurify.sanitize(html, {
@@ -217,10 +218,10 @@ export default defineEventHandler(async event => {
 
     // Custom rule: preserve code blocks with language
     turndownService.addRule('codeBlock', {
-      filter: (node: HTMLElement) => {
+      filter: (node: any) => {
         return node.nodeName === 'PRE' && node.querySelector('code') !== null
       },
-      replacement: (_content: string, node: HTMLElement) => {
+      replacement: (_content: string, node: any) => {
         const codeElement = node.querySelector('code')
         if (!codeElement) return _content
 
@@ -239,12 +240,12 @@ export default defineEventHandler(async event => {
 
     // Custom rule: preserve inline code
     turndownService.addRule('inlineCode', {
-      filter: (node: HTMLElement) => {
+      filter: (node: any) => {
         return (
           node.nodeName === 'CODE' && (!node.parentElement || node.parentElement.nodeName !== 'PRE')
         )
       },
-      replacement: (_content: string, node: HTMLElement) => {
+      replacement: (_content: string, node: any) => {
         const code = node.textContent || ''
         if (code.includes('`')) {
           return `\`\` ${code} \`\``
@@ -255,10 +256,10 @@ export default defineEventHandler(async event => {
 
     // Custom rule: preserve LaTeX math (don't convert $...$ and $$...$$)
     turndownService.addRule('latexInline', {
-      filter: (node: HTMLElement) => {
+      filter: (node: any) => {
         return node.classList?.contains('math-inline') || node.classList?.contains('katex')
       },
-      replacement: (_content: string, node: HTMLElement) => {
+      replacement: (_content: string, node: any) => {
         return node.textContent || ''
       }
     })

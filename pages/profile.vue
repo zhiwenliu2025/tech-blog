@@ -625,7 +625,7 @@ definePageMeta({
 })
 
 const { user: nuxtUser, signOut } = useSupabaseAuth()
-const supabase = useSupabaseClient()
+const supabase = useSupabaseClient() // 仅用于 auth 操作（OAuth、密码重置）
 
 const loading = ref(false)
 const profile = ref<Profile | null>(null)
@@ -633,9 +633,6 @@ const showDeleteDialog = ref(false)
 const identities = ref<UserIdentity[]>([])
 const linking = ref(false)
 const unlinking = ref(false)
-
-console.log('useSupabaseAuth nuxtUser:', nuxtUser.value)
-console.log('用户ID (sub):', nuxtUser.value?.sub)
 
 const form = reactive({
   username: '',
@@ -651,105 +648,43 @@ const stats = reactive({
 })
 
 const fetchProfile = async () => {
-  if (!nuxtUser.value) {
-    console.error('用户未登录')
-    return
-  }
-
-  console.log('用户对象完整结构:', nuxtUser.value)
-  console.log('用户ID类型:', typeof nuxtUser.value.sub)
-  console.log('用户ID值:', nuxtUser.value.sub)
-
-  if (!nuxtUser.value.sub) {
-    console.error('用户ID不存在')
-    const toast = useToast()
-    toast.error('错误', '用户ID不存在，请重新登录')
-    return
-  }
+  if (!nuxtUser.value) return
 
   try {
-    console.log('获取用户资料，用户ID:', nuxtUser.value.sub)
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', nuxtUser.value.sub)
-      .single()
+    const res: any = await $fetch('/api/profiles/me')
+    const data = res.data
 
-    if (error) {
-      console.error('获取用户资料错误:', error)
-      throw error
+    if (data) {
+      profile.value = data as Profile
+      const formRef = form as Record<string, string>
+      const dataRef = data as Record<string, string>
+      Object.keys(form).forEach(key => {
+        formRef[key] = dataRef[key] || ''
+      })
+    } else {
+      // 资料不存在，通过 API upsert 创建
+      const res2: any = await $fetch('/api/profiles/me', {
+        method: 'PUT' as any,
+        body: {
+          username: nuxtUser.value.email?.split('@')[0] || 'user',
+          full_name: ''
+        }
+      })
+      profile.value = res2.data as Profile
     }
-
-    console.log('获取到的用户资料:', data)
-    profile.value = data as Profile
-    const formRef = form as Record<string, string>
-    const dataRef = data as Record<string, string>
-    Object.keys(form).forEach(key => {
-      formRef[key] = dataRef[key] || ''
-    })
   } catch (error) {
     console.error('获取用户资料失败:', error)
-    if ((error as { code?: string }).code === 'PGRST116') {
-      console.log('用户资料不存在，创建默认资料')
-      try {
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            id: nuxtUser.value.sub,
-            username: nuxtUser.value.email?.split('@')[0] || 'user',
-            full_name: '',
-            website: '',
-            bio: ''
-          } as any)
-          .select()
-          .single()
-
-        if (createError) throw createError
-
-        console.log('创建的用户资料:', newProfile)
-        profile.value = newProfile as Profile
-        const formRef2 = form as Record<string, string>
-        const newRef = newProfile as Record<string, string>
-        Object.keys(form).forEach(key => {
-          formRef2[key] = newRef[key] || ''
-        })
-      } catch (createErr) {
-        console.error('创建用户资料失败:', createErr)
-      }
-    }
   }
 }
 
 const fetchStats = async () => {
-  if (!nuxtUser.value) {
-    console.error('用户未登录')
-    return
-  }
-
-  if (!nuxtUser.value.sub) {
-    console.error('用户ID不存在')
-    return
-  }
+  if (!nuxtUser.value) return
 
   try {
-    const { count: postsCount } = await supabase
-      .from('blog_posts')
-      .select('*', { count: 'exact', head: true })
-      .eq('author_id', nuxtUser.value.sub)
-
-    const { count: commentsCount } = await supabase
-      .from('comments')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', nuxtUser.value.sub)
-
-    const { count: likesCount } = await supabase
-      .from('likes')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', nuxtUser.value.sub)
-
-    stats.postsCount = postsCount || 0
-    stats.commentsCount = commentsCount || 0
-    stats.likesCount = likesCount || 0
+    const res: any = await $fetch('/api/profiles/me/stats')
+    stats.postsCount = res.data?.post_count || 0
+    stats.commentsCount = res.data?.comment_count || 0
+    stats.likesCount = res.data?.like_count || 0
   } catch (error) {
     console.error('获取统计数据失败:', error)
   }
@@ -762,30 +697,18 @@ const updateProfile = async () => {
     return
   }
 
-  if (!nuxtUser.value.sub) {
-    const toast = useToast()
-    toast.error('错误', '用户ID不存在，请重新登录')
-    return
-  }
-
   loading.value = true
   try {
-    const updateData: Partial<Omit<Profile, 'id'>> = {}
+    await $fetch('/api/profiles/me', {
+      method: 'PUT' as any,
+      body: {
+        username: form.username,
+        full_name: form.full_name,
+        website: form.website,
+        bio: form.bio
+      }
+    })
 
-    if (form.username !== undefined && form.username !== '') updateData.username = form.username
-    if (form.full_name !== undefined && form.full_name !== '') updateData.full_name = form.full_name
-    if (form.website !== undefined && form.website !== '') updateData.website = form.website
-    if (form.bio !== undefined && form.bio !== '') updateData.bio = form.bio
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updateData as never)
-      .eq('id', nuxtUser.value.sub)
-      .select()
-
-    if (error) throw error
-
-    console.log('更新成功，返回数据:', data)
     await fetchProfile()
 
     const toast = useToast()
@@ -850,27 +773,11 @@ const confirmDeleteAccount = () => {
 }
 
 const deleteAccount = async () => {
-  if (!nuxtUser.value?.sub) {
-    const toast = useToast()
-    toast.error('错误', '用户ID不存在，请重新登录')
-    return
-  }
-
   loading.value = true
   try {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', nuxtUser.value.sub)
-
-    if (profileError) throw profileError
-
-    const { error: authError } = await supabase.rpc('delete_user')
-    if (authError) throw authError
-
+    await $fetch('/api/profiles/me', { method: 'DELETE' as any })
     await signOut()
     await navigateTo('/')
-
     const toast = useToast()
     toast.success('成功', '您的账户已删除')
   } catch (error) {
