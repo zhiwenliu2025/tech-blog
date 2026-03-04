@@ -11,6 +11,7 @@ export default defineEventHandler(async event => {
   if (!id) throw createError({ statusCode: 400, message: 'Missing post ID' })
 
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
 
   try {
     const client = await serverSupabaseClient(event)
@@ -27,7 +28,7 @@ export default defineEventHandler(async event => {
     }
 
     const admin = await isAdminUser(event)
-    if ((post as any).author_id !== user.id && !admin) {
+    if ((post as any).author_id !== userId && !admin) {
       throw createError({ statusCode: 403, message: 'Forbidden' })
     }
 

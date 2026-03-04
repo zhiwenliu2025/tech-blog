@@ -9,6 +9,7 @@ import { serverCache, CACHE_KEYS } from '~/server/utils/cache'
  */
 export default defineEventHandler(async event => {
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
   const body = await readBody(event)
 
   const { username, full_name, bio, website, avatar_url } = body
@@ -17,7 +18,7 @@ export default defineEventHandler(async event => {
     const client = await serverSupabaseClient(event)
 
     const upsertData: any = {
-      id: user.id,
+      id: userId,
       updated_at: new Date().toISOString()
     }
     if (username !== undefined) upsertData.username = username
@@ -34,7 +35,7 @@ export default defineEventHandler(async event => {
     if (error) throw error
 
     // 清除 profile 缓存
-    serverCache.delete(`${CACHE_KEYS.PROFILE}${user.id}`)
+    serverCache.delete(`${CACHE_KEYS.PROFILE}${userId}`)
     serverCache.delete(`${CACHE_KEYS.PROFILES_LIST}all`)
 
     return { success: true, data }

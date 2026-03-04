@@ -9,6 +9,7 @@ import { serverCache, CACHE_KEYS } from '~/server/utils/cache'
  */
 export default defineEventHandler(async event => {
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
 
   try {
     const formData = await readFormData(event)
@@ -19,7 +20,7 @@ export default defineEventHandler(async event => {
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-    const filePath = `${user.id}/avatar.${ext}`
+    const filePath = `${userId}/avatar.${ext}`
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
@@ -43,12 +44,12 @@ export default defineEventHandler(async event => {
     const { error: updateError } = await adminClient
       .from('profiles')
       .update({ avatar_url: avatarUrl })
-      .eq('id', user.id)
+      .eq('id', userId)
 
     if (updateError) throw updateError
 
     // 清除缓存
-    serverCache.delete(`${CACHE_KEYS.PROFILE}${user.id}`)
+    serverCache.delete(`${CACHE_KEYS.PROFILE}${userId}`)
     serverCache.delete(`${CACHE_KEYS.PROFILES_LIST}all`)
 
     return { success: true, data: { avatar_url: avatarUrl } }

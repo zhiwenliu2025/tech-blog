@@ -22,8 +22,10 @@ export default defineEventHandler(async event => {
   try {
     const client = await serverSupabaseClient(event)
 
+    const userId = user.id || (user as any).sub
+
     const { data, error } = await (client.from('comments') as any)
-      .insert({ post_id: postId, user_id: user.id, content })
+      .insert({ post_id: postId, user_id: userId, content })
       .select()
       .single()
 

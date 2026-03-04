@@ -7,15 +7,12 @@ import { requireAuth } from '~/server/utils/auth'
  */
 export default defineEventHandler(async event => {
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
 
   try {
     const client = await serverSupabaseClient(event)
 
-    const { data, error } = await client
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle()
+    const { data, error } = await client.from('profiles').select('*').eq('id', userId).maybeSingle()
 
     if (error) throw error
 

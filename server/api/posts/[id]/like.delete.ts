@@ -11,6 +11,7 @@ export default defineEventHandler(async event => {
   if (!postId) throw createError({ statusCode: 400, message: 'Missing post ID' })
 
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
 
   try {
     const client = await serverSupabaseClient(event)
@@ -19,7 +20,7 @@ export default defineEventHandler(async event => {
       .from('likes')
       .delete()
       .eq('post_id', postId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
 
     if (error) throw error
 

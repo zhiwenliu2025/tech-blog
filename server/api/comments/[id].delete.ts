@@ -11,6 +11,7 @@ export default defineEventHandler(async event => {
   if (!commentId) throw createError({ statusCode: 400, message: 'Missing comment ID' })
 
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
 
   try {
     const client = await serverSupabaseClient(event)
@@ -27,7 +28,7 @@ export default defineEventHandler(async event => {
     }
 
     const admin = await isAdminUser(event)
-    if ((comment as any).user_id !== user.id && !admin) {
+    if ((comment as any).user_id !== userId && !admin) {
       throw createError({ statusCode: 403, message: 'Forbidden' })
     }
 

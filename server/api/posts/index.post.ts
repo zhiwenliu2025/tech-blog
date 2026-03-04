@@ -9,6 +9,7 @@ import { cacheInvalidator } from '~/server/utils/cache'
  */
 export default defineEventHandler(async event => {
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
   const body = await readBody(event)
 
   const { title, slug, excerpt, content, cover_image, category, tags, published } = body
@@ -30,7 +31,7 @@ export default defineEventHandler(async event => {
       category: category || null,
       tags: tags || [],
       published: published === true,
-      author_id: user.id,
+      author_id: userId,
       created_at: now,
       updated_at: now
     }

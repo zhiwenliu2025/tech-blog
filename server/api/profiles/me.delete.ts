@@ -7,6 +7,7 @@ import { requireAuth } from '~/server/utils/auth'
  */
 export default defineEventHandler(async event => {
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
 
   try {
     const client = await serverSupabaseClient(event)
@@ -17,7 +18,7 @@ export default defineEventHandler(async event => {
 
     // 用 service_role 删除 auth.users 中的用户
     const adminClient = serverSupabaseServiceRole(event)
-    const { error: authError } = await adminClient.auth.admin.deleteUser(user.id)
+    const { error: authError } = await adminClient.auth.admin.deleteUser(userId)
     if (authError) throw authError
 
     return { success: true, message: 'Account deleted' }

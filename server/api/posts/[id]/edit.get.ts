@@ -17,6 +17,8 @@ export default defineEventHandler(async event => {
     throw createError({ statusCode: 401, message: 'Unauthorized' })
   }
 
+  const userId = user.id || (user as any).sub
+
   try {
     const client = await serverSupabaseClient(event)
 
@@ -29,7 +31,7 @@ export default defineEventHandler(async event => {
 
     // 只有作者或管理员可以访问草稿
     const admin = await isAdminUser(event)
-    if (post.author_id !== user.id && !admin) {
+    if (post.author_id !== userId && !admin) {
       throw createError({ statusCode: 403, message: 'Forbidden' })
     }
 

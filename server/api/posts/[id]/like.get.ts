@@ -13,13 +13,15 @@ export default defineEventHandler(async event => {
     return { success: true, data: { liked: false } }
   }
 
+  const userId = user.id || (user as any).sub
+
   try {
     const client = await serverSupabaseClient(event)
     const { data, error } = await client
       .from('likes')
       .select('id')
       .eq('post_id', postId)
-      .eq('user_id', user.id)
+      .eq('user_id', userId)
       .maybeSingle()
 
     if (error) throw error

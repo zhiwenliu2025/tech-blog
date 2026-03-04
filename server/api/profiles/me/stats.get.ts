@@ -7,6 +7,7 @@ import { requireAuth } from '~/server/utils/auth'
  */
 export default defineEventHandler(async event => {
   const user = await requireAuth(event)
+  const userId = user.id || (user as any).sub
 
   try {
     const client = await serverSupabaseClient(event)
@@ -15,9 +16,9 @@ export default defineEventHandler(async event => {
       client
         .from('blog_posts')
         .select('id', { count: 'exact', head: true })
-        .eq('author_id', user.id),
-      client.from('comments').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-      client.from('likes').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+        .eq('author_id', userId),
+      client.from('comments').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+      client.from('likes').select('id', { count: 'exact', head: true }).eq('user_id', userId)
     ])
 
     return {
